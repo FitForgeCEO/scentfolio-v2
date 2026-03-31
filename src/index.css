@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+/* ========================================
+   ScentFolio Noir — Design System Tokens
+   "The Digital Sommelier"
+   ======================================== */
+
+@theme {
+  /* Core Palette */
+  --color-background: #191210;
+  --color-surface: #191210;
+  --color-surface-dim: #191210;
+  --color-surface-bright: #413734;
+  --color-surface-container-lowest: #140c0b;
+  --color-surface-container-low: #221a18;
+  --color-surface-container: #261e1b;
+  --color-surface-container-high: #312826;
+  --color-surface-container-highest: #3c3330;
+  --color-surface-variant: #3c3330;
+  --color-surface-tint: #e5c276;
+
+  --color-primary: #e5c276;
+  --color-primary-container: #c4a35a;
+  --color-primary-fixed: #ffdf9c;
+  --color-primary-fixed-dim: #e5c276;
+
+  --color-secondary: #d0c4bb;
+  --color-secondary-container: #4d453e;
+  --color-secondary-fixed: #ede0d7;
+  --color-secondary-fixed-dim: #d0c4bb;
+
+  --color-tertiary: #aad0ae;
+  --color-tertiary-container: #8bb090;
+  --color-tertiary-fixed: #c5ecc9;
+  --color-tertiary-fixed-dim: #aad0ae;
+
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+
+  --color-on-surface: #f0dfdb;
+  --color-on-surface-variant: #d0c5b4;
+  --color-on-background: #f0dfdb;
+  --color-on-primary: #3f2e00;
+  --color-on-primary-container: #4e3900;
+  --color-on-primary-fixed: #251a00;
+  --color-on-primary-fixed-variant: #5b4300;
+  --color-on-secondary: #362f29;
+  --color-on-secondary-container: #bfb3aa;
+  --color-on-secondary-fixed: #211a15;
+  --color-on-secondary-fixed-variant: #4d453e;
+  --color-on-tertiary: #15371f;
+  --color-on-tertiary-container: #22432b;
+  --color-on-tertiary-fixed: #00210c;
+  --color-on-tertiary-fixed-variant: #2c4e34;
+  --color-on-error: #690005;
+  --color-on-error-container: #ffdad6;
+
+  --color-outline: #999080;
+  --color-outline-variant: #4d4639;
+
+  --color-inverse-surface: #f0dfdb;
+  --color-inverse-on-surface: #382e2c;
+  --color-inverse-primary: #755b18;
+
+  /* Typography */
+  --font-headline: "Noto Serif", "Playfair Display", Georgia, serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-label: "Inter", system-ui, sans-serif;
+
+  /* Border Radius */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-4xl: 2.5rem;
+  --radius-full: 9999px;
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-on-surface font-body;
+    min-height: 100dvh;
+    margin: 0;
+  }
+
+  ::selection {
+    background-color: rgba(229, 194, 118, 0.3);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* ========================================
+   Material Symbols
+   ======================================== */
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.material-symbols-outlined.fill {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ========================================
+   Custom Utilities
+   ======================================== */
+
+.gold-gradient {
+  background: linear-gradient(45deg, #e5c276, #c4a35a);
+}
+
+.ambient-glow {
+  box-shadow: 0 12px 32px rgba(229, 194, 118, 0.2);
+}
+
+.glass-surface {
+  background: rgba(25, 18, 16, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.ambient-shadow {
+  box-shadow: 0 12px 32px rgba(25, 18, 16, 0.6);
+}
+
+.sheet-shadow {
+  box-shadow: 0 -12px 48px rgba(25, 18, 16, 0.8);
+}
+
+/* Bottom sheet slide-up animation */
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
