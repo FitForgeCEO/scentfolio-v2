@@ -6,50 +6,51 @@ interface FragranceNotesPyramidProps {
   notesBase?: string[]
 }
 
-/** Tier config */
+/** Tier configuration with visual identity */
 const TIERS = [
-  { key: 'top' as const, label: 'TOP', sublabel: 'First Impression', emoji: '✧' },
-  { key: 'heart' as const, label: 'HEART', sublabel: 'The Character', emoji: '♡' },
-  { key: 'base' as const, label: 'BASE', sublabel: 'The Foundation', emoji: '◆' },
+  { key: 'top' as const, label: 'TOP', sublabel: 'First Impression', icon: '✦', glowColor: 'rgba(229, 194, 118, 0.12)' },
+  { key: 'heart' as const, label: 'HEART', sublabel: 'The Character', icon: '♡', glowColor: 'rgba(229, 194, 118, 0.08)' },
+  { key: 'base' as const, label: 'BASE', sublabel: 'The Foundation', icon: '◇', glowColor: 'rgba(229, 194, 118, 0.05)' },
 ] as const
 
 /**
- * Premium note chip — icon in a soft glow circle + colour-coded label.
- * Each chip has a subtle coloured shadow matching its family.
+ * Gold-ringed note medallion with icon + coloured label.
+ * Larger and more visually prominent than v1.
  */
-function NoteChip({ note, delay }: { note: string; delay: number }) {
+function NoteMedallion({ note }: { note: string }) {
   const colors = getNoteFamilyColors(note)
   const iconPath = getNoteIconPath(note)
 
   return (
-    <div
-      className="inline-flex items-center gap-2 pl-1 pr-3 py-1 rounded-full transition-all duration-500 hover:scale-105 cursor-default"
-      style={{
-        background: colors.bg,
-        boxShadow: `inset 0 0 0 1px ${colors.border}, 0 2px 8px ${colors.bg}`,
-        animationDelay: `${delay}ms`,
-      }}
-    >
-      {/* Icon container with subtle glow ring */}
+    <div className="flex flex-col items-center gap-1.5 group cursor-default">
+      {/* Medallion — gold outer ring, white inner, icon */}
       <div
-        className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
+        className="relative w-11 h-11 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
         style={{
-          background: 'rgba(255,255,255,0.92)',
-          boxShadow: `0 0 6px ${colors.border}`,
+          background: 'linear-gradient(135deg, rgba(229, 194, 118, 0.5), rgba(229, 194, 118, 0.2))',
+          boxShadow: `0 0 12px ${colors.bg}, 0 2px 8px rgba(0,0,0,0.3)`,
         }}
       >
-        <img
-          src={iconPath}
-          alt={note}
-          className="w-[18px] h-[18px] object-contain"
-          loading="lazy"
-          onError={(e) => {
-            ;(e.target as HTMLImageElement).src = '/note-icons/water-drop.png'
+        <div
+          className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden"
+          style={{
+            background: 'rgba(255,255,255,0.93)',
           }}
-        />
+        >
+          <img
+            src={iconPath}
+            alt={note}
+            className="w-5 h-5 object-contain"
+            loading="lazy"
+            onError={(e) => {
+              ;(e.target as HTMLImageElement).src = '/note-icons/water-drop.png'
+            }}
+          />
+        </div>
       </div>
+      {/* Note name */}
       <span
-        className="text-[11px] font-semibold tracking-wide whitespace-nowrap"
+        className="text-[10px] font-semibold tracking-wide text-center leading-tight max-w-[72px]"
         style={{ color: colors.text }}
       >
         {note}
@@ -59,32 +60,35 @@ function NoteChip({ note, delay }: { note: string; delay: number }) {
 }
 
 /**
- * Tier divider — elegant gradient line with a small diamond in the centre.
+ * Vertical gold connector between tiers — dotted line with a small node.
  */
-function TierDivider() {
+function TierConnector() {
   return (
-    <div className="flex items-center justify-center py-2 gap-3 w-full" style={{ maxWidth: '70%', margin: '0 auto' }}>
-      <div className="flex-1 h-px bg-gradient-to-r from-transparent to-primary/20" />
+    <div className="flex flex-col items-center py-1">
+      <div className="w-px h-3" style={{ background: 'rgba(229, 194, 118, 0.2)' }} />
       <div
-        className="w-1.5 h-1.5 rotate-45 shrink-0"
-        style={{ background: 'rgba(229, 194, 118, 0.25)' }}
+        className="w-1.5 h-1.5 rounded-full my-1"
+        style={{ background: 'rgba(229, 194, 118, 0.35)' }}
       />
-      <div className="flex-1 h-px bg-gradient-to-l from-transparent to-primary/20" />
+      <div className="w-px h-3" style={{ background: 'rgba(229, 194, 118, 0.2)' }} />
     </div>
   )
 }
 
 /**
- * Family legend dot.
+ * Family legend pill.
  */
-function FamilyDot({ family, color }: { family: string; color: string }) {
+function FamilyPill({ family, color }: { family: string; color: string }) {
   return (
-    <div className="inline-flex items-center gap-1.5">
+    <div
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+      style={{ background: `${color}12` }}
+    >
       <div
-        className="w-2 h-2 rounded-full"
-        style={{ backgroundColor: color, boxShadow: `0 0 4px ${color}40` }}
+        className="w-1.5 h-1.5 rounded-full"
+        style={{ backgroundColor: color, boxShadow: `0 0 4px ${color}60` }}
       />
-      <span className="text-[9px] tracking-wide text-secondary/50 uppercase">{family}</span>
+      <span className="text-[8px] tracking-[0.12em] font-semibold uppercase" style={{ color }}>{family}</span>
     </div>
   )
 }
@@ -113,91 +117,93 @@ export function FragranceNotesPyramid({ notesTop, notesHeart, notesBase }: Fragr
     { ...TIERS[2], notes: notesBase },
   ]
 
-  // Pyramid width percentages — top is narrowest, base is widest
-  const widthClasses = ['max-w-[72%]', 'max-w-[88%]', 'max-w-full']
-
-  // Running chip index for staggered animation delays
-  let chipIndex = 0
+  // Progressive widths for pyramid shape
+  const tierWidths = ['max-w-[240px]', 'max-w-[300px]', 'max-w-[340px]']
 
   return (
-    <section className="py-2">
+    <section className="py-6">
       {/* Section header */}
-      <div className="flex items-center justify-center gap-3 mb-1.5">
-        <div className="h-px w-8 bg-gradient-to-r from-transparent to-primary/30" />
-        <h3 className="text-[11px] font-bold tracking-[0.2em] text-primary uppercase">
-          FRAGRANCE NOTES
+      <div className="flex flex-col items-center mb-10">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="h-px w-10" style={{ background: 'linear-gradient(to right, transparent, rgba(229, 194, 118, 0.3))' }} />
+          <span className="text-primary text-xs">✦</span>
+          <div className="h-px w-10" style={{ background: 'linear-gradient(to left, transparent, rgba(229, 194, 118, 0.3))' }} />
+        </div>
+        <h3 className="font-headline text-base tracking-[0.15em] text-primary uppercase mb-1">
+          Fragrance Pyramid
         </h3>
-        <div className="h-px w-8 bg-gradient-to-l from-transparent to-primary/30" />
+        <p className="text-[10px] text-secondary/30 tracking-widest italic">
+          How this scent evolves on skin
+        </p>
       </div>
-      <p className="text-[10px] text-secondary/35 text-center mb-8 tracking-wide italic">
-        How this scent unfolds over time
-      </p>
 
-      {/* Pyramid container */}
-      <div className="relative">
-        {/* Subtle background pyramid glow */}
-        <div className="absolute inset-0 flex flex-col items-center pointer-events-none" aria-hidden="true">
-          <div
-            className="w-full h-full"
-            style={{
-              clipPath: 'polygon(50% 2%, 10% 98%, 90% 98%)',
-              background: 'linear-gradient(180deg, rgba(229, 194, 118, 0.04) 0%, rgba(229, 194, 118, 0.07) 60%, rgba(229, 194, 118, 0.03) 100%)',
-            }}
-          />
-        </div>
+      {/* Pyramid tiers */}
+      <div className="flex flex-col items-center">
+        {tiers.map(({ key, label, sublabel, icon, glowColor, notes }, index) => {
+          if (!notes || notes.length === 0) return null
 
-        {/* Faint vertical centre line behind everything */}
-        <div
-          className="absolute left-1/2 top-[10%] bottom-[10%] w-px -translate-x-1/2 pointer-events-none"
-          style={{
-            background: 'linear-gradient(180deg, transparent 0%, rgba(229, 194, 118, 0.08) 30%, rgba(229, 194, 118, 0.08) 70%, transparent 100%)',
-          }}
-          aria-hidden="true"
-        />
+          return (
+            <div key={key} className="flex flex-col items-center w-full">
+              {/* Connector from previous tier */}
+              {index > 0 && <TierConnector />}
 
-        {/* Note tiers */}
-        <div className="relative flex flex-col items-center gap-5 py-4">
-          {tiers.map(({ key, label, sublabel, emoji, notes }, index) => {
-            if (!notes || notes.length === 0) return null
+              {/* Tier card */}
+              <div className={`w-full ${tierWidths[index]} mx-auto`}>
+                <div
+                  className="relative rounded-2xl px-5 py-5 overflow-hidden"
+                  style={{
+                    background: `linear-gradient(135deg, rgba(38, 30, 27, 0.8), rgba(38, 30, 27, 0.4))`,
+                    backdropFilter: 'blur(12px)',
+                    boxShadow: `inset 0 1px 0 rgba(229, 194, 118, 0.08), 0 4px 24px rgba(0,0,0,0.2)`,
+                  }}
+                >
+                  {/* Subtle radial glow behind the card */}
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: `radial-gradient(ellipse at center, ${glowColor} 0%, transparent 70%)`,
+                    }}
+                    aria-hidden="true"
+                  />
 
-            const tierContent = (
-              <div key={key} className={`flex flex-col items-center gap-3 ${widthClasses[index]}`}>
-                {/* Tier label */}
-                <div className="flex flex-col items-center gap-0.5">
-                  <span className="text-[10px] text-primary/30">{emoji}</span>
-                  <span className="text-[9px] tracking-[0.3em] font-bold text-primary/70 uppercase">
-                    {label}
-                  </span>
-                  <span className="text-[8px] tracking-[0.15em] text-secondary/25 uppercase">
-                    {sublabel}
-                  </span>
+                  {/* Tier label row */}
+                  <div className="relative flex items-center justify-center gap-2 mb-4">
+                    <span className="text-primary/40 text-[10px]">{icon}</span>
+                    <div className="flex flex-col items-center">
+                      <span className="font-headline text-[13px] tracking-[0.25em] text-primary/90 uppercase">
+                        {label}
+                      </span>
+                      <span className="text-[8px] tracking-[0.15em] text-secondary/30 uppercase mt-0.5">
+                        {sublabel}
+                      </span>
+                    </div>
+                    <span className="text-primary/40 text-[10px]">{icon}</span>
+                  </div>
+
+                  {/* Note medallions */}
+                  <div className="relative flex gap-4 flex-wrap justify-center">
+                    {notes.map((note) => (
+                      <NoteMedallion key={note} note={note} />
+                    ))}
+                  </div>
                 </div>
-
-                {/* Note chips */}
-                <div className="flex gap-2 flex-wrap justify-center">
-                  {notes.map((note) => {
-                    const currentIndex = chipIndex++
-                    return <NoteChip key={note} note={note} delay={currentIndex * 40} />
-                  })}
-                </div>
-
-                {/* Divider between tiers (not after last) */}
-                {index < 2 && <TierDivider />}
               </div>
-            )
-
-            return tierContent
-          })}
-        </div>
+            </div>
+          )
+        })}
       </div>
 
       {/* Family colour legend */}
       {familiesPresent.size > 1 && (
-        <div className="mt-8 pt-4" style={{ borderTop: '1px solid rgba(229, 194, 118, 0.06)' }}>
-          <p className="text-[8px] tracking-[0.2em] text-secondary/25 uppercase text-center mb-3">NOTE FAMILIES</p>
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 px-4">
+        <div className="mt-10 flex flex-col items-center">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-px w-6" style={{ background: 'linear-gradient(to right, transparent, rgba(229, 194, 118, 0.12))' }} />
+            <span className="text-[7px] tracking-[0.25em] text-secondary/20 uppercase font-bold">Note Families</span>
+            <div className="h-px w-6" style={{ background: 'linear-gradient(to left, transparent, rgba(229, 194, 118, 0.12))' }} />
+          </div>
+          <div className="flex flex-wrap justify-center gap-2 px-4">
             {Array.from(familiesPresent.entries()).map(([family, color]) => (
-              <FamilyDot key={family} family={family} color={color} />
+              <FamilyPill key={family} family={family} color={color} />
             ))}
           </div>
         </div>
