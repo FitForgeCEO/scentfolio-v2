@@ -5,6 +5,7 @@ import { useFragranceDetail, useFragranceReviews, useFragranceTags } from '@/hoo
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { LogWearSheet } from './LogWearSheet'
+import { FragranceNotesPyramid } from '../fragrance/FragranceNotesPyramid'
 
 function accordToPercent(level: string): number {
   switch (level) {
@@ -225,36 +226,11 @@ export function FragranceDetailScreen() {
         )}
 
         {/* Notes Pyramid */}
-        {(frag.notes_top || frag.notes_heart || frag.notes_base) && (
-          <section>
-            <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase mb-8 text-center">
-              FRAGRANCE NOTES
-            </h3>
-            <div className="flex flex-col items-center gap-8">
-              {([
-                { tier: 'TOP', notes: frag.notes_top },
-                { tier: 'HEART', notes: frag.notes_heart },
-                { tier: 'BASE', notes: frag.notes_base },
-              ] as const).map(({ tier, notes }) =>
-                notes && notes.length > 0 ? (
-                  <div key={tier} className="flex flex-col items-center gap-3">
-                    <span className="text-[9px] tracking-[0.2em] font-bold text-secondary/40 uppercase">{tier}</span>
-                    <div className="flex gap-2 flex-wrap justify-center">
-                      {notes.map((note) => (
-                        <div
-                          key={note}
-                          className="px-4 py-2 bg-surface-container-highest rounded-full text-[11px] font-medium text-on-surface-variant"
-                        >
-                          {note}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null
-              )}
-            </div>
-          </section>
-        )}
+        <FragranceNotesPyramid
+          notesTop={frag.notes_top ?? undefined}
+          notesHeart={frag.notes_heart ?? undefined}
+          notesBase={frag.notes_base ?? undefined}
+        />
 
         {/* Performance */}
         {(longevityFilled || sillageFilled) && (
