@@ -14,8 +14,8 @@ const TIERS = [
 ] as const
 
 /**
- * Gold-ringed note medallion with icon + coloured label.
- * Larger and more visually prominent than v1.
+ * Note medallion — icon floats directly on a family-coloured glow disc,
+ * no white background. Icons now have transparent backgrounds.
  */
 function NoteMedallion({ note }: { note: string }) {
   const colors = getNoteFamilyColors(note)
@@ -23,30 +23,34 @@ function NoteMedallion({ note }: { note: string }) {
 
   return (
     <div className="flex flex-col items-center gap-1.5 group cursor-default">
-      {/* Medallion — gold outer ring, white inner, icon */}
+      {/* Glowing disc — family colour tint, no white */}
       <div
         className="relative w-11 h-11 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
         style={{
-          background: 'linear-gradient(135deg, rgba(229, 194, 118, 0.5), rgba(229, 194, 118, 0.2))',
-          boxShadow: `0 0 12px ${colors.bg}, 0 2px 8px rgba(0,0,0,0.3)`,
+          background: `radial-gradient(circle, ${colors.bg} 40%, transparent 70%)`,
+          boxShadow: `0 0 16px ${colors.bg}, 0 0 4px ${colors.border}`,
         }}
       >
+        {/* Subtle gold ring */}
         <div
-          className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden"
+          className="absolute inset-0 rounded-full"
           style={{
-            background: 'rgba(255,255,255,0.93)',
+            border: `1px solid ${colors.border}`,
+            opacity: 0.4,
           }}
-        >
-          <img
-            src={iconPath}
-            alt={note}
-            className="w-5 h-5 object-contain"
-            loading="lazy"
-            onError={(e) => {
-              ;(e.target as HTMLImageElement).src = '/note-icons/water-drop.png'
-            }}
-          />
-        </div>
+        />
+        <img
+          src={iconPath}
+          alt={note}
+          className="w-7 h-7 object-contain relative z-10 drop-shadow-sm"
+          style={{
+            filter: 'brightness(1.15) contrast(1.1)',
+          }}
+          loading="lazy"
+          onError={(e) => {
+            ;(e.target as HTMLImageElement).src = '/note-icons/water-drop.png'
+          }}
+        />
       </div>
       {/* Note name */}
       <span
@@ -60,7 +64,7 @@ function NoteMedallion({ note }: { note: string }) {
 }
 
 /**
- * Vertical gold connector between tiers — dotted line with a small node.
+ * Vertical gold connector between tiers.
  */
 function TierConnector() {
   return (
