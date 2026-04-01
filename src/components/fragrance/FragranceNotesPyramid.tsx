@@ -30,16 +30,14 @@ function NoteChip({ note }: { note: string }) {
       }}
     >
       <div
-        className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 overflow-hidden"
-        style={{ background: colors.bg }}
+        className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 overflow-hidden bg-white/90"
       >
         <img
           src={iconPath}
           alt={note}
-          className="w-5 h-5 object-contain"
+          className="w-[18px] h-[18px] object-contain"
           loading="lazy"
           onError={(e) => {
-            // Fallback to water-drop if icon fails
             ;(e.target as HTMLImageElement).src = '/note-icons/water-drop.png'
           }}
         />
