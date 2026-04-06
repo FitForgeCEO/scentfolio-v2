@@ -302,35 +302,29 @@ export function FragranceDetailScreen() {
         </div>
 
         {/* LOG button */}
-        <div className="flex flex-col items-center gap-2 cursor-pointer group" role="button" tabIndex={0} onClick={() => setLogSheetOpen(true)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLogSheetOpen(true) } }}>
+        <button
+          className="flex flex-col items-center gap-2 group bg-transparent border-none"
+          onClick={() => setLogSheetOpen(true)}
+        >
           <div className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-highest group-active:scale-90 transition-transform">
             <Icon name="calendar_today" className="text-secondary" />
           </div>
           <span className="text-[9px] tracking-widest uppercase font-bold text-secondary/60">LOG</span>
-        </div>
+        </button>
 
         {/* REVIEW button */}
-        <div
-          className="flex flex-col items-center gap-2 cursor-pointer group"
-          role="button"
-          tabIndex={0}
+        <button
+          className="flex flex-col items-center gap-2 group bg-transparent border-none"
           onClick={() => {
             if (!user) { navigate('/profile'); return }
             setReviewSheetOpen(true)
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              if (!user) { navigate('/profile'); return }
-              setReviewSheetOpen(true)
-            }
           }}
         >
           <div className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-highest group-active:scale-90 transition-transform">
             <Icon name="rate_review" className="text-secondary" />
           </div>
           <span className="text-[9px] tracking-widest uppercase font-bold text-secondary/60">REVIEW</span>
-        </div>
+        </button>
       </section>
 
       {/* Log Wear Bottom Sheet */}

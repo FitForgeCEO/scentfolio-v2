@@ -22,6 +22,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
   const [xpGained, setXpGained] = useState(0)
 
   // Fragrance selection state (for when no fragrance is pre-passed)
@@ -81,24 +82,32 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
     if (!user || !fragrance) return
     if (selectedDay === 'custom' && !customDate) return
     setSaving(true)
+    setErrorMsg('')
 
-    const { error } = await supabase.from('wear_logs').insert({
-      user_id: user.id,
-      fragrance_id: fragrance.id,
-      wear_date: getWearDate(),
-      occasion: selectedOccasion.toLowerCase().replace(/ /g, '_'),
-      notes: notes.trim() || null,
-    })
+    try {
+      const { error } = await supabase.from('wear_logs').insert({
+        user_id: user.id,
+        fragrance_id: fragrance.id,
+        wear_date: getWearDate(),
+        occasion: selectedOccasion.toLowerCase().replace(/ /g, '_'),
+        notes: notes.trim() || null,
+      })
 
-    setSaving(false)
-    if (!error) {
+      if (error) {
+        setErrorMsg(error.message || 'Failed to save — please try again.')
+        setSaving(false)
+        return
+      }
+
       // Award XP
       const result = await awardXP(user.id, 'LOG_WEAR')
       setXpGained(result ? XP_AWARDS.LOG_WEAR : 0)
+      setSaving(false)
       setSuccess(true)
       setTimeout(() => {
         setSuccess(false)
         setXpGained(0)
+        setErrorMsg('')
         setNotes('')
         setCustomDate('')
         setSelectedDay('today')
@@ -107,6 +116,9 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
         setSearchQuery('')
         onClose()
       }, 1200)
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Something went wrong — please try again.')
+      setSaving(false)
     }
   }
 
@@ -321,6 +333,11 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
 
           {/* Footer */}
           <div className="pt-2 flex flex-col items-center gap-4">
+            {errorMsg && (
+              <div role="alert" className="w-full py-3 px-4 bg-error/10 text-error text-sm rounded-2xl text-center">
+                {errorMsg}
+              </div>
+            )}
             {success ? (
               <div role="status" aria-live="polite" className="w-full py-4 bg-primary/20 text-primary font-bold uppercase tracking-[0.15em] rounded-2xl text-center flex items-center justify-center gap-2">
                 <Icon name="check_circle" filled className="text-xl" />

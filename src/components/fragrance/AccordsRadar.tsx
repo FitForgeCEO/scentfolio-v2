@@ -54,9 +54,9 @@ function getAccordColor(name: string): string {
 export function AccordsRadar({ accords }: AccordsRadarProps) {
   if (accords.length === 0) return null
 
-  const cx = 140
-  const cy = 140
-  const maxR = 110
+  const cx = 150
+  const cy = 150
+  const maxR = 100
   const n = accords.length
   const rings = [0.25, 0.5, 0.75, 1.0]
 
@@ -85,10 +85,17 @@ export function AccordsRadar({ accords }: AccordsRadarProps) {
   const dataPoints = accords.map((a, i) => polarToXY(i, maxR * (a.value / 100)))
   const dataPath = dataPoints.map((p) => `${p.x},${p.y}`).join(' ')
 
-  // Label positions (pushed slightly further out)
+  // Label positions (pushed outside the chart with enough room for text)
   const labelPositions = accords.map((a, i) => {
-    const pt = polarToXY(i, maxR + 28)
-    return { ...pt, name: a.name, value: a.value, color: getAccordColor(a.name) }
+    const pt = polarToXY(i, maxR + 32)
+    const angle = (Math.PI * 2 * i) / n - Math.PI / 2
+    // Determine text-anchor based on position around the circle
+    let anchor: 'start' | 'middle' | 'end' = 'middle'
+    if (Math.cos(angle) > 0.3) anchor = 'start'
+    else if (Math.cos(angle) < -0.3) anchor = 'end'
+    // Nudge Y for top/bottom labels
+    const dy = Math.sin(angle) > 0.3 ? 12 : Math.sin(angle) < -0.3 ? -4 : 4
+    return { ...pt, name: a.name, value: a.value, color: getAccordColor(a.name), anchor, dy }
   })
 
   // Screen reader description
@@ -102,7 +109,7 @@ export function AccordsRadar({ accords }: AccordsRadarProps) {
           <span key={a.name}>{a.name}: {a.value}%. </span>
         ))}
       </div>
-      <svg viewBox="0 0 280 280" className="w-full max-w-[280px]" aria-hidden="true">
+      <svg viewBox="0 0 300 300" className="w-full max-w-[300px]" aria-hidden="true">
         <defs>
           <radialGradient id="radar-fill" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#e5c276" stopOpacity="0.35" />
@@ -155,19 +162,36 @@ export function AccordsRadar({ accords }: AccordsRadarProps) {
             strokeWidth={1.5}
           />
         ))}
-      </svg>
 
-      {/* Labels beneath the chart */}
-      <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-2 px-2">
+        {/* Labels on the graph at each vertex */}
         {labelPositions.map((l) => (
-          <div key={l.name} className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: l.color }} />
-            <span className="text-[9px] font-bold tracking-wider text-secondary/70 uppercase">
+          <g key={l.name}>
+            <circle cx={l.x} cy={l.y + l.dy - 4} r={1.5} fill={l.color} />
+            <text
+              x={l.x + (l.anchor === 'start' ? 5 : l.anchor === 'end' ? -5 : 0)}
+              y={l.y + l.dy}
+              textAnchor={l.anchor}
+              fill={l.color}
+              fontSize="8.5"
+              fontWeight="700"
+              letterSpacing="0.05em"
+              style={{ textTransform: 'uppercase' }}
+            >
               {l.name}
-            </span>
-          </div>
+            </text>
+            <text
+              x={l.x + (l.anchor === 'start' ? 5 : l.anchor === 'end' ? -5 : 0)}
+              y={l.y + l.dy + 10}
+              textAnchor={l.anchor}
+              fill="rgba(139,125,107,0.7)"
+              fontSize="7.5"
+              fontWeight="600"
+            >
+              {l.value}%
+            </text>
+          </g>
         ))}
-      </div>
+      </svg>
     </div>
   )
 }
