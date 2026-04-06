@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
@@ -13,7 +13,7 @@ interface LogWearSheetProps {
   fragrance?: Fragrance | null
 }
 
-export function LogWearSheet({ isOpen, onClose, fragrance }: LogWearSheetProps) {
+export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: LogWearSheetProps) {
   const { user } = useAuth()
   const [selectedDay, setSelectedDay] = useState<'today' | 'yesterday' | 'custom'>('today')
   const [customDate, setCustomDate] = useState('')
@@ -22,6 +22,49 @@ export function LogWearSheet({ isOpen, onClose, fragrance }: LogWearSheetProps) 
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
   const [xpGained, setXpGained] = useState(0)
+
+  // Fragrance selection state (for when no fragrance is pre-passed)
+  const [chosenFragrance, setChosenFragrance] = useState<Fragrance | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<Fragrance[]>([])
+  const [searching, setSearching] = useState(false)
+  const searchTimeout = useRef<ReturnType<typeof setTimeout>>()
+
+  const fragrance = passedFragrance ?? chosenFragrance
+
+  // Reset state when sheet closes
+  useEffect(() => {
+    if (!isOpen) {
+      setChosenFragrance(null)
+      setSearchQuery('')
+      setSearchResults([])
+    }
+  }, [isOpen])
+
+  // Debounced search
+  useEffect(() => {
+    if (searchQuery.length < 2) {
+      setSearchResults([])
+      setSearching(false)
+      return
+    }
+    setSearching(true)
+    clearTimeout(searchTimeout.current)
+    searchTimeout.current = setTimeout(() => {
+      supabase
+        .from('fragrances')
+        .select('*')
+        .or(`name.ilike.%${searchQuery}%,brand.ilike.%${searchQuery}%`)
+        .not('image_url', 'is', null)
+        .order('rating', { ascending: false, nullsFirst: false })
+        .limit(8)
+        .then(({ data }) => {
+          if (data) setSearchResults(data as Fragrance[])
+          setSearching(false)
+        })
+    }, 300)
+    return () => clearTimeout(searchTimeout.current)
+  }, [searchQuery])
 
   if (!isOpen) return null
 
@@ -58,9 +101,17 @@ export function LogWearSheet({ isOpen, onClose, fragrance }: LogWearSheetProps) 
         setCustomDate('')
         setSelectedDay('today')
         setSelectedOccasion('Casual')
+        setChosenFragrance(null)
+        setSearchQuery('')
         onClose()
       }, 1200)
     }
+  }
+
+  const handleSelectFragrance = (f: Fragrance) => {
+    setChosenFragrance(f)
+    setSearchQuery('')
+    setSearchResults([])
   }
 
   return (
@@ -69,7 +120,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance }: LogWearSheetProps) 
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
       {/* Sheet */}
-      <section className="relative w-full max-h-[75vh] bg-surface-container-low rounded-t-[2.5rem] sheet-shadow flex flex-col overflow-hidden animate-slide-up">
+      <section className="relative w-full max-h-[85vh] bg-surface-container-low rounded-t-[2.5rem] sheet-shadow flex flex-col overflow-hidden animate-slide-up">
         {/* Drag Handle */}
         <div className="flex justify-center py-4">
           <div className="w-12 h-1 bg-surface-container-highest rounded-full" />
@@ -88,6 +139,75 @@ export function LogWearSheet({ isOpen, onClose, fragrance }: LogWearSheetProps) 
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-8 space-y-8 pb-10">
+
+          {/* Fragrance Selector — shown when no fragrance pre-passed */}
+          {!passedFragrance && !chosenFragrance && (
+            <div className="space-y-3">
+              <label className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">FRAGRANCE</label>
+              <div className="relative">
+                <div className="flex items-center bg-surface-container rounded-2xl px-4 py-3 focus-within:ring-1 ring-primary/30 transition-all">
+                  <Icon name="search" className="text-secondary/50 mr-3" size={18} />
+                  <input
+                    className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-secondary/40 w-full text-sm"
+                    placeholder="Search by name or brand..."
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    autoFocus
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery('')} className="text-secondary/60 active:scale-90 transition-transform">
+                      <Icon name="close" size={16} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Search Results */}
+                {searchQuery.length >= 2 && (
+                  <div className="mt-2 max-h-[35vh] overflow-y-auto rounded-2xl bg-surface-container divide-y divide-outline-variant/10">
+                    {searching ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    ) : searchResults.length === 0 ? (
+                      <div className="py-8 text-center">
+                        <p className="text-sm text-secondary/50">No fragrances found</p>
+                      </div>
+                    ) : (
+                      searchResults.map((f) => (
+                        <button
+                          key={f.id}
+                          onClick={() => handleSelectFragrance(f)}
+                          className="w-full flex items-center gap-3 p-3 hover:bg-surface-container-highest active:bg-surface-container-highest transition-colors text-left"
+                        >
+                          <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                            {f.image_url ? (
+                              <img src={f.image_url} alt={f.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Icon name="water_drop" className="text-secondary/30" size={16} />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[9px] uppercase tracking-[0.15em] text-primary/70 font-bold">{f.brand}</p>
+                            <p className="text-sm text-on-surface truncate">{f.name}</p>
+                          </div>
+                          {f.rating && (
+                            <div className="flex items-center gap-0.5 text-primary/60">
+                              <Icon name="star" filled className="text-[11px]" />
+                              <span className="text-[10px] font-bold">{Number(f.rating).toFixed(1)}</span>
+                            </div>
+                          )}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Selected Fragrance Card */}
           {fragrance && (
             <div className="flex items-center gap-4 bg-surface-container p-4 rounded-2xl">
@@ -104,6 +224,15 @@ export function LogWearSheet({ isOpen, onClose, fragrance }: LogWearSheetProps) 
                 <p className="text-[10px] uppercase tracking-[0.15em] text-primary font-bold">{fragrance.brand}</p>
                 <h3 className="text-lg font-headline text-on-surface truncate">{fragrance.name}</h3>
               </div>
+              {/* Allow changing fragrance when no pre-passed fragrance */}
+              {!passedFragrance && (
+                <button
+                  onClick={() => { setChosenFragrance(null); setSearchQuery('') }}
+                  className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary/60 active:scale-90 transition-transform flex-shrink-0"
+                >
+                  <Icon name="swap_horiz" size={16} />
+                </button>
+              )}
             </div>
           )}
 
@@ -199,7 +328,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance }: LogWearSheetProps) 
                 disabled={saving || !fragrance || !user || (selectedDay === 'custom' && !customDate)}
                 className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-2xl ambient-glow active:scale-[0.98] transition-all disabled:opacity-50"
               >
-                {saving ? 'SAVING...' : !user ? 'SIGN IN TO LOG' : 'LOG WEAR'}
+                {saving ? 'SAVING...' : !user ? 'SIGN IN TO LOG' : !fragrance ? 'SELECT A FRAGRANCE' : 'LOG WEAR'}
               </button>
             )}
             <div className="flex items-center gap-2">

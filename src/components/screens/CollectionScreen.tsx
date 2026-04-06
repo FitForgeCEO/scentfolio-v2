@@ -1,9 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { InlineError } from '../ui/InlineError'
 import { useUserCollection } from '@/hooks/useFragrances'
 import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
+import { awardXP } from '@/lib/xp'
+import type { Fragrance } from '@/types/database'
 
 const STATUS_TABS = ['ALL', 'OWN', 'WISHLIST', 'SAMPLED', 'SOLD'] as const
 type StatusFilter = (typeof STATUS_TABS)[number]
@@ -23,6 +26,73 @@ export function CollectionScreen() {
   const { user } = useAuth()
   const userId = user?.id
   const { data: collection, loading, error, retry } = useUserCollection(userId)
+
+  // Quick-add overlay state
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [addQuery, setAddQuery] = useState('')
+  const [addResults, setAddResults] = useState<Fragrance[]>([])
+  const [addSearching, setAddSearching] = useState(false)
+  const [addingSaving, setAddingSaving] = useState<string | null>(null)
+  const addTimeout = useRef<ReturnType<typeof setTimeout>>()
+
+  // Which status to add as — based on active tab
+  const addStatus = activeTab === 'ALL' || activeTab === 'SOLD' ? 'own' : activeTab.toLowerCase()
+
+  // Debounced search for quick-add
+  useEffect(() => {
+    if (addQuery.length < 2) {
+      setAddResults([])
+      setAddSearching(false)
+      return
+    }
+    setAddSearching(true)
+    clearTimeout(addTimeout.current)
+    addTimeout.current = setTimeout(() => {
+      supabase
+        .from('fragrances')
+        .select('*')
+        .or(`name.ilike.%${addQuery}%,brand.ilike.%${addQuery}%`)
+        .not('image_url', 'is', null)
+        .order('rating', { ascending: false, nullsFirst: false })
+        .limit(10)
+        .then(({ data }) => {
+          if (data) setAddResults(data as Fragrance[])
+          setAddSearching(false)
+        })
+    }, 300)
+    return () => clearTimeout(addTimeout.current)
+  }, [addQuery])
+
+  const handleQuickAdd = async (frag: Fragrance) => {
+    if (!user) return
+    setAddingSaving(frag.id)
+    // Check if already in collection
+    const { data: existing } = await supabase
+      .from('user_collections')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('fragrance_id', frag.id)
+      .maybeSingle()
+
+    if (existing) {
+      // Already exists — update status
+      await supabase
+        .from('user_collections')
+        .update({ status: addStatus })
+        .eq('user_id', user.id)
+        .eq('fragrance_id', frag.id)
+    } else {
+      await supabase
+        .from('user_collections')
+        .insert({ user_id: user.id, fragrance_id: frag.id, status: addStatus })
+      await awardXP(user.id, 'ADD_TO_COLLECTION')
+    }
+    setAddingSaving(null)
+    setQuickAddOpen(false)
+    setAddQuery('')
+    setAddResults([])
+    retry() // refresh collection
+  }
 
   const filtered = collection
     .filter((item) => {
@@ -198,6 +268,112 @@ export function CollectionScreen() {
             </div>
           ))}
         </section>
+      )}
+      {/* FAB — Add Fragrance */}
+      {user && (
+        <button
+          onClick={() => setQuickAddOpen(true)}
+          className="fixed bottom-24 right-6 z-50 w-14 h-14 rounded-full gold-gradient shadow-xl flex items-center justify-center active:scale-90 transition-all ambient-glow"
+          aria-label="Add fragrance"
+        >
+          <Icon name="add" className="text-on-primary text-2xl" />
+        </button>
+      )}
+
+      {/* Quick-Add Overlay */}
+      {quickAddOpen && (
+        <div className="fixed inset-0 z-[60] flex flex-col justify-end">
+          <div className="absolute inset-0 bg-black/40" onClick={() => { setQuickAddOpen(false); setAddQuery(''); setAddResults([]) }} />
+          <section className="relative w-full max-h-[70vh] bg-surface-container-low rounded-t-[2.5rem] sheet-shadow flex flex-col overflow-hidden animate-slide-up">
+            {/* Handle */}
+            <div className="flex justify-center py-4">
+              <div className="w-12 h-1 bg-surface-container-highest rounded-full" />
+            </div>
+            {/* Header */}
+            <header className="px-8 pb-4 flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-headline font-bold text-on-surface">Add Fragrance</h2>
+                <p className="text-[10px] uppercase tracking-[0.15em] text-primary font-bold mt-1">
+                  Adding to: {addStatus.toUpperCase()}
+                </p>
+              </div>
+              <button
+                onClick={() => { setQuickAddOpen(false); setAddQuery(''); setAddResults([]) }}
+                className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform"
+              >
+                <Icon name="close" size={20} />
+              </button>
+            </header>
+            {/* Search */}
+            <div className="px-8 pb-4">
+              <div className="flex items-center bg-surface-container rounded-2xl px-4 py-3 focus-within:ring-1 ring-primary/30 transition-all">
+                <Icon name="search" className="text-secondary/50 mr-3" size={18} />
+                <input
+                  className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-secondary/40 w-full text-sm"
+                  placeholder="Search fragrances..."
+                  type="text"
+                  value={addQuery}
+                  onChange={(e) => setAddQuery(e.target.value)}
+                  autoFocus
+                />
+                {addQuery && (
+                  <button onClick={() => setAddQuery('')} className="text-secondary/60">
+                    <Icon name="close" size={16} />
+                  </button>
+                )}
+              </div>
+            </div>
+            {/* Results */}
+            <div className="flex-1 overflow-y-auto px-8 pb-8">
+              {addSearching ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : addQuery.length >= 2 && addResults.length === 0 ? (
+                <div className="py-12 text-center">
+                  <p className="text-sm text-secondary/50">No fragrances found</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-outline-variant/10">
+                  {addResults.map((f) => {
+                    const alreadyInCollection = collection.some((c) => c.fragrance.id === f.id)
+                    return (
+                      <button
+                        key={f.id}
+                        onClick={() => !alreadyInCollection && handleQuickAdd(f)}
+                        disabled={addingSaving === f.id || alreadyInCollection}
+                        className="w-full flex items-center gap-3 py-3 text-left disabled:opacity-50 active:bg-surface-container-highest transition-colors"
+                      >
+                        <div className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                          {f.image_url ? (
+                            <img src={f.image_url} alt={f.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Icon name="water_drop" className="text-secondary/30" size={16} />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[9px] uppercase tracking-[0.15em] text-primary/70 font-bold">{f.brand}</p>
+                          <p className="text-sm text-on-surface truncate">{f.name}</p>
+                        </div>
+                        {alreadyInCollection ? (
+                          <span className="text-[9px] font-bold tracking-wider text-primary/50">IN COLLECTION</span>
+                        ) : addingSaving === f.id ? (
+                          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Icon name="add" className="text-primary" size={18} />
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
       )}
     </main>
   )

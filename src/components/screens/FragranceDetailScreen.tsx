@@ -7,7 +7,122 @@ import { supabase } from '@/lib/supabase'
 import { LogWearSheet } from './LogWearSheet'
 import { ReviewSheet } from './ReviewSheet'
 import { FragranceNotesPyramid } from '../fragrance/FragranceNotesPyramid'
+import { AccordsRadar } from '../fragrance/AccordsRadar'
 import { awardXP } from '@/lib/xp'
+
+/* ── Season & Occasion icon maps ── */
+const SEASON_ICONS: Record<string, JSX.Element> = {
+  SPRING: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+      <circle cx="12" cy="12" r="4" fill="currentColor" opacity="0.15"/>
+    </svg>
+  ),
+  SUMMER: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5" fill="currentColor" opacity="0.2"/>
+      <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  ),
+  FALL: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.5 10-10 10Z" fill="currentColor" opacity="0.12"/>
+      <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.5 10-10 10Z"/>
+      <path d="M11 20V8"/>
+    </svg>
+  ),
+  AUTUMN: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.5 10-10 10Z" fill="currentColor" opacity="0.12"/>
+      <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.5 10-10 10Z"/>
+      <path d="M11 20V8"/>
+    </svg>
+  ),
+  WINTER: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/>
+      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/><line x1="19.07" y1="4.93" x2="4.93" y2="19.07"/>
+      <circle cx="12" cy="12" r="2" fill="currentColor" opacity="0.2"/>
+    </svg>
+  ),
+}
+
+const OCCASION_ICONS: Record<string, JSX.Element> = {
+  CASUAL: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.38 3.46L16 2 12 5.5 8 2l-4.38 1.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23Z"/>
+    </svg>
+  ),
+  OFFICE: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+    </svg>
+  ),
+  'DATE NIGHT': (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" fill="currentColor" opacity="0.12"/>
+      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+    </svg>
+  ),
+  'NIGHT OUT': (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" fill="currentColor" opacity="0.12"/>
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
+    </svg>
+  ),
+  'SPECIAL EVENT': (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor" opacity="0.12"/>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  ),
+  DAILY: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </svg>
+  ),
+  SPORT: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6.5 6.5L17.5 17.5M6.5 17.5L17.5 6.5"/>
+      <circle cx="12" cy="12" r="10"/>
+    </svg>
+  ),
+  BUSINESS: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+    </svg>
+  ),
+  LEISURE: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  ),
+  EVENING: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" fill="currentColor" opacity="0.12"/>
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
+    </svg>
+  ),
+}
+
+function getSeasonIcon(name: string): JSX.Element | null {
+  return SEASON_ICONS[name] || null
+}
+
+function getOccasionIcon(name: string): JSX.Element | null {
+  // Try exact, then partial
+  if (OCCASION_ICONS[name]) return OCCASION_ICONS[name]
+  for (const [key, icon] of Object.entries(OCCASION_ICONS)) {
+    if (name.includes(key) || key.includes(name)) return icon
+  }
+  return null
+}
 
 function accordToPercent(level: string): number {
   switch (level) {
@@ -219,23 +334,11 @@ export function FragranceDetailScreen() {
       />
 
       <div className="px-6 mt-10 space-y-12">
-        {/* Accords */}
+        {/* Accords — Radar Chart */}
         {accords.length > 0 && (
           <section>
             <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase mb-6">ACCORDS</h3>
-            <div className="space-y-4">
-              {accords.map((accord) => (
-                <div key={accord.name} className="space-y-1.5">
-                  <div className="flex justify-between items-center text-[10px] tracking-widest font-bold text-secondary-fixed-dim">
-                    <span>{accord.name}</span>
-                    <span>{accord.value}%</span>
-                  </div>
-                  <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
-                    <div className="h-full bg-primary transition-all duration-700" style={{ width: `${accord.value}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <AccordsRadar accords={accords} />
           </section>
         )}
 
@@ -287,10 +390,11 @@ export function FragranceDetailScreen() {
                   {seasons.map((s) => (
                     <div
                       key={s.name}
-                      className={`px-5 py-3 rounded-xl bg-surface-container border text-[10px] font-bold tracking-widest shrink-0 ${
+                      className={`flex items-center gap-2 px-4 py-3 rounded-xl bg-surface-container border text-[10px] font-bold tracking-widest shrink-0 transition-all ${
                         s.active ? 'border-primary text-primary' : 'border-outline-variant/30 text-secondary/40'
                       }`}
                     >
+                      {getSeasonIcon(s.name)}
                       {s.name}
                     </div>
                   ))}
@@ -304,10 +408,11 @@ export function FragranceDetailScreen() {
                   {occasions.map((o) => (
                     <div
                       key={o.name}
-                      className={`px-5 py-3 rounded-xl bg-surface-container border text-[10px] font-bold tracking-widest shrink-0 ${
+                      className={`flex items-center gap-2 px-4 py-3 rounded-xl bg-surface-container border text-[10px] font-bold tracking-widest shrink-0 transition-all ${
                         o.active ? 'border-primary text-primary' : 'border-outline-variant/30 text-secondary/40'
                       }`}
                     >
+                      {getOccasionIcon(o.name)}
                       {o.name}
                     </div>
                   ))}
