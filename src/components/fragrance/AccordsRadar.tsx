@@ -91,9 +91,18 @@ export function AccordsRadar({ accords }: AccordsRadarProps) {
     return { ...pt, name: a.name, value: a.value, color: getAccordColor(a.name) }
   })
 
+  // Screen reader description
+  const srDescription = accords.map((a) => `${a.name}: ${a.value}%`).join(', ')
+
   return (
     <div className="flex flex-col items-center">
-      <svg viewBox="0 0 280 280" className="w-full max-w-[280px]" aria-label="Accords radar chart">
+      {/* Screen reader fallback */}
+      <div className="sr-only" role="img" aria-label={`Accords: ${srDescription}`}>
+        {accords.map((a) => (
+          <span key={a.name}>{a.name}: {a.value}%. </span>
+        ))}
+      </div>
+      <svg viewBox="0 0 280 280" className="w-full max-w-[280px]" aria-hidden="true">
         <defs>
           <radialGradient id="radar-fill" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#e5c276" stopOpacity="0.35" />

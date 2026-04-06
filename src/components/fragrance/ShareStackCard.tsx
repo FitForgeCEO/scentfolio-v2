@@ -81,12 +81,13 @@ export function ShareStackCard({
   if (!isOpen) return null
 
   return (
-    <div ref={trapRef} className="fixed inset-0 z-[100] flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-label="Share layering stack">
+    <div ref={trapRef} className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-label="Share layering stack">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal container */}
       <div className="relative z-10 flex flex-col items-center gap-5 animate-slide-up">
+        {/* z-10 is fine here — just ensures content renders above the backdrop within the modal */}
         {/* The shareable card */}
         <div
           ref={cardRef}
@@ -218,6 +219,7 @@ export function ShareStackCard({
         {/* Close */}
         <button
           onClick={onClose}
+          aria-label="Close"
           className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center active:scale-90 transition-transform"
         >
           <Icon name="close" className="text-secondary" size={20} />

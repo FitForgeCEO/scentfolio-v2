@@ -48,7 +48,7 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
   }
 
   return (
-    <div ref={trapRef} className="fixed inset-0 z-[60] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Edit profile">
+    <div ref={trapRef} className="fixed inset-0 z-[var(--z-sheet)] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Edit profile">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
       <section className="relative w-full bg-surface-container-low rounded-t-[2.5rem] sheet-shadow flex flex-col overflow-hidden animate-slide-up">
@@ -60,6 +60,7 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
           <h1 className="text-3xl font-headline font-bold text-on-surface leading-tight">Edit Profile</h1>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform"
           >
             <Icon name="close" size={20} />
@@ -83,14 +84,14 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
 
           {/* Error */}
           {error && (
-            <div className="bg-red-500/10 text-red-400 text-xs font-medium px-4 py-3 rounded-xl text-center">
+            <div role="alert" className="bg-red-500/10 text-red-400 text-xs font-medium px-4 py-3 rounded-xl text-center">
               {error}
             </div>
           )}
 
           {/* Save */}
           {success ? (
-            <div className="w-full py-4 bg-primary/20 text-primary font-bold uppercase tracking-[0.15em] rounded-2xl text-center flex items-center justify-center gap-2">
+            <div role="status" aria-live="polite" className="w-full py-4 bg-primary/20 text-primary font-bold uppercase tracking-[0.15em] rounded-2xl text-center flex items-center justify-center gap-2">
               <Icon name="check_circle" filled className="text-xl" />
               SAVED!
             </div>

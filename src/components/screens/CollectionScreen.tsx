@@ -154,7 +154,7 @@ export function CollectionScreen() {
       </section>
 
       {/* Status Tabs */}
-      <nav className="sticky top-16 z-40 -mx-6 bg-background/95 backdrop-blur-sm py-4 mb-2 overflow-x-auto no-scrollbar">
+      <nav className="sticky top-16 z-[var(--z-sticky)] -mx-6 bg-background/95 backdrop-blur-sm py-4 mb-2 overflow-x-auto no-scrollbar">
         <div className="flex gap-2 px-6">
           {STATUS_TABS.map((tab) => (
             <button
@@ -279,7 +279,7 @@ export function CollectionScreen() {
       {user && (
         <button
           onClick={() => setQuickAddOpen(true)}
-          className="fixed bottom-24 right-6 z-50 w-14 h-14 rounded-full gold-gradient shadow-xl flex items-center justify-center active:scale-90 transition-all ambient-glow"
+          className="fixed bottom-24 right-6 z-[var(--z-fab)] w-14 h-14 rounded-full gold-gradient shadow-xl flex items-center justify-center active:scale-90 transition-all ambient-glow"
           aria-label="Add fragrance"
         >
           <Icon name="add" className="text-on-primary text-2xl" />
@@ -288,7 +288,7 @@ export function CollectionScreen() {
 
       {/* Quick-Add Overlay */}
       {quickAddOpen && (
-        <div ref={quickAddTrapRef} className="fixed inset-0 z-[60] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Add fragrance">
+        <div ref={quickAddTrapRef} className="fixed inset-0 z-[var(--z-sheet)] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Add fragrance">
           <div className="absolute inset-0 bg-black/40" onClick={() => { setQuickAddOpen(false); setAddQuery(''); setAddResults([]) }} />
           <section className="relative w-full max-h-[70vh] bg-surface-container-low rounded-t-[2.5rem] sheet-shadow flex flex-col overflow-hidden animate-slide-up">
             {/* Handle */}

@@ -331,7 +331,7 @@ export function LayeringLabScreen() {
                 <p className="font-headline text-lg text-on-surface truncate">{selectedFragrance.name}</p>
                 <p className="text-[10px] tracking-wider text-secondary/50 uppercase">{selectedFragrance.brand}</p>
               </div>
-              <button onClick={() => setSelectedFragrance(null)} className="p-2 active:scale-90 transition-transform">
+              <button onClick={() => setSelectedFragrance(null)} aria-label="Remove fragrance" className="p-2 active:scale-90 transition-transform">
                 <Icon name="close" className="text-secondary/60" size={18} />
               </button>
             </div>

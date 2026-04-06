@@ -67,6 +67,31 @@
   --font-body: "Inter", system-ui, sans-serif;
   --font-label: "Inter", system-ui, sans-serif;
 
+  /* Font Size Scale (semantic tokens)
+   * --text-micro:   8px  — legend dots, share card labels
+   * --text-caption:  9px  — badge text, XP labels, tracking labels
+   * --text-label:   10px  — section labels, brand names, stat captions
+   * --text-label-lg: 11px — step headings, vibe pills
+   * --text-body-sm: 13px  — technique text, review text
+   * --text-body:    14px  — standard body (Tailwind text-sm)
+   * --text-body-lg: 16px  — standard body (Tailwind text-base)
+   * Use Tailwind text-lg/xl/2xl/3xl/4xl for headlines
+   */
+  --text-micro: 0.5rem;
+  --text-caption: 0.5625rem;
+  --text-label: 0.625rem;
+  --text-label-lg: 0.6875rem;
+  --text-body-sm: 0.8125rem;
+
+  /* Z-Index Scale */
+  --z-sticky: 40;
+  --z-appbar: 50;
+  --z-fab: 50;
+  --z-dropdown: 50;
+  --z-sheet: 60;
+  --z-overlay: 70;
+  --z-modal: 100;
+
   /* Border Radius */
   --radius-sm: 0.125rem;
   --radius-md: 0.25rem;

@@ -120,7 +120,7 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted }
   }
 
   return (
-    <div ref={trapRef} className="fixed inset-0 z-[60] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Write a review">
+    <div ref={trapRef} className="fixed inset-0 z-[var(--z-sheet)] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Write a review">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
@@ -149,6 +149,7 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted }
           </div>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform"
           >
             <Icon name="close" size={20} />
@@ -305,7 +306,7 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted }
 
           {/* Error message */}
           {error && (
-            <div className="bg-red-500/10 text-red-400 text-xs font-medium px-4 py-3 rounded-xl text-center">
+            <div role="alert" className="bg-red-500/10 text-red-400 text-xs font-medium px-4 py-3 rounded-xl text-center">
               {error}
             </div>
           )}
@@ -313,7 +314,7 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted }
           {/* Submit */}
           <div className="pt-2 flex flex-col items-center gap-4">
             {success ? (
-              <div className="w-full py-4 bg-primary/20 text-primary font-bold uppercase tracking-[0.15em] rounded-2xl text-center flex items-center justify-center gap-2">
+              <div role="status" aria-live="polite" className="w-full py-4 bg-primary/20 text-primary font-bold uppercase tracking-[0.15em] rounded-2xl text-center flex items-center justify-center gap-2">
                 <Icon name="check_circle" filled className="text-xl" />
                 REVIEW SUBMITTED!
               </div>

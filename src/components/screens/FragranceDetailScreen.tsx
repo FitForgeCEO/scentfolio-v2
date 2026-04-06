@@ -262,6 +262,7 @@ export function FragranceDetailScreen() {
               setAddMenuOpen(!addMenuOpen)
             }}
             disabled={saving}
+            aria-label={collectionStatus ? `Collection status: ${collectionStatus}` : 'Add to collection'}
             className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-highest active:scale-90 transition-transform"
           >
             <Icon
@@ -276,8 +277,8 @@ export function FragranceDetailScreen() {
           {/* Dropdown */}
           {addMenuOpen && (
             <>
-              <div className="fixed inset-0 z-40" onClick={() => setAddMenuOpen(false)} />
-              <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-surface-container-highest rounded-xl py-2 min-w-[140px] shadow-xl border border-outline-variant/10">
+              <div className="fixed inset-0 z-[var(--z-sticky)]" onClick={() => setAddMenuOpen(false)} />
+              <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[var(--z-dropdown)] bg-surface-container-highest rounded-xl py-2 min-w-[140px] shadow-xl border border-outline-variant/10">
                 {['own', 'wishlist', 'sampled', 'sold'].map((status) => (
                   <button
                     key={status}

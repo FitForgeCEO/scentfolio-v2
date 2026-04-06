@@ -11,7 +11,7 @@ const navItems = [
 
 export function BottomNav() {
   return (
-    <nav className="fixed bottom-0 w-full z-50 glass-surface flex justify-around items-center px-4 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_32px_rgba(25,18,16,0.6)]">
+    <nav aria-label="Main navigation" className="fixed bottom-0 w-full z-[var(--z-appbar)] glass-surface flex justify-around items-center px-4 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-[0_-8px_32px_rgba(25,18,16,0.6)]">
       {navItems.map((item) => (
         <NavLink
           key={item.to}

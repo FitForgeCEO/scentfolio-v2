@@ -65,7 +65,7 @@ export function WelcomeOverlay({ userId }: WelcomeOverlayProps) {
   const isLast = step === STEPS.length - 1
 
   return (
-    <div ref={trapRef} className="fixed inset-0 z-[70] flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Welcome to ScentFolio">
+    <div ref={trapRef} className="fixed inset-0 z-[var(--z-overlay)] flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Welcome to ScentFolio">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 

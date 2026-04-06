@@ -117,7 +117,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
   }
 
   return (
-    <div ref={trapRef} className="fixed inset-0 z-[60] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Log wear">
+    <div ref={trapRef} className="fixed inset-0 z-[var(--z-sheet)] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Log wear">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
@@ -133,6 +133,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
           <h1 className="text-4xl font-headline font-bold text-on-surface leading-tight">Log Wear</h1>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform"
           >
             <Icon name="close" size={20} />
@@ -158,7 +159,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
                     autoFocus
                   />
                   {searchQuery && (
-                    <button onClick={() => setSearchQuery('')} className="text-secondary/60 active:scale-90 transition-transform">
+                    <button onClick={() => setSearchQuery('')} aria-label="Clear search" className="text-secondary/60 active:scale-90 transition-transform">
                       <Icon name="close" size={16} />
                     </button>
                   )}
@@ -230,6 +231,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
               {!passedFragrance && (
                 <button
                   onClick={() => { setChosenFragrance(null); setSearchQuery('') }}
+                  aria-label="Change fragrance"
                   className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary/60 active:scale-90 transition-transform flex-shrink-0"
                 >
                   <Icon name="swap_horiz" size={16} />
@@ -320,7 +322,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
           {/* Footer */}
           <div className="pt-2 flex flex-col items-center gap-4">
             {success ? (
-              <div className="w-full py-4 bg-primary/20 text-primary font-bold uppercase tracking-[0.15em] rounded-2xl text-center flex items-center justify-center gap-2">
+              <div role="status" aria-live="polite" className="w-full py-4 bg-primary/20 text-primary font-bold uppercase tracking-[0.15em] rounded-2xl text-center flex items-center justify-center gap-2">
                 <Icon name="check_circle" filled className="text-xl" />
                 LOGGED!
               </div>

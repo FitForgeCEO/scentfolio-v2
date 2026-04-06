@@ -20,12 +20,13 @@ export function TopAppBar({
   const isHome = location.pathname === '/'
 
   return (
-    <header className="fixed top-0 w-full z-50 glass-surface flex justify-between items-center px-6 h-16 pt-[env(safe-area-inset-top)]">
+    <header className="fixed top-0 w-full z-[var(--z-appbar)] glass-surface flex justify-between items-center px-6 h-16 pt-[env(safe-area-inset-top)]">
       {/* Left */}
       <div className="flex items-center gap-4">
         {showBack ? (
           <button
             onClick={() => navigate(-1)}
+            aria-label="Go back"
             className="w-10 h-10 rounded-full bg-surface-container-highest/40 backdrop-blur-xl flex items-center justify-center active:scale-95 transition-transform"
           >
             <Icon name="arrow_back" className="text-primary" />
@@ -50,6 +51,7 @@ export function TopAppBar({
         {showSearch && (
           <button
             onClick={() => navigate('/explore')}
+            aria-label="Search fragrances"
             className="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform"
           >
             <Icon name="search" className="text-primary" />
@@ -58,6 +60,7 @@ export function TopAppBar({
         {isHome && !showBack && (
           <button
             onClick={() => navigate('/profile')}
+            aria-label="Profile"
             className="flex items-center gap-2 active:scale-95 transition-transform"
           >
             <div className="w-8 h-8 rounded-full overflow-hidden bg-surface-container-highest">

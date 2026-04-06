@@ -40,7 +40,7 @@ export function ExploreScreen() {
             }}
           />
           {query && (
-            <button onClick={() => setQuery('')} className="text-secondary/60 active:scale-90 transition-transform">
+            <button onClick={() => setQuery('')} aria-label="Clear search" className="text-secondary/60 active:scale-90 transition-transform">
               <Icon name="close" size={18} />
             </button>
           )}
