@@ -54,9 +54,9 @@ function getAccordColor(name: string): string {
 export function AccordsRadar({ accords }: AccordsRadarProps) {
   if (accords.length === 0) return null
 
-  const cx = 150
-  const cy = 150
-  const maxR = 100
+  const cx = 175
+  const cy = 160
+  const maxR = 90
   const n = accords.length
   const rings = [0.25, 0.5, 0.75, 1.0]
 
@@ -85,16 +85,18 @@ export function AccordsRadar({ accords }: AccordsRadarProps) {
   const dataPoints = accords.map((a, i) => polarToXY(i, maxR * (a.value / 100)))
   const dataPath = dataPoints.map((p) => `${p.x},${p.y}`).join(' ')
 
-  // Label positions (pushed outside the chart with enough room for text)
+  // Label positions (pushed well outside the chart for readability)
   const labelPositions = accords.map((a, i) => {
-    const pt = polarToXY(i, maxR + 32)
+    const pt = polarToXY(i, maxR + 28)
     const angle = (Math.PI * 2 * i) / n - Math.PI / 2
+    const cosA = Math.cos(angle)
+    const sinA = Math.sin(angle)
     // Determine text-anchor based on position around the circle
     let anchor: 'start' | 'middle' | 'end' = 'middle'
-    if (Math.cos(angle) > 0.3) anchor = 'start'
-    else if (Math.cos(angle) < -0.3) anchor = 'end'
+    if (cosA > 0.25) anchor = 'start'
+    else if (cosA < -0.25) anchor = 'end'
     // Nudge Y for top/bottom labels
-    const dy = Math.sin(angle) > 0.3 ? 12 : Math.sin(angle) < -0.3 ? -4 : 4
+    const dy = sinA > 0.25 ? 14 : sinA < -0.25 ? -6 : 4
     return { ...pt, name: a.name, value: a.value, color: getAccordColor(a.name), anchor, dy }
   })
 
@@ -109,7 +111,7 @@ export function AccordsRadar({ accords }: AccordsRadarProps) {
           <span key={a.name}>{a.name}: {a.value}%. </span>
         ))}
       </div>
-      <svg viewBox="0 0 300 300" className="w-full max-w-[300px]" aria-hidden="true">
+      <svg viewBox="0 0 350 330" className="w-full max-w-[350px]" style={{ overflow: 'visible' }} aria-hidden="true">
         <defs>
           <radialGradient id="radar-fill" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#e5c276" stopOpacity="0.35" />
@@ -164,33 +166,36 @@ export function AccordsRadar({ accords }: AccordsRadarProps) {
         ))}
 
         {/* Labels on the graph at each vertex */}
-        {labelPositions.map((l) => (
-          <g key={l.name}>
-            <circle cx={l.x} cy={l.y + l.dy - 4} r={1.5} fill={l.color} />
-            <text
-              x={l.x + (l.anchor === 'start' ? 5 : l.anchor === 'end' ? -5 : 0)}
-              y={l.y + l.dy}
-              textAnchor={l.anchor}
-              fill={l.color}
-              fontSize="8.5"
-              fontWeight="700"
-              letterSpacing="0.05em"
-              style={{ textTransform: 'uppercase' }}
-            >
-              {l.name}
-            </text>
-            <text
-              x={l.x + (l.anchor === 'start' ? 5 : l.anchor === 'end' ? -5 : 0)}
-              y={l.y + l.dy + 10}
-              textAnchor={l.anchor}
-              fill="rgba(139,125,107,0.7)"
-              fontSize="7.5"
-              fontWeight="600"
-            >
-              {l.value}%
-            </text>
-          </g>
-        ))}
+        {labelPositions.map((l) => {
+          const xOff = l.anchor === 'start' ? 4 : l.anchor === 'end' ? -4 : 0
+          return (
+            <g key={l.name}>
+              <text
+                x={l.x + xOff}
+                y={l.y + l.dy}
+                textAnchor={l.anchor}
+                fill={l.color}
+                fontSize="9"
+                fontWeight="700"
+                letterSpacing="0.06em"
+                fontFamily="system-ui, -apple-system, sans-serif"
+              >
+                {l.name.toUpperCase()}
+              </text>
+              <text
+                x={l.x + xOff}
+                y={l.y + l.dy + 11}
+                textAnchor={l.anchor}
+                fill="rgba(139,125,107,0.6)"
+                fontSize="8"
+                fontWeight="600"
+                fontFamily="system-ui, -apple-system, sans-serif"
+              >
+                {l.value}%
+              </text>
+            </g>
+          )
+        })}
       </svg>
     </div>
   )
