@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
+import type React from 'react'
 import { useState, useEffect, useCallback } from 'react'
 import { Icon } from '../ui/Icon'
 import { useFragranceDetail, useFragranceReviews, useFragranceTags } from '@/hooks/useFragrances'
@@ -11,7 +12,7 @@ import { AccordsRadar } from '../fragrance/AccordsRadar'
 import { awardXP } from '@/lib/xp'
 
 /* ── Season & Occasion icon maps ── */
-const SEASON_ICONS: Record<string, JSX.Element> = {
+const SEASON_ICONS: Record<string, React.ReactNode> = {
   SPRING: (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
@@ -50,7 +51,7 @@ const SEASON_ICONS: Record<string, JSX.Element> = {
   ),
 }
 
-const OCCASION_ICONS: Record<string, JSX.Element> = {
+const OCCASION_ICONS: Record<string, React.ReactNode> = {
   CASUAL: (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20.38 3.46L16 2 12 5.5 8 2l-4.38 1.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23Z"/>
@@ -111,11 +112,11 @@ const OCCASION_ICONS: Record<string, JSX.Element> = {
   ),
 }
 
-function getSeasonIcon(name: string): JSX.Element | null {
+function getSeasonIcon(name: string): React.ReactNode {
   return SEASON_ICONS[name] || null
 }
 
-function getOccasionIcon(name: string): JSX.Element | null {
+function getOccasionIcon(name: string): React.ReactNode {
   // Try exact, then partial
   if (OCCASION_ICONS[name]) return OCCASION_ICONS[name]
   for (const [key, icon] of Object.entries(OCCASION_ICONS)) {

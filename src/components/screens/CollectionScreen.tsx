@@ -45,7 +45,7 @@ export function CollectionScreen() {
   const [addResults, setAddResults] = useState<Fragrance[]>([])
   const [addSearching, setAddSearching] = useState(false)
   const [addingSaving, setAddingSaving] = useState<string | null>(null)
-  const addTimeout = useRef<ReturnType<typeof setTimeout>>()
+  const addTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const quickAddTrapRef = useFocusTrap(quickAddOpen, () => { setQuickAddOpen(false); setAddQuery(''); setAddResults([]) })
 

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { awardXP, XP_AWARDS } from '@/lib/xp'
+import { awardXP } from '@/lib/xp'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { Fragrance } from '@/types/database'
 

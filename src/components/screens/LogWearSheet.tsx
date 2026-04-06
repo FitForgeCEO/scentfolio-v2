@@ -29,7 +29,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Fragrance[]>([])
   const [searching, setSearching] = useState(false)
-  const searchTimeout = useRef<ReturnType<typeof setTimeout>>()
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const trapRef = useFocusTrap(isOpen, onClose)
   const fragrance = passedFragrance ?? chosenFragrance

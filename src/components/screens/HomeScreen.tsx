@@ -19,7 +19,7 @@ export function HomeScreen() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { data: trending, loading, error: trendingError, retry: retryTrending } = useTrendingFragrances(4)
-  const { stats, error: statsError, retry: retryStats } = useHomeStats(user?.id)
+  const { stats } = useHomeStats(user?.id)
   const [logSheetOpen, setLogSheetOpen] = useState(false)
 
   const displayName = user?.user_metadata?.display_name || 'fragrance lover'

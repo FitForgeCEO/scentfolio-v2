@@ -64,7 +64,7 @@ function FragranceSearch({
   const [results, setResults] = useState<Fragrance[]>([])
   const [collection, setCollection] = useState<Fragrance[]>([])
   const [searching, setSearching] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   // Load user's collection on mount
   useEffect(() => {
