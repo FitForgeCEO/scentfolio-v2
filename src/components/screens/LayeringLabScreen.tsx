@@ -557,7 +557,7 @@ export function LayeringLabScreen() {
           {saved ? 'Saved' : 'Save This Stack'}
         </button>
         {!user && (
-          <p className="text-center text-[10px] text-secondary/60">Sign in to save stacks</p>
+          <p className="text-center text-[10px] text-secondary/60">Sign in to save and share your stacks</p>
         )}
       </section>
 

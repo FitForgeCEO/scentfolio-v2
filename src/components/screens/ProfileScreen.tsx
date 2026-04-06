@@ -124,29 +124,11 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
           <Icon name="edit" className="text-primary" />
           <div className="flex-1">
             <p className="text-sm text-on-surface font-medium">Edit Profile</p>
-            <p className="text-[10px] text-secondary/50">Change your display name</p>
+            <p className="text-[10px] text-secondary/50">Update your display name and avatar</p>
           </div>
           <Icon name="chevron_right" className="text-secondary/60" />
         </button>
 
-        {/* Coming soon items */}
-        {[
-          { icon: 'tune', label: 'Scent Preferences', subtitle: 'Coming soon' },
-          { icon: 'bar_chart', label: 'Insights & Stats', subtitle: 'Coming soon' },
-          { icon: 'share', label: 'Share Profile', subtitle: 'Coming soon' },
-        ].map((item) => (
-          <div
-            key={item.label}
-            className="flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 opacity-40"
-          >
-            <Icon name={item.icon} className="text-primary" />
-            <div className="flex-1">
-              <p className="text-sm text-on-surface font-medium">{item.label}</p>
-              <p className="text-[10px] text-secondary/50">{item.subtitle}</p>
-            </div>
-            <Icon name="chevron_right" className="text-secondary/60" />
-          </div>
-        ))}
       </section>
 
       {/* Sign Out */}

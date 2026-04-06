@@ -61,11 +61,15 @@ export function ExploreScreen() {
           ))}
         </div>
       ) : fragrances.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <Icon name="search_off" className="text-4xl text-primary/30 mb-4" />
-          <h4 className="font-headline text-xl text-on-surface mb-2">No results</h4>
-          <p className="text-sm text-secondary/60 text-center">
-            {isSearching ? `No fragrances matching "${query}"` : 'No fragrances found'}
+        <div className="flex flex-col items-center justify-center py-20 px-4">
+          <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5">
+            <Icon name="search_off" className="text-3xl text-primary/40" />
+          </div>
+          <h4 className="font-headline text-xl text-on-surface mb-2">No results found</h4>
+          <p className="text-sm text-secondary/60 text-center max-w-[260px]">
+            {isSearching
+              ? `We couldn't find anything matching "${query}". Try a different name or brand.`
+              : 'No fragrances found. Check back soon — we\'re always adding more.'}
           </p>
         </div>
       ) : (

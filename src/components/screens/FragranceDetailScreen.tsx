@@ -435,9 +435,8 @@ export function FragranceDetailScreen() {
         {/* Aesthetic Tags */}
         {tags.length > 0 && (
           <section>
-            <div className="flex justify-between items-center mb-6">
+            <div className="mb-6">
               <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase">AESTHETIC TAGS</h3>
-              <button className="text-[9px] font-bold text-primary-fixed tracking-widest uppercase">+ ADD</button>
             </div>
             <div className="flex flex-wrap gap-2">
               {tags.map((tag) => (
@@ -452,11 +451,10 @@ export function FragranceDetailScreen() {
         {/* Reviews */}
         {reviews.length > 0 && (
           <section>
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase">REVIEWS</h3>
-              <button className="text-[9px] font-bold text-primary-fixed tracking-widest uppercase">
-                SEE ALL ({reviews.length})
-              </button>
+            <div className="mb-6">
+              <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase">
+                REVIEWS ({reviews.length})
+              </h3>
             </div>
             <div className="space-y-4">
               {reviews.map((review) => (

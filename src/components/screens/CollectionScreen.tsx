@@ -12,6 +12,15 @@ import type { Fragrance } from '@/types/database'
 const STATUS_TABS = ['ALL', 'OWN', 'WISHLIST', 'SAMPLED', 'SOLD'] as const
 type StatusFilter = (typeof STATUS_TABS)[number]
 
+const SORT_OPTIONS = [
+  { value: 'recent', label: 'Recently Added' },
+  { value: 'name-asc', label: 'Name A–Z' },
+  { value: 'name-desc', label: 'Name Z–A' },
+  { value: 'brand-asc', label: 'Brand A–Z' },
+  { value: 'rating-desc', label: 'Highest Rated' },
+] as const
+type SortOption = (typeof SORT_OPTIONS)[number]['value']
+
 const STATUS_MAP: Record<string, string> = {
   own: 'OWN',
   wishlist: 'WISHLIST',
@@ -22,6 +31,8 @@ const STATUS_MAP: Record<string, string> = {
 export function CollectionScreen() {
   const [activeTab, setActiveTab] = useState<StatusFilter>('ALL')
   const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState<SortOption>('recent')
+  const [sortMenuOpen, setSortMenuOpen] = useState(false)
   const navigate = useNavigate()
 
   const { user } = useAuth()
@@ -109,6 +120,20 @@ export function CollectionScreen() {
       }
       return true
     })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'name-asc':
+          return a.fragrance.name.localeCompare(b.fragrance.name)
+        case 'name-desc':
+          return b.fragrance.name.localeCompare(a.fragrance.name)
+        case 'brand-asc':
+          return a.fragrance.brand.localeCompare(b.fragrance.brand) || a.fragrance.name.localeCompare(b.fragrance.name)
+        case 'rating-desc':
+          return (Number(b.personal_rating || b.fragrance.rating) || 0) - (Number(a.personal_rating || a.fragrance.rating) || 0)
+        default: // 'recent' — keep original order (already sorted by date_added desc)
+          return 0
+      }
+    })
 
   const statusCounts = collection.reduce(
     (acc, item) => {
@@ -175,11 +200,38 @@ export function CollectionScreen() {
         </div>
       </nav>
 
-      {/* Sort Info */}
-      <div className="mb-6 flex items-center justify-between">
-        <span className="font-label text-[10px] tracking-[0.15em] text-secondary/60 uppercase">
-          Sorted by: <span className="text-primary font-bold">RECENTLY ADDED</span>
-        </span>
+      {/* Sort Control */}
+      <div className="mb-6 flex items-center justify-between relative">
+        <button
+          onClick={() => setSortMenuOpen(!sortMenuOpen)}
+          className="flex items-center gap-1.5 font-label text-[10px] tracking-[0.15em] text-secondary/60 uppercase active:opacity-70 transition-opacity"
+        >
+          Sorted by: <span className="text-primary font-bold">{SORT_OPTIONS.find((o) => o.value === sortBy)?.label}</span>
+          <Icon name="expand_more" size={16} className="text-primary" />
+        </button>
+        {sortMenuOpen && (
+          <>
+            <div className="fixed inset-0 z-[var(--z-sticky)]" onClick={() => setSortMenuOpen(false)} />
+            <div className="absolute top-8 left-0 z-[var(--z-dropdown)] bg-surface-container-highest rounded-xl py-2 min-w-[180px] shadow-xl border border-outline-variant/10">
+              {SORT_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => { setSortBy(option.value); setSortMenuOpen(false) }}
+                  className={`w-full text-left px-4 py-2.5 text-xs font-medium transition-colors ${
+                    sortBy === option.value
+                      ? 'text-primary bg-primary/10'
+                      : 'text-on-surface hover:bg-surface-container'
+                  }`}
+                >
+                  {option.label}
+                  {sortBy === option.value && (
+                    <Icon name="check" className="float-right text-primary text-sm" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Content */}
@@ -201,9 +253,9 @@ export function CollectionScreen() {
           <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center mb-6">
             <Icon name="water_drop" className="text-primary/40 text-4xl" />
           </div>
-          <h3 className="font-headline text-xl text-on-surface mb-2 text-center">Your collection is empty</h3>
+          <h3 className="font-headline text-xl text-on-surface mb-2 text-center">Start your collection</h3>
           <p className="text-sm text-secondary/60 text-center mb-8 max-w-[280px]">
-            Explore our library of 2,700+ fragrances and start building your scent profile.
+            Browse 2,700+ fragrances, mark what you own, and track what you want to try next.
           </p>
           <button
             onClick={() => navigate('/explore')}
@@ -213,11 +265,17 @@ export function CollectionScreen() {
           </button>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16">
-          <Icon name="search_off" className="text-4xl text-primary/30 mb-4" />
-          <h4 className="font-headline text-xl text-on-surface mb-2">No matches</h4>
-          <p className="text-sm text-secondary/60 text-center">
-            {search ? `Nothing matching "${search}"` : `No fragrances with status "${activeTab}"`}
+        <div className="flex flex-col items-center justify-center py-16 px-4">
+          <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5">
+            <Icon name={search ? 'search_off' : 'filter_list'} className="text-3xl text-primary/40" />
+          </div>
+          <h4 className="font-headline text-xl text-on-surface mb-2">
+            {search ? 'No matches' : 'Nothing here yet'}
+          </h4>
+          <p className="text-sm text-secondary/60 text-center max-w-[260px]">
+            {search
+              ? `No fragrances matching "${search}". Try a different search term.`
+              : `You don't have any fragrances marked as ${activeTab.toLowerCase()}. Tap + to add one.`}
           </p>
         </div>
       ) : (
