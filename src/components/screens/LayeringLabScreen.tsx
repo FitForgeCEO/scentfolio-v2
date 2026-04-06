@@ -113,7 +113,7 @@ function FragranceSearch({
     <div className="space-y-4">
       {/* Search input */}
       <div className="relative">
-        <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/40" size={18} />
+        <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60" size={18} />
         <input
           type="text"
           value={query}
@@ -131,7 +131,7 @@ function FragranceSearch({
       {/* Collection shortcut */}
       {showCollection && (
         <div>
-          <p className="text-[9px] tracking-[0.2em] font-bold text-secondary/40 uppercase mb-3">FROM YOUR COLLECTION</p>
+          <p className="text-[9px] tracking-[0.2em] font-bold text-secondary/60 uppercase mb-3">FROM YOUR COLLECTION</p>
           <div className="grid grid-cols-2 gap-3">
             {collection.slice(0, 6).map((f) => (
               <button
@@ -187,7 +187,7 @@ function FragranceSearch({
 
       {/* Empty state */}
       {query.length >= 2 && results.length === 0 && !searching && (
-        <p className="text-center text-sm text-secondary/40 py-8">No fragrances found</p>
+        <p className="text-center text-sm text-secondary/60 py-8">No fragrances found</p>
       )}
     </div>
   )
@@ -332,7 +332,7 @@ export function LayeringLabScreen() {
                 <p className="text-[10px] tracking-wider text-secondary/50 uppercase">{selectedFragrance.brand}</p>
               </div>
               <button onClick={() => setSelectedFragrance(null)} className="p-2 active:scale-90 transition-transform">
-                <Icon name="close" className="text-secondary/40" size={18} />
+                <Icon name="close" className="text-secondary/60" size={18} />
               </button>
             </div>
           ) : (
@@ -557,7 +557,7 @@ export function LayeringLabScreen() {
           {saved ? 'Saved' : 'Save This Stack'}
         </button>
         {!user && (
-          <p className="text-center text-[10px] text-secondary/40">Sign in to save stacks</p>
+          <p className="text-center text-[10px] text-secondary/60">Sign in to save stacks</p>
         )}
       </section>
 

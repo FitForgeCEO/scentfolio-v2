@@ -83,7 +83,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
                   <span className="font-label text-[10px] tracking-widest text-primary font-bold uppercase">
                     Level {level}
                   </span>
-                  <span className="text-[10px] text-secondary/40">·</span>
+                  <span className="text-[10px] text-secondary/60">·</span>
                   <span className="text-[10px] text-secondary/60 italic">{title}</span>
                 </div>
                 <span className="text-[9px] text-secondary/50">{xp} / {nextLevelXP} XP</span>
@@ -126,7 +126,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
             <p className="text-sm text-on-surface font-medium">Edit Profile</p>
             <p className="text-[10px] text-secondary/50">Change your display name</p>
           </div>
-          <Icon name="chevron_right" className="text-secondary/30" />
+          <Icon name="chevron_right" className="text-secondary/60" />
         </button>
 
         {/* Coming soon items */}
@@ -144,7 +144,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
               <p className="text-sm text-on-surface font-medium">{item.label}</p>
               <p className="text-[10px] text-secondary/50">{item.subtitle}</p>
             </div>
-            <Icon name="chevron_right" className="text-secondary/30" />
+            <Icon name="chevron_right" className="text-secondary/60" />
           </div>
         ))}
       </section>

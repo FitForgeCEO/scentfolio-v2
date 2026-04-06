@@ -106,9 +106,9 @@ export function HomeScreen() {
                 <Icon
                   name={m.icon}
                   filled={achieved}
-                  className={`text-xl ${achieved ? 'text-primary' : 'text-secondary/25'}`}
+                  className={`text-xl ${achieved ? 'text-primary' : 'text-secondary/50'}`}
                 />
-                <span className={`text-[9px] font-bold tracking-wider ${achieved ? 'text-primary' : 'text-secondary/30'}`}>
+                <span className={`text-[9px] font-bold tracking-wider ${achieved ? 'text-primary' : 'text-secondary/60'}`}>
                   {m.label}
                 </span>
               </div>
@@ -160,7 +160,10 @@ export function HomeScreen() {
               <div
                 key={frag.id}
                 className="space-y-2 group cursor-pointer"
+                role="link"
+                tabIndex={0}
                 onClick={() => navigate(`/fragrance/${frag.id}`)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/fragrance/${frag.id}`) } }}
               >
                 <div className="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low shadow-sm">
                   {frag.image_url ? (
@@ -170,7 +173,7 @@ export function HomeScreen() {
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-secondary/30">
+                    <div className="w-full h-full flex items-center justify-center text-secondary/50">
                       <Icon name="water_drop" size={48} />
                     </div>
                   )}

@@ -300,7 +300,7 @@ export function FragranceDetailScreen() {
         </div>
 
         {/* LOG button */}
-        <div className="flex flex-col items-center gap-2 cursor-pointer group" onClick={() => setLogSheetOpen(true)}>
+        <div className="flex flex-col items-center gap-2 cursor-pointer group" role="button" tabIndex={0} onClick={() => setLogSheetOpen(true)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLogSheetOpen(true) } }}>
           <div className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-highest group-active:scale-90 transition-transform">
             <Icon name="calendar_today" className="text-secondary" />
           </div>
@@ -310,9 +310,18 @@ export function FragranceDetailScreen() {
         {/* REVIEW button */}
         <div
           className="flex flex-col items-center gap-2 cursor-pointer group"
+          role="button"
+          tabIndex={0}
           onClick={() => {
             if (!user) { navigate('/profile'); return }
             setReviewSheetOpen(true)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              if (!user) { navigate('/profile'); return }
+              setReviewSheetOpen(true)
+            }
           }}
         >
           <div className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-highest group-active:scale-90 transition-transform">
@@ -391,7 +400,7 @@ export function FragranceDetailScreen() {
                     <div
                       key={s.name}
                       className={`flex items-center gap-2 px-4 py-3 rounded-xl bg-surface-container border text-[10px] font-bold tracking-widest shrink-0 transition-all ${
-                        s.active ? 'border-primary text-primary' : 'border-outline-variant/30 text-secondary/40'
+                        s.active ? 'border-primary text-primary' : 'border-outline-variant/30 text-secondary/60'
                       }`}
                     >
                       {getSeasonIcon(s.name)}
@@ -409,7 +418,7 @@ export function FragranceDetailScreen() {
                     <div
                       key={o.name}
                       className={`flex items-center gap-2 px-4 py-3 rounded-xl bg-surface-container border text-[10px] font-bold tracking-widest shrink-0 transition-all ${
-                        o.active ? 'border-primary text-primary' : 'border-outline-variant/30 text-secondary/40'
+                        o.active ? 'border-primary text-primary' : 'border-outline-variant/30 text-secondary/60'
                       }`}
                     >
                       {getOccasionIcon(o.name)}
@@ -458,7 +467,7 @@ export function FragranceDetailScreen() {
                         <p className="text-xs font-bold text-on-surface">
                           {review.profile?.display_name || 'Anonymous'}
                         </p>
-                        <p className="text-[9px] text-secondary/40">
+                        <p className="text-[9px] text-secondary/60">
                           {new Date(review.created_at).toLocaleDateString()}
                         </p>
                       </div>

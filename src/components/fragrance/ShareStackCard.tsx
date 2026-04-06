@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback } from 'react'
 import { Icon } from '../ui/Icon'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface ShareStackCardProps {
   isOpen: boolean
@@ -25,6 +26,7 @@ export function ShareStackCard({
   whyItWorks,
 }: ShareStackCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
+  const trapRef = useFocusTrap(isOpen, onClose)
   const [exporting, setExporting] = useState(false)
   const [copied, setCopied] = useState(false)
 
@@ -79,7 +81,7 @@ export function ShareStackCard({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+    <div ref={trapRef} className="fixed inset-0 z-[100] flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-label="Share layering stack">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
@@ -101,7 +103,7 @@ export function ShareStackCard({
               </span>
               <Icon name="auto_awesome" filled className="text-primary text-sm" />
             </div>
-            <p className="text-[8px] tracking-[0.2em] text-secondary/30 text-center uppercase mb-6">
+            <p className="text-[8px] tracking-[0.2em] text-secondary/60 text-center uppercase mb-6">
               LAYERING STACK
             </p>
 
@@ -125,7 +127,7 @@ export function ShareStackCard({
                   <span className="text-[10px] font-bold text-primary">1</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[8px] tracking-[0.15em] text-secondary/40 uppercase">BODY PREP</p>
+                  <p className="text-[8px] tracking-[0.15em] text-secondary/60 uppercase">BODY PREP</p>
                   <p className="text-sm font-semibold text-on-surface truncate">{bodyPrep.product}</p>
                   <p className="text-[10px] text-secondary/50 uppercase tracking-wider">{bodyPrep.brand}</p>
                 </div>
@@ -144,7 +146,7 @@ export function ShareStackCard({
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[8px] tracking-[0.15em] text-secondary/40 uppercase">BASE LAYER</p>
+                  <p className="text-[8px] tracking-[0.15em] text-secondary/60 uppercase">BASE LAYER</p>
                   <p className="text-sm font-semibold text-on-surface truncate">{baseFragrance.name}</p>
                   <p className="text-[10px] text-secondary/50 uppercase tracking-wider">{baseFragrance.brand}</p>
                 </div>
@@ -160,7 +162,7 @@ export function ShareStackCard({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="text-[8px] tracking-[0.15em] text-secondary/40 uppercase">TOP LAYER</p>
+                    <p className="text-[8px] tracking-[0.15em] text-secondary/60 uppercase">TOP LAYER</p>
                     {topLayer.fromCollection && (
                       <span className="text-[7px] bg-primary/15 text-primary px-1.5 py-0.5 rounded tracking-tight uppercase">
                         YOURS

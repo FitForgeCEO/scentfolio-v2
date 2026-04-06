@@ -113,7 +113,7 @@ export function FragranceNotesPyramid({ notesTop, notesHeart, notesBase }: Fragr
                 className="w-1.5 h-1.5 rounded-full"
                 style={{ backgroundColor: color }}
               />
-              <span className="text-[8px] tracking-[0.1em] text-secondary/40 uppercase">{family}</span>
+              <span className="text-[8px] tracking-[0.1em] text-secondary/60 uppercase">{family}</span>
             </div>
           ))}
         </div>

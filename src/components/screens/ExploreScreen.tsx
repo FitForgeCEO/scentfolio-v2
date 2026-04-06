@@ -75,7 +75,10 @@ export function ExploreScreen() {
               <div
                 key={frag.id}
                 className="flex flex-col group cursor-pointer"
+                role="link"
+                tabIndex={0}
                 onClick={() => navigate(`/fragrance/${frag.id}`)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/fragrance/${frag.id}`) } }}
               >
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-3">
                   {frag.image_url ? (

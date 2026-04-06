@@ -3,6 +3,7 @@ import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { awardXP, XP_AWARDS } from '@/lib/xp'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { Fragrance } from '@/types/database'
 
 const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter']
@@ -42,6 +43,7 @@ function StarRating({ value, onChange, label }: { value: number; onChange: (v: n
 
 export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted }: ReviewSheetProps) {
   const { user } = useAuth()
+  const trapRef = useFocusTrap(isOpen, onClose)
   const [overall, setOverall] = useState(0)
   const [longevity, setLongevity] = useState(0)
   const [sillage, setSillage] = useState(0)
@@ -118,7 +120,7 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted }
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col justify-end">
+    <div ref={trapRef} className="fixed inset-0 z-[60] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Write a review">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 

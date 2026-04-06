@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Icon } from '../ui/Icon'
 import { supabase } from '@/lib/supabase'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 interface EditProfileSheetProps {
   isOpen: boolean
@@ -15,6 +16,7 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const trapRef = useFocusTrap(isOpen, onClose)
 
   if (!isOpen) return null
 
@@ -46,7 +48,7 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col justify-end">
+    <div ref={trapRef} className="fixed inset-0 z-[60] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Edit profile">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
       <section className="relative w-full bg-surface-container-low rounded-t-[2.5rem] sheet-shadow flex flex-col overflow-hidden animate-slide-up">
@@ -76,7 +78,7 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
               maxLength={50}
               className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-2xl px-4 py-3.5 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none"
             />
-            <p className="text-[9px] text-secondary/40">{displayName.trim().length}/50 characters</p>
+            <p className="text-[9px] text-secondary/60">{displayName.trim().length}/50 characters</p>
           </div>
 
           {/* Error */}

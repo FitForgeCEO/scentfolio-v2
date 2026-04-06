@@ -6,6 +6,7 @@ import { useUserCollection } from '@/hooks/useFragrances'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { awardXP } from '@/lib/xp'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { Fragrance } from '@/types/database'
 
 const STATUS_TABS = ['ALL', 'OWN', 'WISHLIST', 'SAMPLED', 'SOLD'] as const
@@ -34,6 +35,8 @@ export function CollectionScreen() {
   const [addSearching, setAddSearching] = useState(false)
   const [addingSaving, setAddingSaving] = useState<string | null>(null)
   const addTimeout = useRef<ReturnType<typeof setTimeout>>()
+
+  const quickAddTrapRef = useFocusTrap(quickAddOpen, () => { setQuickAddOpen(false); setAddQuery(''); setAddResults([]) })
 
   // Which status to add as — based on active tab
   const addStatus = activeTab === 'ALL' || activeTab === 'SOLD' ? 'own' : activeTab.toLowerCase()
@@ -223,7 +226,10 @@ export function CollectionScreen() {
             <div
               key={item.id}
               className="flex flex-col group cursor-pointer"
+              role="link"
+              tabIndex={0}
               onClick={() => navigate(`/fragrance/${item.fragrance.id}`)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/fragrance/${item.fragrance.id}`) } }}
             >
               <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-3">
                 {item.fragrance.image_url ? (
@@ -282,7 +288,7 @@ export function CollectionScreen() {
 
       {/* Quick-Add Overlay */}
       {quickAddOpen && (
-        <div className="fixed inset-0 z-[60] flex flex-col justify-end">
+        <div ref={quickAddTrapRef} className="fixed inset-0 z-[60] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Add fragrance">
           <div className="absolute inset-0 bg-black/40" onClick={() => { setQuickAddOpen(false); setAddQuery(''); setAddResults([]) }} />
           <section className="relative w-full max-h-[70vh] bg-surface-container-low rounded-t-[2.5rem] sheet-shadow flex flex-col overflow-hidden animate-slide-up">
             {/* Handle */}

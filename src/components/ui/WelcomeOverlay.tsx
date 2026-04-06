@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Icon } from './Icon'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 const STORAGE_KEY = 'scentfolio_onboarded'
 
@@ -34,6 +35,14 @@ export function WelcomeOverlay({ userId }: WelcomeOverlayProps) {
   const [visible, setVisible] = useState(false)
   const [step, setStep] = useState(0)
 
+  const handleDismiss = useCallback(() => {
+    const key = `${STORAGE_KEY}_${userId}`
+    localStorage.setItem(key, 'true')
+    setVisible(false)
+  }, [userId])
+
+  const trapRef = useFocusTrap(visible, handleDismiss)
+
   useEffect(() => {
     const key = `${STORAGE_KEY}_${userId}`
     const seen = localStorage.getItem(key)
@@ -41,12 +50,6 @@ export function WelcomeOverlay({ userId }: WelcomeOverlayProps) {
       setVisible(true)
     }
   }, [userId])
-
-  const handleDismiss = () => {
-    const key = `${STORAGE_KEY}_${userId}`
-    localStorage.setItem(key, 'true')
-    setVisible(false)
-  }
 
   const handleNext = () => {
     if (step < STEPS.length - 1) {
@@ -62,7 +65,7 @@ export function WelcomeOverlay({ userId }: WelcomeOverlayProps) {
   const isLast = step === STEPS.length - 1
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center">
+    <div ref={trapRef} className="fixed inset-0 z-[70] flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Welcome to ScentFolio">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
