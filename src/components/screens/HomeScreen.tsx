@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
+import { InlineError } from '../ui/InlineError'
+import { WelcomeOverlay } from '../ui/WelcomeOverlay'
 import { useTrendingFragrances } from '@/hooks/useFragrances'
 import { useHomeStats } from '@/hooks/useHomeStats'
 import { useAuth } from '@/contexts/AuthContext'
@@ -16,8 +18,8 @@ function getGreeting(): string {
 export function HomeScreen() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { data: trending, loading } = useTrendingFragrances(4)
-  const { stats } = useHomeStats(user?.id)
+  const { data: trending, loading, error: trendingError, retry: retryTrending } = useTrendingFragrances(4)
+  const { stats, error: statsError, retry: retryStats } = useHomeStats(user?.id)
   const [logSheetOpen, setLogSheetOpen] = useState(false)
 
   const displayName = user?.user_metadata?.display_name || 'fragrance lover'
@@ -83,6 +85,38 @@ export function HomeScreen() {
         </div>
       </section>
 
+      {/* Streak Milestones */}
+      <section>
+        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary mb-3">STREAK MILESTONES</h3>
+        <div className="flex gap-3">
+          {[
+            { days: 3, icon: 'bolt', label: '3 Days' },
+            { days: 7, icon: 'whatshot', label: '7 Days' },
+            { days: 14, icon: 'military_tech', label: '14 Days' },
+            { days: 30, icon: 'diamond', label: '30 Days' },
+          ].map((m) => {
+            const achieved = stats.streak >= m.days
+            return (
+              <div
+                key={m.days}
+                className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl transition-all ${
+                  achieved ? 'bg-primary/10' : 'bg-surface-container'
+                }`}
+              >
+                <Icon
+                  name={m.icon}
+                  filled={achieved}
+                  className={`text-xl ${achieved ? 'text-primary' : 'text-secondary/25'}`}
+                />
+                <span className={`text-[9px] font-bold tracking-wider ${achieved ? 'text-primary' : 'text-secondary/30'}`}>
+                  {m.label}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
       {/* Collection Stats Bento */}
       <section className="grid grid-cols-2 gap-4">
         <div className="bg-surface-container p-5 rounded-xl space-y-1">
@@ -112,7 +146,9 @@ export function HomeScreen() {
           </div>
         </div>
 
-        {loading ? (
+        {trendingError ? (
+          <InlineError message="Couldn't load trending fragrances" onRetry={retryTrending} />
+        ) : loading ? (
           <div className="grid grid-cols-2 gap-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="aspect-[3/4] rounded-xl bg-surface-container animate-pulse" />
@@ -161,6 +197,9 @@ export function HomeScreen() {
 
       {/* Log Wear Sheet (opened from hero CTA — no specific fragrance pre-selected) */}
       <LogWearSheet isOpen={logSheetOpen} onClose={() => setLogSheetOpen(false)} />
+
+      {/* Welcome onboarding for new users */}
+      {user && <WelcomeOverlay userId={user.id} />}
     </main>
   )
 }

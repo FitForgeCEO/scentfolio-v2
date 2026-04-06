@@ -3,6 +3,8 @@ import { AuthScreen } from './AuthScreen'
 import { Icon } from '../ui/Icon'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getLevelProgress, getXPForNextLevel, getLevelTitle } from '@/lib/xp'
+import { EditProfileSheet } from './EditProfileSheet'
 import type { Profile } from '@/types/database'
 
 export function ProfileScreen() {
@@ -27,6 +29,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
   const [wearCount, setWearCount] = useState(0)
   const [reviewCount, setReviewCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [editSheetOpen, setEditSheetOpen] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -65,15 +68,35 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
         <h2 className="font-headline text-2xl text-on-surface">{profile?.display_name ?? 'Fragrance Lover'}</h2>
         <p className="text-xs text-secondary/50 mt-1">{email}</p>
 
-        {/* Level badge */}
-        <div className="mt-3 flex items-center gap-2 bg-surface-container rounded-full px-4 py-1.5">
-          <Icon name="emoji_events" filled className="text-primary text-sm" />
-          <span className="font-label text-[10px] tracking-widest text-primary font-bold uppercase">
-            Level {profile?.level ?? 1}
-          </span>
-          <span className="text-secondary/40 text-[10px]">·</span>
-          <span className="text-[10px] text-secondary/60">{profile?.xp ?? 0} XP</span>
-        </div>
+        {/* Level + XP progress */}
+        {(() => {
+          const level = profile?.level ?? 1
+          const xp = profile?.xp ?? 0
+          const progress = getLevelProgress(xp, level)
+          const nextLevelXP = getXPForNextLevel(level)
+          const title = getLevelTitle(level)
+          return (
+            <div className="mt-4 w-full max-w-[280px]">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Icon name="emoji_events" filled className="text-primary text-sm" />
+                  <span className="font-label text-[10px] tracking-widest text-primary font-bold uppercase">
+                    Level {level}
+                  </span>
+                  <span className="text-[10px] text-secondary/40">·</span>
+                  <span className="text-[10px] text-secondary/60 italic">{title}</span>
+                </div>
+                <span className="text-[9px] text-secondary/50">{xp} / {nextLevelXP} XP</span>
+              </div>
+              <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-700"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          )
+        })()}
       </section>
 
       {/* Stats */}
@@ -93,6 +116,20 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
 
       {/* Menu Items */}
       <section className="space-y-2 mb-10">
+        {/* Edit Profile — functional */}
+        <button
+          onClick={() => setEditSheetOpen(true)}
+          className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
+        >
+          <Icon name="edit" className="text-primary" />
+          <div className="flex-1">
+            <p className="text-sm text-on-surface font-medium">Edit Profile</p>
+            <p className="text-[10px] text-secondary/50">Change your display name</p>
+          </div>
+          <Icon name="chevron_right" className="text-secondary/30" />
+        </button>
+
+        {/* Coming soon items */}
         {[
           { icon: 'tune', label: 'Scent Preferences', subtitle: 'Coming soon' },
           { icon: 'bar_chart', label: 'Insights & Stats', subtitle: 'Coming soon' },
@@ -100,7 +137,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
         ].map((item) => (
           <div
             key={item.label}
-            className="flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 opacity-50"
+            className="flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 opacity-40"
           >
             <Icon name={item.icon} className="text-primary" />
             <div className="flex-1">
@@ -120,6 +157,17 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
         <Icon name="logout" className="text-error/70" />
         <span className="text-sm text-error/70 font-medium">Sign out</span>
       </button>
+
+      {/* Edit Profile Sheet */}
+      <EditProfileSheet
+        isOpen={editSheetOpen}
+        onClose={() => setEditSheetOpen(false)}
+        userId={userId}
+        currentName={profile?.display_name ?? ''}
+        onSaved={(newName) => {
+          setProfile((prev) => prev ? { ...prev, display_name: newName } : prev)
+        }}
+      />
     </main>
   )
 }

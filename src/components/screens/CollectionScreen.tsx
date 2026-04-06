@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
+import { InlineError } from '../ui/InlineError'
 import { useUserCollection } from '@/hooks/useFragrances'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -21,7 +22,7 @@ export function CollectionScreen() {
 
   const { user } = useAuth()
   const userId = user?.id
-  const { data: collection, loading } = useUserCollection(userId)
+  const { data: collection, loading, error, retry } = useUserCollection(userId)
 
   const filtered = collection
     .filter((item) => {
@@ -56,9 +57,7 @@ export function CollectionScreen() {
               {collection.length} fragrance{collection.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <button className="p-2 bg-surface-container rounded-lg text-primary active:scale-95 transition-transform">
-            <Icon name="grid_view" />
-          </button>
+          {/* Grid toggle removed — single layout for now */}
         </div>
       </header>
 
@@ -111,7 +110,9 @@ export function CollectionScreen() {
       </div>
 
       {/* Content */}
-      {loading ? (
+      {error ? (
+        <InlineError message="Couldn't load your collection" onRetry={retry} />
+      ) : loading ? (
         <div className="grid grid-cols-2 gap-x-4 gap-y-8">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="flex flex-col">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance, UserCollection } from '@/types/database'
 
@@ -6,8 +6,11 @@ import type { Fragrance, UserCollection } from '@/types/database'
 export function useTrendingFragrances(limit = 6) {
   const [data, setData] = useState<Fragrance[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
+  const fetch = useCallback(() => {
+    setLoading(true)
+    setError(null)
     supabase
       .from('fragrances')
       .select('*')
@@ -16,39 +19,49 @@ export function useTrendingFragrances(limit = 6) {
       .order('rating', { ascending: false })
       .limit(limit)
       .then(({ data, error }) => {
-        if (!error && data) setData(data as Fragrance[])
+        if (error) setError(error.message)
+        else if (data) setData(data as Fragrance[])
         setLoading(false)
       })
   }, [limit])
 
-  return { data, loading }
+  useEffect(() => { fetch() }, [fetch])
+
+  return { data, loading, error, retry: fetch }
 }
 
 /** Fetch a single fragrance by ID */
 export function useFragranceDetail(id: string | undefined) {
   const [data, setData] = useState<Fragrance | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
+  const fetch = useCallback(() => {
     if (!id) return
+    setLoading(true)
+    setError(null)
     supabase
       .from('fragrances')
       .select('*')
       .eq('id', id)
       .single()
       .then(({ data, error }) => {
-        if (!error && data) setData(data as Fragrance)
+        if (error) setError(error.message)
+        else if (data) setData(data as Fragrance)
         setLoading(false)
       })
   }, [id])
 
-  return { data, loading }
+  useEffect(() => { fetch() }, [fetch])
+
+  return { data, loading, error, retry: fetch }
 }
 
 /** Search fragrances by name or brand */
 export function useFragranceSearch(query: string, limit = 20) {
   const [data, setData] = useState<Fragrance[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (query.length < 2) {
@@ -56,6 +69,7 @@ export function useFragranceSearch(query: string, limit = 20) {
       return
     }
     setLoading(true)
+    setError(null)
     supabase
       .from('fragrances')
       .select('*')
@@ -64,12 +78,13 @@ export function useFragranceSearch(query: string, limit = 20) {
       .order('rating', { ascending: false, nullsFirst: false })
       .limit(limit)
       .then(({ data, error }) => {
-        if (!error && data) setData(data as Fragrance[])
+        if (error) setError(error.message)
+        else if (data) setData(data as Fragrance[])
         setLoading(false)
       })
   }, [query, limit])
 
-  return { data, loading }
+  return { data, loading, error }
 }
 
 /** Browse fragrances with pagination for Explore/Collection */
@@ -77,8 +92,11 @@ export function useFragrancesBrowse(page = 0, pageSize = 20) {
   const [data, setData] = useState<Fragrance[]>([])
   const [loading, setLoading] = useState(true)
   const [count, setCount] = useState(0)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
+  const fetch = useCallback(() => {
+    setLoading(true)
+    setError(null)
     supabase
       .from('fragrances')
       .select('*', { count: 'exact' })
@@ -86,22 +104,27 @@ export function useFragrancesBrowse(page = 0, pageSize = 20) {
       .order('rating', { ascending: false, nullsFirst: false })
       .range(page * pageSize, (page + 1) * pageSize - 1)
       .then(({ data, error, count: total }) => {
-        if (!error && data) setData(data as Fragrance[])
+        if (error) setError(error.message)
+        else if (data) setData(data as Fragrance[])
         if (total) setCount(total)
         setLoading(false)
       })
   }, [page, pageSize])
 
-  return { data, loading, count }
+  useEffect(() => { fetch() }, [fetch])
+
+  return { data, loading, count, error, retry: fetch }
 }
 
 /** Get reviews for a fragrance */
 export function useFragranceReviews(fragranceId: string | undefined) {
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!fragranceId) return
+    setError(null)
     supabase
       .from('reviews')
       .select('*, profile:profiles(display_name, avatar_url)')
@@ -109,54 +132,64 @@ export function useFragranceReviews(fragranceId: string | undefined) {
       .order('created_at', { ascending: false })
       .limit(10)
       .then(({ data, error }) => {
-        if (!error && data) setData(data)
+        if (error) setError(error.message)
+        else if (data) setData(data)
         setLoading(false)
       })
   }, [fragranceId])
 
-  return { data, loading }
+  return { data, loading, error }
 }
 
 /** Fetch user collection with joined fragrance data */
 export function useUserCollection(userId: string | undefined) {
   const [data, setData] = useState<(UserCollection & { fragrance: Fragrance })[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
+  const fetch = useCallback(() => {
     if (!userId) {
       setLoading(false)
       return
     }
+    setLoading(true)
+    setError(null)
     supabase
       .from('user_collections')
       .select('*, fragrance:fragrances(*)')
       .eq('user_id', userId)
       .order('date_added', { ascending: false })
       .then(({ data, error }) => {
-        if (!error && data) setData(data as any)
+        if (error) setError(error.message)
+        else if (data) setData(data as any)
         setLoading(false)
       })
   }, [userId])
 
-  return { data, loading }
+  useEffect(() => { fetch() }, [fetch])
+
+  return { data, loading, error, retry: fetch }
 }
 
 /** Get aesthetic tags for a fragrance */
 export function useFragranceTags(fragranceId: string | undefined) {
   const [data, setData] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!fragranceId) return
+    setError(null)
     supabase
       .from('fragrance_tags')
       .select('tag')
       .eq('fragrance_id', fragranceId)
       .then(({ data, error }) => {
-        if (!error && data) setData([...new Set(data.map((t) => t.tag))])
+        if (error) setError(error.message)
+        else if (data) setData([...new Set(data.map((t) => t.tag))])
         setLoading(false)
       })
   }, [fragranceId])
 
-  return { data, loading }
+  return { data, loading, error }
 }

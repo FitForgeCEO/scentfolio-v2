@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
+import { awardXP, XP_AWARDS } from '@/lib/xp'
 import type { Fragrance } from '@/types/database'
 
 const OCCASIONS = ['Casual', 'Office', 'Date Night', 'Night Out', 'Special Event']
@@ -15,14 +16,17 @@ interface LogWearSheetProps {
 export function LogWearSheet({ isOpen, onClose, fragrance }: LogWearSheetProps) {
   const { user } = useAuth()
   const [selectedDay, setSelectedDay] = useState<'today' | 'yesterday' | 'custom'>('today')
+  const [customDate, setCustomDate] = useState('')
   const [selectedOccasion, setSelectedOccasion] = useState('Casual')
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [xpGained, setXpGained] = useState(0)
 
   if (!isOpen) return null
 
   const getWearDate = () => {
+    if (selectedDay === 'custom' && customDate) return customDate
     const d = new Date()
     if (selectedDay === 'yesterday') d.setDate(d.getDate() - 1)
     return d.toISOString().split('T')[0]
@@ -30,6 +34,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance }: LogWearSheetProps) 
 
   const handleLog = async () => {
     if (!user || !fragrance) return
+    if (selectedDay === 'custom' && !customDate) return
     setSaving(true)
 
     const { error } = await supabase.from('wear_logs').insert({
@@ -42,10 +47,15 @@ export function LogWearSheet({ isOpen, onClose, fragrance }: LogWearSheetProps) 
 
     setSaving(false)
     if (!error) {
+      // Award XP
+      const result = await awardXP(user.id, 'LOG_WEAR')
+      setXpGained(result ? XP_AWARDS.LOG_WEAR : 0)
       setSuccess(true)
       setTimeout(() => {
         setSuccess(false)
+        setXpGained(0)
         setNotes('')
+        setCustomDate('')
         setSelectedDay('today')
         setSelectedOccasion('Casual')
         onClose()
@@ -123,11 +133,26 @@ export function LogWearSheet({ isOpen, onClose, fragrance }: LogWearSheetProps) 
               </button>
               <button
                 onClick={() => setSelectedDay('custom')}
-                className="w-12 py-3 bg-surface-container-highest text-on-surface-variant rounded-full flex items-center justify-center active:scale-95 transition-all"
+                className={`w-12 py-3 rounded-full flex items-center justify-center active:scale-95 transition-all ${
+                  selectedDay === 'custom'
+                    ? 'bg-primary text-on-primary'
+                    : 'bg-surface-container-highest text-on-surface-variant'
+                }`}
               >
                 <Icon name="calendar_today" size={18} />
               </button>
             </div>
+
+            {/* Custom date input */}
+            {selectedDay === 'custom' && (
+              <input
+                type="date"
+                value={customDate}
+                max={new Date().toISOString().split('T')[0]}
+                onChange={(e) => setCustomDate(e.target.value)}
+                className="w-full py-3 px-4 bg-surface-container text-on-surface rounded-2xl text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none [color-scheme:dark]"
+              />
+            )}
           </div>
 
           {/* Occasion */}
@@ -171,7 +196,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance }: LogWearSheetProps) 
             ) : (
               <button
                 onClick={handleLog}
-                disabled={saving || !fragrance || !user}
+                disabled={saving || !fragrance || !user || (selectedDay === 'custom' && !customDate)}
                 className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-2xl ambient-glow active:scale-[0.98] transition-all disabled:opacity-50"
               >
                 {saving ? 'SAVING...' : !user ? 'SIGN IN TO LOG' : 'LOG WEAR'}
@@ -179,7 +204,9 @@ export function LogWearSheet({ isOpen, onClose, fragrance }: LogWearSheetProps) 
             )}
             <div className="flex items-center gap-2">
               <Icon name="auto_awesome" filled className="text-primary text-sm" />
-              <span className="text-[10px] font-bold tracking-[0.1em] text-primary">+10 XP EARNED</span>
+              <span className="text-[10px] font-bold tracking-[0.1em] text-primary">
+                {success && xpGained > 0 ? `+${xpGained} XP EARNED` : `+${XP_AWARDS.LOG_WEAR} XP`}
+              </span>
             </div>
           </div>
         </div>

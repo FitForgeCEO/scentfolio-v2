@@ -1,18 +1,20 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
+import { InlineError } from '../ui/InlineError'
 import { useFragranceSearch, useFragrancesBrowse } from '@/hooks/useFragrances'
 
 export function ExploreScreen() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [page, setPage] = useState(0)
-  const { data: searchResults, loading: searchLoading } = useFragranceSearch(query)
-  const { data: browseResults, loading: browseLoading, count } = useFragrancesBrowse(page, 20)
+  const { data: searchResults, loading: searchLoading, error: searchError } = useFragranceSearch(query)
+  const { data: browseResults, loading: browseLoading, count, error: browseError, retry: retryBrowse } = useFragrancesBrowse(page, 20)
 
   const isSearching = query.length >= 2
   const fragrances = isSearching ? searchResults : browseResults
   const loading = isSearching ? searchLoading : browseLoading
+  const error = isSearching ? searchError : browseError
 
   return (
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
@@ -46,7 +48,9 @@ export function ExploreScreen() {
       </section>
 
       {/* Results Grid */}
-      {loading ? (
+      {error ? (
+        <InlineError message="Couldn't load fragrances" onRetry={retryBrowse} />
+      ) : loading ? (
         <div className="grid grid-cols-2 gap-x-4 gap-y-8">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="flex flex-col">

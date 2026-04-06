@@ -5,7 +5,9 @@ import { useFragranceDetail, useFragranceReviews, useFragranceTags } from '@/hoo
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { LogWearSheet } from './LogWearSheet'
+import { ReviewSheet } from './ReviewSheet'
 import { FragranceNotesPyramid } from '../fragrance/FragranceNotesPyramid'
+import { awardXP } from '@/lib/xp'
 
 function accordToPercent(level: string): number {
   switch (level) {
@@ -29,6 +31,7 @@ export function FragranceDetailScreen() {
   const [addMenuOpen, setAddMenuOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [logSheetOpen, setLogSheetOpen] = useState(false)
+  const [reviewSheetOpen, setReviewSheetOpen] = useState(false)
 
   useEffect(() => {
     if (!user || !id) return
@@ -61,6 +64,8 @@ export function FragranceDetailScreen() {
       await supabase
         .from('user_collections')
         .insert({ user_id: user.id, fragrance_id: id, status })
+      // Award XP for first add
+      await awardXP(user.id, 'ADD_TO_COLLECTION')
     }
     setCollectionStatus(status)
     setSaving(false)
@@ -187,22 +192,31 @@ export function FragranceDetailScreen() {
           <span className="text-[9px] tracking-widest uppercase font-bold text-secondary/60">LOG</span>
         </div>
 
-        {/* Other actions (static for now) */}
-        {[
-          { icon: 'rate_review', label: 'REVIEW' },
-          { icon: 'dashboard', label: 'BOARD' },
-        ].map((action) => (
-          <div key={action.label} className="flex flex-col items-center gap-2 cursor-pointer group">
-            <div className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-highest group-active:scale-90 transition-transform">
-              <Icon name={action.icon} className="text-secondary" />
-            </div>
-            <span className="text-[9px] tracking-widest uppercase font-bold text-secondary/60">{action.label}</span>
+        {/* REVIEW button */}
+        <div
+          className="flex flex-col items-center gap-2 cursor-pointer group"
+          onClick={() => {
+            if (!user) { navigate('/profile'); return }
+            setReviewSheetOpen(true)
+          }}
+        >
+          <div className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-highest group-active:scale-90 transition-transform">
+            <Icon name="rate_review" className="text-secondary" />
           </div>
-        ))}
+          <span className="text-[9px] tracking-widest uppercase font-bold text-secondary/60">REVIEW</span>
+        </div>
       </section>
 
       {/* Log Wear Bottom Sheet */}
       <LogWearSheet isOpen={logSheetOpen} onClose={() => setLogSheetOpen(false)} fragrance={frag} />
+
+      {/* Review Sheet */}
+      <ReviewSheet
+        isOpen={reviewSheetOpen}
+        onClose={() => setReviewSheetOpen(false)}
+        fragrance={frag}
+        isOwner={collectionStatus === 'own'}
+      />
 
       <div className="px-6 mt-10 space-y-12">
         {/* Accords */}

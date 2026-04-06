@@ -281,7 +281,12 @@ export function LayeringLabScreen() {
         user_id: user.id,
         fragrance_id: selectedFragrance.id,
         vibe: activeVibe,
-        result_json: result,
+        body_prep: result.bodyPrep,
+        layering_fragrance: result.layeringFragrance,
+        technique: result.technique,
+        why_it_works: result.whyItWorks,
+        resulting_vibe: result.resultingVibe,
+        pro_tip: result.proBonusTip,
       })
       setSaved(true)
     } catch (err) {

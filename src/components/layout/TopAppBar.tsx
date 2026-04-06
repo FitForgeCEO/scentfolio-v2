@@ -13,7 +13,6 @@ export function TopAppBar({
   title = 'ScentFolio',
   showBack = false,
   showSearch = false,
-  showMenu = true,
   rightAction,
 }: TopAppBarProps) {
   const navigate = useNavigate()
@@ -21,7 +20,7 @@ export function TopAppBar({
   const isHome = location.pathname === '/'
 
   return (
-    <header className="fixed top-0 w-full z-50 glass-surface flex justify-between items-center px-6 h-16">
+    <header className="fixed top-0 w-full z-50 glass-surface flex justify-between items-center px-6 h-16 pt-[env(safe-area-inset-top)]">
       {/* Left */}
       <div className="flex items-center gap-4">
         {showBack ? (
@@ -31,8 +30,6 @@ export function TopAppBar({
           >
             <Icon name="arrow_back" className="text-primary" />
           </button>
-        ) : showMenu ? (
-          <Icon name="menu" className="text-primary" />
         ) : null}
 
         {isHome && !showBack ? (
@@ -50,20 +47,22 @@ export function TopAppBar({
       {/* Right */}
       <div className="flex items-center gap-3">
         {rightAction}
-        {showSearch && <Icon name="search" className="text-primary" />}
+        {showSearch && (
+          <button
+            onClick={() => navigate('/explore')}
+            className="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform"
+          >
+            <Icon name="search" className="text-primary" />
+          </button>
+        )}
         {isHome && !showBack && (
-          <>
-            <span className="text-[10px] uppercase tracking-[0.1em] font-label text-secondary">
-              LEVEL 12
-            </span>
+          <button
+            onClick={() => navigate('/profile')}
+            className="flex items-center gap-2 active:scale-95 transition-transform"
+          >
             <div className="w-8 h-8 rounded-full overflow-hidden bg-surface-container-highest">
               <div className="w-full h-full bg-gradient-to-br from-primary/30 to-surface-container-highest" />
             </div>
-          </>
-        )}
-        {showBack && (
-          <button className="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform">
-            <Icon name="more_vert" className="text-primary" />
           </button>
         )}
       </div>
