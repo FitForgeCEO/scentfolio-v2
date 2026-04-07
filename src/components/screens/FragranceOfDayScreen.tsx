@@ -48,7 +48,7 @@ export function FragranceOfDayScreen() {
         .eq('status', 'own')
 
       type CollRow = { fragrance: Fragrance | null }
-      const owned = ((collections ?? []) as CollRow[])
+      const owned = ((collections ?? []) as unknown as CollRow[])
         .map((c) => c.fragrance)
         .filter((f): f is Fragrance => f !== null)
 

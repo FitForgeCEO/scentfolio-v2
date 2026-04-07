@@ -98,7 +98,7 @@ export function AchievementsScreen() {
 
       // Calculate unique brands and families
       type CollJoin = { fragrance: { brand: string; note_family: string | null } | null }
-      const collData = (collectionsRes.data ?? []) as CollJoin[]
+      const collData = (collectionsRes.data ?? []) as unknown as CollJoin[]
       const brands = new Set<string>()
       const families = new Set<string>()
       collData.forEach((c) => {
@@ -168,7 +168,7 @@ export function AchievementsScreen() {
   }
 
   const unlocked = ACHIEVEMENTS.filter((a) => a.check(stats))
-  const locked = ACHIEVEMENTS.filter((a) => !a.check(stats))
+  const _locked = ACHIEVEMENTS.filter((a) => !a.check(stats))
   const totalXP = unlocked.reduce((sum, a) => sum + a.xpReward, 0)
   const categories = ['all', 'collection', 'wearing', 'social', 'exploration']
 

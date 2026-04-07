@@ -47,7 +47,7 @@ export function TimelineScreen() {
 
       type CollRow = { id: string; date_added: string; status: string; fragrance: Fragrance | null }
       let addedCount = 0
-      ;(collections as CollRow[] ?? []).forEach((c) => {
+      ;((collections ?? []) as unknown as CollRow[]).forEach((c) => {
         addedCount++
         allEvents.push({
           id: `added-${c.id}`,
@@ -83,7 +83,7 @@ export function TimelineScreen() {
 
       type WearRow = { id: string; wear_date: string; fragrance: Fragrance | null }
       const seenFragrances = new Set<string>()
-      ;(wears as WearRow[] ?? []).forEach((w) => {
+      ;((wears ?? []) as unknown as WearRow[]).forEach((w) => {
         const fId = (w.fragrance as Fragrance | null)?.id
         if (fId && !seenFragrances.has(fId)) {
           seenFragrances.add(fId)
@@ -108,7 +108,7 @@ export function TimelineScreen() {
         .order('created_at', { ascending: true })
 
       type ReviewRow = { id: string; created_at: string; overall_rating: number; fragrance: Fragrance | null }
-      ;(reviews as ReviewRow[] ?? []).forEach((r) => {
+      ;((reviews ?? []) as unknown as ReviewRow[]).forEach((r) => {
         allEvents.push({
           id: `review-${r.id}`,
           type: 'review',

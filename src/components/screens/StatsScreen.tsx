@@ -52,8 +52,8 @@ export function StatsScreen() {
       type CollRow = { date_added: string; personal_rating: number | null; fragrance: Fragrance | null }
       type WearRow = { wear_date: string; fragrance_id: string; fragrance: { id: string; name: string; brand: string; image_url: string | null } | null }
 
-      const collRows = (collections ?? []) as CollRow[]
-      const wearRows = (wears ?? []) as WearRow[]
+      const collRows = (collections ?? []) as unknown as CollRow[]
+      const wearRows = (wears ?? []) as unknown as WearRow[]
 
       // Monthly growth (last 6 months)
       const monthCounts = new Map<string, number>()
