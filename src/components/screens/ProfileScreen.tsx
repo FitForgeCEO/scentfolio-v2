@@ -1,4 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import { AuthScreen } from './AuthScreen'
 import { Icon } from '../ui/Icon'
 import { useState, useEffect } from 'react'
@@ -24,6 +25,7 @@ export function ProfileScreen() {
 }
 
 function ProfileContent({ userId, email, onSignOut }: { userId: string; email: string; onSignOut: () => void }) {
+  const navigate = useNavigate()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [collectionCount, setCollectionCount] = useState(0)
   const [wearCount, setWearCount] = useState(0)
@@ -125,6 +127,19 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
           <div className="flex-1">
             <p className="text-sm text-on-surface font-medium">Edit Profile</p>
             <p className="text-[10px] text-secondary/50">Update your display name and avatar</p>
+          </div>
+          <Icon name="chevron_right" className="text-secondary/60" />
+        </button>
+
+        {/* Settings */}
+        <button
+          onClick={() => navigate('/settings')}
+          className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
+        >
+          <Icon name="settings" className="text-primary" />
+          <div className="flex-1">
+            <p className="text-sm text-on-surface font-medium">Settings</p>
+            <p className="text-[10px] text-secondary/50">Preferences, data export, currency</p>
           </div>
           <Icon name="chevron_right" className="text-secondary/60" />
         </button>

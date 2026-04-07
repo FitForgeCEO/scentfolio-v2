@@ -19,8 +19,18 @@ const SORT_OPTIONS = [
   { value: 'name-desc', label: 'Name Z–A' },
   { value: 'brand-asc', label: 'Brand A–Z' },
   { value: 'rating-desc', label: 'Highest Rated' },
+  { value: 'price-asc', label: 'Price Low–High' },
+  { value: 'price-desc', label: 'Price High–Low' },
 ] as const
 type SortOption = (typeof SORT_OPTIONS)[number]['value']
+
+interface Filters {
+  brands: string[]
+  concentrations: string[]
+  noteFamilies: string[]
+  minRating: number
+  seasons: string[]
+}
 
 const STATUS_MAP: Record<string, string> = {
   own: 'OWN',
@@ -34,6 +44,8 @@ export function CollectionScreen() {
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<SortOption>('recent')
   const [sortMenuOpen, setSortMenuOpen] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [filters, setFilters] = useState<Filters>({ brands: [], concentrations: [], noteFamilies: [], minRating: 0, seasons: [] })
   const navigate = useNavigate()
 
   const { user } = useAuth()
@@ -109,15 +121,30 @@ export function CollectionScreen() {
     retry() // refresh collection
   }
 
+  const activeFilterCount = (filters.brands.length > 0 ? 1 : 0) + (filters.concentrations.length > 0 ? 1 : 0) + (filters.noteFamilies.length > 0 ? 1 : 0) + (filters.minRating > 0 ? 1 : 0) + (filters.seasons.length > 0 ? 1 : 0)
+
+  // Derive available filter options from collection
+  const allBrands = [...new Set(collection.map((c) => c.fragrance.brand))].sort()
+  const allConcentrations = [...new Set(collection.map((c) => c.fragrance.concentration).filter(Boolean))] as string[]
+  const allFamilies = [...new Set(collection.map((c) => c.fragrance.note_family).filter(Boolean))] as string[]
+
   const filtered = collection
     .filter((item) => {
       if (activeTab !== 'ALL' && STATUS_MAP[item.status]?.toUpperCase() !== activeTab) return false
       if (search.length >= 2) {
         const q = search.toLowerCase()
-        return (
-          item.fragrance.name.toLowerCase().includes(q) ||
-          item.fragrance.brand.toLowerCase().includes(q)
-        )
+        if (!item.fragrance.name.toLowerCase().includes(q) && !item.fragrance.brand.toLowerCase().includes(q)) return false
+      }
+      if (filters.brands.length > 0 && !filters.brands.includes(item.fragrance.brand)) return false
+      if (filters.concentrations.length > 0 && (!item.fragrance.concentration || !filters.concentrations.includes(item.fragrance.concentration))) return false
+      if (filters.noteFamilies.length > 0 && (!item.fragrance.note_family || !filters.noteFamilies.includes(item.fragrance.note_family))) return false
+      if (filters.minRating > 0) {
+        const r = Number(item.personal_rating || item.fragrance.rating) || 0
+        if (r < filters.minRating) return false
+      }
+      if (filters.seasons.length > 0) {
+        const sr = item.fragrance.season_ranking
+        if (!sr || !sr.some((s) => filters.seasons.includes(s.name) && s.score > 0.5)) return false
       }
       return true
     })
@@ -131,7 +158,11 @@ export function CollectionScreen() {
           return a.fragrance.brand.localeCompare(b.fragrance.brand) || a.fragrance.name.localeCompare(b.fragrance.name)
         case 'rating-desc':
           return (Number(b.personal_rating || b.fragrance.rating) || 0) - (Number(a.personal_rating || a.fragrance.rating) || 0)
-        default: // 'recent' — keep original order (already sorted by date_added desc)
+        case 'price-asc':
+          return (Number(a.fragrance.price_value) || 9999) - (Number(b.fragrance.price_value) || 9999)
+        case 'price-desc':
+          return (Number(b.fragrance.price_value) || 0) - (Number(a.fragrance.price_value) || 0)
+        default:
           return 0
       }
     })
@@ -202,7 +233,7 @@ export function CollectionScreen() {
         </div>
       </nav>
 
-      {/* Sort Control */}
+      {/* Sort + Filter Control */}
       <div className="mb-6 flex items-center justify-between relative">
         <button
           onClick={() => setSortMenuOpen(!sortMenuOpen)}
@@ -210,6 +241,13 @@ export function CollectionScreen() {
         >
           Sorted by: <span className="text-primary font-bold">{SORT_OPTIONS.find((o) => o.value === sortBy)?.label}</span>
           <Icon name="expand_more" size={16} className="text-primary" />
+        </button>
+        <button
+          onClick={() => setFilterOpen(true)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all active:scale-95 ${activeFilterCount > 0 ? 'bg-primary text-on-primary-container' : 'bg-surface-container text-secondary'}`}
+        >
+          <Icon name="tune" size={14} />
+          FILTER{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
         </button>
         {sortMenuOpen && (
           <>
@@ -441,7 +479,147 @@ export function CollectionScreen() {
           </section>
         </div>
       )}
+      {/* Filter Sheet */}
+      {filterOpen && (
+        <FilterSheet
+          isOpen={filterOpen}
+          onClose={() => setFilterOpen(false)}
+          filters={filters}
+          onApply={(f) => { setFilters(f); setFilterOpen(false) }}
+          brands={allBrands}
+          concentrations={allConcentrations}
+          families={allFamilies}
+        />
+      )}
     </main>
     </PullToRefresh>
+  )
+}
+
+function FilterSheet({ isOpen, onClose, filters, onApply, brands, concentrations, families }: {
+  isOpen: boolean; onClose: () => void; filters: Filters; onApply: (f: Filters) => void
+  brands: string[]; concentrations: string[]; families: string[]
+}) {
+  const [draft, setDraft] = useState<Filters>({ ...filters })
+  const trapRef = useFocusTrap(isOpen, onClose)
+
+  const toggleArray = (arr: string[], val: string) =>
+    arr.includes(val) ? arr.filter((v) => v !== val) : [...arr, val]
+
+  const clearAll = () => setDraft({ brands: [], concentrations: [], noteFamilies: [], minRating: 0, seasons: [] })
+
+  return (
+    <div ref={trapRef} className="fixed inset-0 z-[var(--z-sheet)] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Filter collection">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <section className="relative w-full max-h-[80vh] bg-surface-container-low rounded-t-[2.5rem] sheet-shadow flex flex-col overflow-hidden animate-slide-up">
+        <div className="flex justify-center py-4"><div className="w-12 h-1 bg-surface-container-highest rounded-full" /></div>
+        <header className="px-8 pb-4 flex justify-between items-center">
+          <h2 className="text-2xl font-headline font-bold text-on-surface">Filters</h2>
+          <div className="flex gap-2">
+            <button onClick={clearAll} className="text-[10px] text-primary font-bold uppercase tracking-widest px-3 py-1.5 rounded-full bg-primary/10 active:scale-95 transition-all">CLEAR</button>
+            <button onClick={onClose} className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center active:scale-90 transition-transform">
+              <Icon name="close" size={20} />
+            </button>
+          </div>
+        </header>
+        <div className="flex-1 overflow-y-auto px-8 pb-8 space-y-6">
+          {/* Min Rating */}
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold mb-3">MINIMUM RATING</p>
+            <div className="flex gap-2">
+              {[0, 3, 3.5, 4, 4.5].map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setDraft({ ...draft, minRating: r })}
+                  className={`flex items-center gap-1 px-3 py-2 rounded-full text-xs font-medium transition-all ${draft.minRating === r ? 'bg-primary text-on-primary-container' : 'bg-surface-container text-on-surface'}`}
+                >
+                  {r === 0 ? 'Any' : <><Icon name="star" filled className="text-[10px]" /> {r}+</>}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Brands */}
+          {brands.length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold mb-3">BRAND</p>
+              <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto">
+                {brands.map((b) => (
+                  <button
+                    key={b}
+                    onClick={() => setDraft({ ...draft, brands: toggleArray(draft.brands, b) })}
+                    className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${draft.brands.includes(b) ? 'bg-primary text-on-primary-container' : 'bg-surface-container text-on-surface'}`}
+                  >
+                    {b}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Concentration */}
+          {concentrations.length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold mb-3">CONCENTRATION</p>
+              <div className="flex flex-wrap gap-2">
+                {concentrations.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setDraft({ ...draft, concentrations: toggleArray(draft.concentrations, c) })}
+                    className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${draft.concentrations.includes(c) ? 'bg-primary text-on-primary-container' : 'bg-surface-container text-on-surface'}`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Note Family */}
+          {families.length > 0 && (
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold mb-3">NOTE FAMILY</p>
+              <div className="flex flex-wrap gap-2">
+                {families.map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setDraft({ ...draft, noteFamilies: toggleArray(draft.noteFamilies, f) })}
+                    className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${draft.noteFamilies.includes(f) ? 'bg-primary text-on-primary-container' : 'bg-surface-container text-on-surface'}`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Season */}
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold mb-3">BEST SEASON</p>
+            <div className="flex gap-2">
+              {['SPRING', 'SUMMER', 'FALL', 'WINTER'].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setDraft({ ...draft, seasons: toggleArray(draft.seasons, s) })}
+                  className={`flex-1 py-2 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all ${draft.seasons.includes(s) ? 'bg-primary text-on-primary-container' : 'bg-surface-container text-on-surface'}`}
+                >
+                  {s.slice(0, 3)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Apply */}
+        <div className="px-8 py-4 border-t border-outline-variant/10">
+          <button
+            onClick={() => onApply(draft)}
+            className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-2xl ambient-glow active:scale-[0.98] transition-all"
+          >
+            APPLY FILTERS
+          </button>
+        </div>
+      </section>
+    </div>
   )
 }

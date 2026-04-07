@@ -20,6 +20,12 @@ import { WishlistScreen } from './components/screens/WishlistScreen'
 import { InsightsScreen } from './components/screens/InsightsScreen'
 import { CompareScreen } from './components/screens/CompareScreen'
 import { RecommendScreen } from './components/screens/RecommendScreen'
+import { SettingsScreen } from './components/screens/SettingsScreen'
+import { NotesExplorerScreen } from './components/screens/NotesExplorerScreen'
+import { BudgetScreen } from './components/screens/BudgetScreen'
+import { LayeringCombosScreen } from './components/screens/LayeringCombosScreen'
+import { SeasonalRotationScreen } from './components/screens/SeasonalRotationScreen'
+import { CustomListsScreen, ListDetailScreen } from './components/screens/CustomListsScreen'
 
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
   return (
@@ -156,6 +162,62 @@ export default function App() {
                 element={
                   <AppLayout title="DECANTS" showBack>
                     <DecantsScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <AppLayout title="SETTINGS" showBack>
+                    <SettingsScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/notes"
+                element={
+                  <AppLayout title="NOTES" showBack>
+                    <NotesExplorerScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/budget"
+                element={
+                  <AppLayout title="BUDGET" showBack>
+                    <BudgetScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/combos"
+                element={
+                  <AppLayout title="COMBOS" showBack>
+                    <LayeringCombosScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/rotation"
+                element={
+                  <AppLayout title="ROTATION" showBack>
+                    <SeasonalRotationScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/lists"
+                element={
+                  <AppLayout title="MY LISTS" showBack>
+                    <CustomListsScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/lists/:id"
+                element={
+                  <AppLayout title="LIST" showBack>
+                    <ListDetailScreen />
                   </AppLayout>
                 }
               />

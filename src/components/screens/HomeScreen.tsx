@@ -161,11 +161,11 @@ export function HomeScreen() {
               <p className="text-[10px] text-secondary/50">Get a recommendation</p>
             </div>
           </button>
-          <button onClick={() => navigate('/compare')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="compare_arrows" className="text-primary" />
+          <button onClick={() => navigate('/rotation')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="calendar_month" className="text-primary" />
             <div>
-              <p className="text-sm text-on-surface font-medium">Compare</p>
-              <p className="text-[10px] text-secondary/50">Side by side</p>
+              <p className="text-sm text-on-surface font-medium">Rotation</p>
+              <p className="text-[10px] text-secondary/50">Seasonal capsule</p>
             </div>
           </button>
           <button onClick={() => navigate('/insights')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
@@ -175,12 +175,26 @@ export function HomeScreen() {
               <p className="text-[10px] text-secondary/50">Your taste decoded</p>
             </div>
           </button>
-          <button onClick={() => navigate('/decants')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="science" className="text-primary" />
+          <button onClick={() => navigate('/budget')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="account_balance_wallet" className="text-primary" />
             <div>
-              <p className="text-sm text-on-surface font-medium">Decants</p>
-              <p className="text-[10px] text-secondary/50">Track samples & ml</p>
+              <p className="text-sm text-on-surface font-medium">Budget</p>
+              <p className="text-[10px] text-secondary/50">Track spending</p>
             </div>
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <button onClick={() => navigate('/notes')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="spa" className="text-primary" />
+            <p className="text-[10px] text-on-surface font-medium">Notes</p>
+          </button>
+          <button onClick={() => navigate('/combos')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="layers" className="text-primary" />
+            <p className="text-[10px] text-on-surface font-medium">Combos</p>
+          </button>
+          <button onClick={() => navigate('/lists')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="bookmarks" className="text-primary" />
+            <p className="text-[10px] text-on-surface font-medium">Lists</p>
           </button>
         </div>
       </section>

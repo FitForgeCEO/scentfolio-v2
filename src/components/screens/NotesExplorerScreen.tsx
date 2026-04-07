@@ -1,0 +1,333 @@
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Icon } from '../ui/Icon'
+import { InlineError } from '../ui/InlineError'
+import { supabase } from '@/lib/supabase'
+import type { Fragrance } from '@/types/database'
+
+const NOTE_FAMILIES = [
+  { name: 'Woody', icon: 'park', color: '#8B6914' },
+  { name: 'Floral', icon: 'local_florist', color: '#C77DB5' },
+  { name: 'Citrus', icon: 'sunny', color: '#E5C276' },
+  { name: 'Oriental', icon: 'auto_awesome', color: '#B8860B' },
+  { name: 'Fresh', icon: 'water_drop', color: '#5BA3C9' },
+  { name: 'Aromatic', icon: 'spa', color: '#6B8F71' },
+  { name: 'Gourmand', icon: 'cake', color: '#D4845A' },
+  { name: 'Aquatic', icon: 'waves', color: '#4A90B8' },
+  { name: 'Leather', icon: 'work', color: '#8B4513' },
+  { name: 'Fruity', icon: 'nutrition', color: '#E07A5F' },
+  { name: 'Powdery', icon: 'cloud', color: '#C8B8D8' },
+  { name: 'Spicy', icon: 'whatshot', color: '#C75B39' },
+  { name: 'Green', icon: 'eco', color: '#5A8C4F' },
+  { name: 'Amber', icon: 'diamond', color: '#FFBF00' },
+  { name: 'Musky', icon: 'blur_on', color: '#9E8C7C' },
+  { name: 'Oud', icon: 'forest', color: '#5C4033' },
+] as const
+
+type ViewMode = 'families' | 'accords' | 'notes'
+
+interface FamilyResult {
+  family: string
+  count: number
+  fragrances: Fragrance[]
+}
+
+interface AccordResult {
+  accord: string
+  count: number
+}
+
+export function NotesExplorerScreen() {
+  const navigate = useNavigate()
+  const [mode, setMode] = useState<ViewMode>('families')
+  const [selectedFamily, setSelectedFamily] = useState<string | null>(null)
+  const [familyResults, setFamilyResults] = useState<FamilyResult[]>([])
+  const [accordResults, setAccordResults] = useState<AccordResult[]>([])
+  const [selectedFamilyFragrances, setSelectedFamilyFragrances] = useState<Fragrance[]>([])
+  const [noteSearch, setNoteSearch] = useState('')
+  const [noteResults, setNoteResults] = useState<Fragrance[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searching, setSearching] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchOverview = useCallback(() => {
+    setLoading(true)
+    setError(null)
+
+    supabase
+      .from('fragrances')
+      .select('note_family')
+      .not('note_family', 'is', null)
+      .then(({ data, error: err }) => {
+        if (err) { setError(err.message); setLoading(false); return }
+        const map = new Map<string, number>()
+        data?.forEach((f: any) => { map.set(f.note_family, (map.get(f.note_family) || 0) + 1) })
+        setFamilyResults(
+          [...map.entries()]
+            .map(([family, count]) => ({ family, count, fragrances: [] }))
+            .sort((a, b) => b.count - a.count)
+        )
+        setLoading(false)
+      })
+
+    // Also fetch top accords
+    supabase
+      .from('fragrances')
+      .select('main_accords_percentage')
+      .not('main_accords_percentage', 'is', null)
+      .limit(500)
+      .then(({ data }) => {
+        const map = new Map<string, number>()
+        data?.forEach((f: any) => {
+          if (f.main_accords_percentage && typeof f.main_accords_percentage === 'object') {
+            Object.keys(f.main_accords_percentage).forEach((accord) => {
+              map.set(accord, (map.get(accord) || 0) + 1)
+            })
+          }
+        })
+        setAccordResults(
+          [...map.entries()]
+            .map(([accord, count]) => ({ accord, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 30)
+        )
+      })
+  }, [])
+
+  useEffect(() => { fetchOverview() }, [fetchOverview])
+
+  const handleFamilyTap = async (family: string) => {
+    setSelectedFamily(family)
+    setLoading(true)
+    const { data } = await supabase
+      .from('fragrances')
+      .select('*')
+      .eq('note_family', family)
+      .not('image_url', 'is', null)
+      .order('rating', { ascending: false, nullsFirst: false })
+      .limit(20)
+    setSelectedFamilyFragrances((data ?? []) as Fragrance[])
+    setLoading(false)
+  }
+
+  const handleNoteSearch = useCallback((q: string) => {
+    setNoteSearch(q)
+    if (q.length < 2) { setNoteResults([]); return }
+    setSearching(true)
+    supabase
+      .from('fragrances')
+      .select('*')
+      .or(`notes_top.cs.{${q}},notes_heart.cs.{${q}},notes_base.cs.{${q}},general_notes.cs.{${q}}`)
+      .not('image_url', 'is', null)
+      .order('rating', { ascending: false, nullsFirst: false })
+      .limit(20)
+      .then(({ data }) => {
+        setNoteResults((data ?? []) as Fragrance[])
+        setSearching(false)
+      })
+  }, [])
+
+  if (error) return <main className="pt-24 pb-32 px-6"><InlineError message="Couldn't load notes" onRetry={fetchOverview} /></main>
+
+  return (
+    <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen space-y-6">
+      <header>
+        <h2 className="font-headline text-3xl text-on-surface leading-tight mb-1">Notes Explorer</h2>
+        <p className="font-body text-sm text-secondary opacity-70">Browse by scent family, accord, or note</p>
+      </header>
+
+      {/* Mode Tabs */}
+      <nav className="flex gap-2">
+        {([
+          { value: 'families', label: 'Families' },
+          { value: 'accords', label: 'Accords' },
+          { value: 'notes', label: 'Search Notes' },
+        ] as const).map((tab) => (
+          <button
+            key={tab.value}
+            onClick={() => { setMode(tab.value); setSelectedFamily(null) }}
+            className={`px-4 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all ${mode === tab.value ? 'bg-primary text-on-primary-container' : 'bg-surface-container text-secondary'}`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
+      {/* Families View */}
+      {mode === 'families' && !selectedFamily && (
+        <section className="space-y-3">
+          {loading ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-16 rounded-xl bg-surface-container animate-pulse" />
+            ))
+          ) : (
+            <>
+              {/* Visual cards for known families */}
+              <div className="grid grid-cols-2 gap-3">
+                {NOTE_FAMILIES.filter((nf) => familyResults.some((fr) => fr.family.toLowerCase().includes(nf.name.toLowerCase()))).map((nf) => {
+                  const match = familyResults.find((fr) => fr.family.toLowerCase().includes(nf.name.toLowerCase()))
+                  return (
+                    <button
+                      key={nf.name}
+                      onClick={() => handleFamilyTap(match?.family ?? nf.name)}
+                      className="bg-surface-container rounded-xl p-4 text-left active:scale-[0.97] transition-transform space-y-2"
+                    >
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${nf.color}20` }}>
+                        <Icon name={nf.icon} style={{ color: nf.color }} size={20} />
+                      </div>
+                      <p className="text-sm text-on-surface font-medium">{nf.name}</p>
+                      <p className="text-[10px] text-secondary/50">{match?.count ?? 0} fragrances</p>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Other families not in our known list */}
+              {familyResults
+                .filter((fr) => !NOTE_FAMILIES.some((nf) => fr.family.toLowerCase().includes(nf.name.toLowerCase())))
+                .map((fr) => (
+                  <button
+                    key={fr.family}
+                    onClick={() => handleFamilyTap(fr.family)}
+                    className="w-full bg-surface-container rounded-xl px-4 py-3 flex items-center justify-between text-left active:scale-[0.98] transition-transform"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon name="spa" className="text-primary" size={18} />
+                      <span className="text-sm text-on-surface">{fr.family}</span>
+                    </div>
+                    <span className="text-[10px] text-secondary/50">{fr.count}</span>
+                  </button>
+                ))}
+            </>
+          )}
+        </section>
+      )}
+
+      {/* Selected Family Detail */}
+      {mode === 'families' && selectedFamily && (
+        <section className="space-y-4">
+          <button onClick={() => setSelectedFamily(null)} className="flex items-center gap-2 text-primary text-sm font-medium active:opacity-70">
+            <Icon name="arrow_back" size={18} /> All Families
+          </button>
+          <h3 className="font-headline text-2xl text-on-surface">{selectedFamily}</h3>
+          {loading ? (
+            <div className="grid grid-cols-2 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[3/4] rounded-xl bg-surface-container animate-pulse" />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {selectedFamilyFragrances.map((frag) => (
+                <div
+                  key={frag.id}
+                  className="space-y-2 group cursor-pointer"
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => navigate(`/fragrance/${frag.id}`)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/fragrance/${frag.id}`) }}
+                >
+                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low">
+                    {frag.image_url && <img src={frag.image_url} alt={frag.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+                  </div>
+                  <div>
+                    <span className="text-[9px] uppercase tracking-[0.15em] text-secondary/60">{frag.brand}</span>
+                    <h4 className="text-sm font-medium text-on-surface truncate">{frag.name}</h4>
+                    {frag.rating && (
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Icon name="star" filled className="text-[10px] text-primary" />
+                        <span className="text-[10px] text-on-surface-variant">{Number(frag.rating).toFixed(1)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Accords View */}
+      {mode === 'accords' && (
+        <section className="space-y-3">
+          {accordResults.length === 0 && !loading ? (
+            <p className="text-sm text-secondary/50 text-center py-8">No accord data available</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {accordResults.map((a) => (
+                <span key={a.accord} className="bg-surface-container px-3 py-2 rounded-full flex items-center gap-2">
+                  <span className="text-xs text-on-surface font-medium">{a.accord}</span>
+                  <span className="text-[9px] text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded-full">{a.count}</span>
+                </span>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Notes Search */}
+      {mode === 'notes' && (
+        <section className="space-y-4">
+          <div className="relative flex items-center bg-surface-container rounded-xl px-4 py-3.5 focus-within:ring-1 ring-primary/30 transition-all">
+            <Icon name="search" className="text-secondary/50 mr-3" />
+            <input
+              className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-secondary/40 w-full text-sm"
+              placeholder='Search by note (e.g. "bergamot", "vanilla")'
+              type="text"
+              value={noteSearch}
+              onChange={(e) => handleNoteSearch(e.target.value)}
+              autoFocus
+            />
+            {noteSearch && (
+              <button onClick={() => { setNoteSearch(''); setNoteResults([]) }} className="text-secondary/60">
+                <Icon name="close" size={18} />
+              </button>
+            )}
+          </div>
+
+          {searching ? (
+            <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+          ) : noteSearch.length >= 2 && noteResults.length === 0 ? (
+            <p className="text-sm text-secondary/50 text-center py-8">No fragrances found with that note</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {noteResults.map((frag) => (
+                <div
+                  key={frag.id}
+                  className="space-y-2 group cursor-pointer"
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => navigate(`/fragrance/${frag.id}`)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/fragrance/${frag.id}`) }}
+                >
+                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low">
+                    {frag.image_url && <img src={frag.image_url} alt={frag.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+                  </div>
+                  <div>
+                    <span className="text-[9px] uppercase tracking-[0.15em] text-secondary/60">{frag.brand}</span>
+                    <h4 className="text-sm font-medium text-on-surface truncate">{frag.name}</h4>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {noteSearch.length < 2 && (
+            <div className="space-y-3 pt-4">
+              <p className="text-[10px] uppercase tracking-[0.15em] text-secondary/60 font-bold">POPULAR NOTES</p>
+              <div className="flex flex-wrap gap-2">
+                {['Bergamot', 'Vanilla', 'Sandalwood', 'Rose', 'Oud', 'Musk', 'Amber', 'Jasmine', 'Patchouli', 'Tonka Bean', 'Cedar', 'Lavender'].map((note) => (
+                  <button
+                    key={note}
+                    onClick={() => handleNoteSearch(note)}
+                    className="bg-surface-container px-3 py-2 rounded-full text-xs text-on-surface active:scale-95 transition-all"
+                  >
+                    {note}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+    </main>
+  )
+}
