@@ -175,11 +175,11 @@ export function HomeScreen() {
               <p className="text-[10px] text-secondary/50">Your taste decoded</p>
             </div>
           </button>
-          <button onClick={() => navigate('/achievements')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="emoji_events" className="text-primary" />
+          <button onClick={() => navigate('/smart-recs')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="auto_awesome" className="text-primary" />
             <div>
-              <p className="text-sm text-on-surface font-medium">Achievements</p>
-              <p className="text-[10px] text-secondary/50">Unlock badges</p>
+              <p className="text-sm text-on-surface font-medium">For You</p>
+              <p className="text-[10px] text-secondary/50">Smart picks</p>
             </div>
           </button>
         </div>
@@ -199,6 +199,24 @@ export function HomeScreen() {
           <button onClick={() => navigate('/timeline')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
             <Icon name="timeline" className="text-primary" size={20} />
             <p className="text-[9px] text-on-surface font-medium">Timeline</p>
+          </button>
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          <button onClick={() => navigate('/mood')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="mood" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Mood</p>
+          </button>
+          <button onClick={() => navigate('/journal')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="edit_note" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Journal</p>
+          </button>
+          <button onClick={() => navigate('/calendar')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="calendar_month" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Calendar</p>
+          </button>
+          <button onClick={() => navigate('/quick-rate')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="star_rate" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Rate</p>
           </button>
         </div>
       </section>

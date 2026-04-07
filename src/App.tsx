@@ -31,6 +31,13 @@ import { AchievementsScreen } from './components/screens/AchievementsScreen'
 import { TimelineScreen } from './components/screens/TimelineScreen'
 import { StatsScreen } from './components/screens/StatsScreen'
 import { FragranceOfDayScreen } from './components/screens/FragranceOfDayScreen'
+import { ImportScreen } from './components/screens/ImportScreen'
+import { WearCalendarScreen } from './components/screens/WearCalendarScreen'
+import { SmartRecsScreen } from './components/screens/SmartRecsScreen'
+import { ProfileCardScreen } from './components/screens/ProfileCardScreen'
+import { MoodPickerScreen } from './components/screens/MoodPickerScreen'
+import { JournalScreen } from './components/screens/JournalScreen'
+import { QuickRateScreen } from './components/screens/QuickRateScreen'
 
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
   return (
@@ -256,6 +263,62 @@ export default function App() {
                 element={
                   <AppLayout title="DAILY PICK" showBack>
                     <FragranceOfDayScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/import"
+                element={
+                  <AppLayout title="IMPORT" showBack>
+                    <ImportScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/calendar"
+                element={
+                  <AppLayout title="WEAR CALENDAR" showBack>
+                    <WearCalendarScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/smart-recs"
+                element={
+                  <AppLayout title="FOR YOU" showBack>
+                    <SmartRecsScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/profile-card"
+                element={
+                  <AppLayout title="PROFILE CARD" showBack>
+                    <ProfileCardScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/mood"
+                element={
+                  <AppLayout title="MOOD PICKER" showBack>
+                    <MoodPickerScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/journal"
+                element={
+                  <AppLayout title="JOURNAL" showBack>
+                    <JournalScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/quick-rate"
+                element={
+                  <AppLayout title="QUICK RATE" showBack>
+                    <QuickRateScreen />
                   </AppLayout>
                 }
               />
