@@ -30,45 +30,40 @@ export function ShareCardSheet({ fragrance, personalRating, onClose }: ShareCard
     setSharing(true)
 
     try {
-      // Use canvas to capture the card
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const html2canvas = (await import('html2canvas' as any)).default as any
-      const canvas = await html2canvas(cardRef.current, {
+      // Use html-to-image to capture the card as PNG blob
+      const { toBlob } = await import('html-to-image')
+      const blob = await toBlob(cardRef.current, {
         backgroundColor: style.bg,
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      }) as HTMLCanvasElement
+        pixelRatio: 2,
+      })
 
-      canvas.toBlob(async (blob: Blob | null) => {
-        if (!blob) { showToast('Failed to generate image', 'error'); setSharing(false); return }
+      if (!blob) { showToast('Failed to generate image', 'error'); setSharing(false); return }
 
-        // Try native share API first
-        if (navigator.share && navigator.canShare) {
-          const file = new File([blob], `${fragrance.name}-scentfolio.png`, { type: 'image/png' })
-          const shareData = { files: [file], title: `${fragrance.brand} ${fragrance.name}`, text: `Check out ${fragrance.name} by ${fragrance.brand} on ScentFolio` }
-          if (navigator.canShare(shareData)) {
-            try {
-              await navigator.share(shareData)
-              showToast('Shared!', 'success')
-              setSharing(false)
-              return
-            } catch { /* user cancelled, fall through to download */ }
-          }
+      // Try native share API first
+      if (navigator.share && navigator.canShare) {
+        const file = new File([blob], `${fragrance.name}-scentfolio.png`, { type: 'image/png' })
+        const shareData = { files: [file], title: `${fragrance.brand} ${fragrance.name}`, text: `Check out ${fragrance.name} by ${fragrance.brand} on ScentFolio` }
+        if (navigator.canShare(shareData)) {
+          try {
+            await navigator.share(shareData)
+            showToast('Shared!', 'success')
+            setSharing(false)
+            return
+          } catch { /* user cancelled, fall through to download */ }
         }
+      }
 
-        // Fallback: download
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `${fragrance.name}-scentfolio.png`
-        a.click()
-        URL.revokeObjectURL(url)
-        showToast('Image saved!', 'success', 'download')
-        setSharing(false)
-      }, 'image/png')
+      // Fallback: download
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${fragrance.name}-scentfolio.png`
+      a.click()
+      URL.revokeObjectURL(url)
+      showToast('Image saved!', 'success', 'download')
+      setSharing(false)
     } catch {
-      // html2canvas not available — fallback to clipboard text
+      // html-to-image not available — fallback to clipboard text
       const text = `${fragrance.brand} — ${fragrance.name}\n${fragrance.rating ? `Rating: ${Number(fragrance.rating).toFixed(1)}/5` : ''}\n${fragrance.note_family ? `Family: ${fragrance.note_family}` : ''}\n\nShared via ScentFolio`
       try {
         await navigator.clipboard.writeText(text)
