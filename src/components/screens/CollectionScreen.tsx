@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { awardXP } from '@/lib/xp'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useToast } from '@/contexts/ToastContext'
 import { PullToRefresh } from '../ui/PullToRefresh'
 import type { Fragrance } from '@/types/database'
 
@@ -51,6 +52,68 @@ export function CollectionScreen() {
   const { user } = useAuth()
   const userId = user?.id
   const { data: collection, loading, error, retry } = useUserCollection(userId)
+  const toast = useToast()
+
+  // Batch selection state
+  const [selectMode, setSelectMode] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [batchProcessing, setBatchProcessing] = useState(false)
+
+  const toggleSelect = (collectionId: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(collectionId)) next.delete(collectionId)
+      else next.add(collectionId)
+      return next
+    })
+  }
+
+  const selectAll = () => {
+    setSelected(new Set(filtered.map((f) => f.id)))
+  }
+
+  const clearSelection = () => {
+    setSelected(new Set())
+    setSelectMode(false)
+  }
+
+  const handleBatchDelete = async () => {
+    if (!user || selected.size === 0) return
+    setBatchProcessing(true)
+    const ids = [...selected]
+    const { error: delError } = await supabase
+      .from('user_collections')
+      .delete()
+      .in('id', ids)
+      .eq('user_id', user.id)
+    if (delError) {
+      toast.showToast('Failed to delete', 'error')
+    } else {
+      toast.showToast(`Removed ${ids.length} fragrance${ids.length > 1 ? 's' : ''}`, 'success')
+      retry()
+    }
+    setBatchProcessing(false)
+    clearSelection()
+  }
+
+  const handleBatchStatus = async (newStatus: string) => {
+    if (!user || selected.size === 0) return
+    setBatchProcessing(true)
+    const ids = [...selected]
+    const { error: updError } = await supabase
+      .from('user_collections')
+      .update({ status: newStatus })
+      .in('id', ids)
+      .eq('user_id', user.id)
+    if (updError) {
+      toast.showToast('Failed to update', 'error')
+    } else {
+      toast.showToast(`Moved ${ids.length} to ${newStatus}`, 'success')
+      retry()
+    }
+    setBatchProcessing(false)
+    clearSelection()
+  }
 
   // Quick-add overlay state
   const [quickAddOpen, setQuickAddOpen] = useState(false)
@@ -185,10 +248,20 @@ export function CollectionScreen() {
           <div>
             <h2 className="font-headline text-4xl text-on-surface leading-tight">My Collection</h2>
             <p className="font-body text-sm text-secondary opacity-70 mt-1">
-              {collection.length} fragrance{collection.length !== 1 ? 's' : ''}
+              {selectMode ? `${selected.size} selected` : `${collection.length} fragrance${collection.length !== 1 ? 's' : ''}`}
             </p>
           </div>
-          {/* Grid toggle removed — single layout for now */}
+          {collection.length > 0 && (
+            <button
+              onClick={() => {
+                if (selectMode) clearSelection()
+                else setSelectMode(true)
+              }}
+              className="text-[10px] uppercase tracking-widest font-bold text-primary active:scale-95 transition-transform"
+            >
+              {selectMode ? 'CANCEL' : 'SELECT'}
+            </button>
+          )}
         </div>
       </header>
 
@@ -319,15 +392,21 @@ export function CollectionScreen() {
           </p>
         </div>
       ) : (
+        <>
         <section className="grid grid-cols-2 gap-x-4 gap-y-8 mb-16">
-          {filtered.map((item) => (
+          {filtered.map((item) => {
+            const isSelected = selected.has(item.id)
+            return (
             <div
               key={item.id}
-              className="flex flex-col group cursor-pointer"
+              className={`flex flex-col group cursor-pointer ${isSelected ? 'ring-2 ring-primary rounded-xl' : ''}`}
               role="link"
               tabIndex={0}
-              onClick={() => navigate(`/fragrance/${item.fragrance.id}`)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/fragrance/${item.fragrance.id}`) } }}
+              onClick={() => {
+                if (selectMode) toggleSelect(item.id)
+                else navigate(`/fragrance/${item.fragrance.id}`)
+              }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) } }}
             >
               <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-3">
                 {item.fragrance.image_url ? (
@@ -339,6 +418,11 @@ export function CollectionScreen() {
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-secondary/20">
                     <Icon name="water_drop" size={40} />
+                  </div>
+                )}
+                {selectMode && (
+                  <div className={`absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center transition-all ${isSelected ? 'bg-primary' : 'bg-black/40 ring-2 ring-white/40'}`}>
+                    {isSelected && <Icon name="check" className="text-on-primary" size={14} />}
                   </div>
                 )}
                 <div
@@ -370,8 +454,27 @@ export function CollectionScreen() {
                 </div>
               )}
             </div>
-          ))}
+            )
+          })}
         </section>
+
+        {/* Batch Action Bar */}
+        {selectMode && selected.size > 0 && (
+          <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[var(--z-fab)] bg-surface-container-highest rounded-2xl px-4 py-3 flex items-center gap-2 shadow-xl animate-slide-up">
+            <button onClick={selectAll} className="text-[9px] uppercase tracking-widest text-primary font-bold px-2 py-1.5 rounded-lg active:scale-95">ALL</button>
+            <div className="w-px h-6 bg-outline-variant/30" />
+            <button onClick={() => handleBatchStatus('own')} disabled={batchProcessing} className="flex items-center gap-1 px-3 py-2 rounded-xl bg-primary/10 text-primary text-[10px] font-bold active:scale-95 disabled:opacity-50">
+              <Icon name="inventory_2" size={14} /> OWN
+            </button>
+            <button onClick={() => handleBatchStatus('wishlist')} disabled={batchProcessing} className="flex items-center gap-1 px-3 py-2 rounded-xl bg-primary/10 text-primary text-[10px] font-bold active:scale-95 disabled:opacity-50">
+              <Icon name="favorite" size={14} /> WISH
+            </button>
+            <button onClick={handleBatchDelete} disabled={batchProcessing} className="flex items-center gap-1 px-3 py-2 rounded-xl bg-error/10 text-error text-[10px] font-bold active:scale-95 disabled:opacity-50">
+              <Icon name="delete" size={14} /> DEL
+            </button>
+          </div>
+        )}
+        </>
       )}
       {/* FAB — Add Fragrance */}
       {user && (

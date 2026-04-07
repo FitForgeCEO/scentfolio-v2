@@ -154,11 +154,11 @@ export function HomeScreen() {
       <section className="space-y-3">
         <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary">QUICK ACTIONS</h3>
         <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => navigate('/recommend')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="auto_awesome" className="text-primary" />
+          <button onClick={() => navigate('/daily')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="wb_sunny" className="text-primary" />
             <div>
-              <p className="text-sm text-on-surface font-medium">What to Wear</p>
-              <p className="text-[10px] text-secondary/50">Get a recommendation</p>
+              <p className="text-sm text-on-surface font-medium">Daily Pick</p>
+              <p className="text-[10px] text-secondary/50">Today's suggestion</p>
             </div>
           </button>
           <button onClick={() => navigate('/rotation')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
@@ -168,33 +168,37 @@ export function HomeScreen() {
               <p className="text-[10px] text-secondary/50">Seasonal capsule</p>
             </div>
           </button>
-          <button onClick={() => navigate('/insights')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="insights" className="text-primary" />
+          <button onClick={() => navigate('/stats')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="analytics" className="text-primary" />
             <div>
-              <p className="text-sm text-on-surface font-medium">Insights</p>
+              <p className="text-sm text-on-surface font-medium">Stats</p>
               <p className="text-[10px] text-secondary/50">Your taste decoded</p>
             </div>
           </button>
-          <button onClick={() => navigate('/budget')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="account_balance_wallet" className="text-primary" />
+          <button onClick={() => navigate('/achievements')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="emoji_events" className="text-primary" />
             <div>
-              <p className="text-sm text-on-surface font-medium">Budget</p>
-              <p className="text-[10px] text-secondary/50">Track spending</p>
+              <p className="text-sm text-on-surface font-medium">Achievements</p>
+              <p className="text-[10px] text-secondary/50">Unlock badges</p>
             </div>
           </button>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-2">
           <button onClick={() => navigate('/notes')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="spa" className="text-primary" />
-            <p className="text-[10px] text-on-surface font-medium">Notes</p>
+            <Icon name="spa" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Notes</p>
           </button>
           <button onClick={() => navigate('/combos')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="layers" className="text-primary" />
-            <p className="text-[10px] text-on-surface font-medium">Combos</p>
+            <Icon name="layers" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Combos</p>
           </button>
           <button onClick={() => navigate('/lists')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="bookmarks" className="text-primary" />
-            <p className="text-[10px] text-on-surface font-medium">Lists</p>
+            <Icon name="bookmarks" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Lists</p>
+          </button>
+          <button onClick={() => navigate('/timeline')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="timeline" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Timeline</p>
           </button>
         </div>
       </section>

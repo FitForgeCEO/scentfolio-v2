@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
+import { ThemeProvider } from './contexts/ThemeContext'
 import { TopAppBar } from './components/layout/TopAppBar'
 import { BottomNav } from './components/layout/BottomNav'
 import { HomeScreen } from './components/screens/HomeScreen'
@@ -26,6 +27,10 @@ import { BudgetScreen } from './components/screens/BudgetScreen'
 import { LayeringCombosScreen } from './components/screens/LayeringCombosScreen'
 import { SeasonalRotationScreen } from './components/screens/SeasonalRotationScreen'
 import { CustomListsScreen, ListDetailScreen } from './components/screens/CustomListsScreen'
+import { AchievementsScreen } from './components/screens/AchievementsScreen'
+import { TimelineScreen } from './components/screens/TimelineScreen'
+import { StatsScreen } from './components/screens/StatsScreen'
+import { FragranceOfDayScreen } from './components/screens/FragranceOfDayScreen'
 
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
   return (
@@ -40,6 +45,7 @@ function AppLayout({ children, showBack, title }: { children: React.ReactNode; s
 export default function App() {
   return (
     <ErrorBoundary>
+      <ThemeProvider>
       <AuthProvider>
         <ToastProvider>
         <BrowserRouter>
@@ -222,6 +228,38 @@ export default function App() {
                 }
               />
               <Route
+                path="/achievements"
+                element={
+                  <AppLayout title="ACHIEVEMENTS" showBack>
+                    <AchievementsScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/timeline"
+                element={
+                  <AppLayout title="TIMELINE" showBack>
+                    <TimelineScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/stats"
+                element={
+                  <AppLayout title="STATS" showBack>
+                    <StatsScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/daily"
+                element={
+                  <AppLayout title="DAILY PICK" showBack>
+                    <FragranceOfDayScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
                 path="/profile"
                 element={
                   <AppLayout title="SCENTFOLIO">
@@ -235,6 +273,7 @@ export default function App() {
         </BrowserRouter>
         </ToastProvider>
       </AuthProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   )
 }

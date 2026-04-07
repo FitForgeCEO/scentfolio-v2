@@ -13,6 +13,7 @@ import { AccordsRadar } from '../fragrance/AccordsRadar'
 import { awardXP } from '@/lib/xp'
 import { useToast } from '@/contexts/ToastContext'
 import { ShareCardSheet } from '../ui/ShareCard'
+import { addRecentlyViewed } from '@/lib/recentlyViewed'
 
 /* ── Season & Occasion icon maps ── */
 const SEASON_ICONS: Record<string, React.ReactNode> = {
@@ -154,6 +155,13 @@ export function FragranceDetailScreen() {
   const [logSheetOpen, setLogSheetOpen] = useState(false)
   const [reviewSheetOpen, setReviewSheetOpen] = useState(false)
   const [shareCardOpen, setShareCardOpen] = useState(false)
+
+  // Track recently viewed
+  useEffect(() => {
+    if (frag) {
+      addRecentlyViewed({ id: frag.id, name: frag.name, brand: frag.brand, image_url: frag.image_url })
+    }
+  }, [frag])
 
   useEffect(() => {
     if (!user || !id) return

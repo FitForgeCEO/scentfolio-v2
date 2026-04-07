@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
+import { getRecentlyViewed, clearRecentlyViewed } from '@/lib/recentlyViewed'
 
 const POPULAR_SEARCHES = [
   'Dior', 'Chanel', 'Tom Ford', 'Creed', 'Le Labo',
@@ -38,6 +39,7 @@ export function SearchScreen() {
   const [results, setResults] = useState<Fragrance[]>([])
   const [loading, setLoading] = useState(false)
   const [recentSearches, setRecentSearches] = useState<string[]>(getRecentSearches)
+  const [recentlyViewed, setRecentlyViewed] = useState(getRecentlyViewed)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   // Auto-focus on mount
@@ -191,6 +193,41 @@ export function SearchScreen() {
                   >
                     <Icon name="history" className="text-secondary/40" size={14} />
                     <span className="text-xs text-on-surface">{term}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Recently Viewed */}
+          {recentlyViewed.length > 0 && (
+            <section>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">RECENTLY VIEWED</h3>
+                <button
+                  onClick={() => { clearRecentlyViewed(); setRecentlyViewed([]) }}
+                  className="text-[10px] uppercase tracking-widest text-error/60 font-bold"
+                >
+                  CLEAR
+                </button>
+              </div>
+              <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-2">
+                {recentlyViewed.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => navigate(`/fragrance/${item.id}`)}
+                    className="flex-shrink-0 w-20 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+                  >
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-surface-container-highest">
+                      {item.image_url ? (
+                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Icon name="water_drop" className="text-secondary/30" size={20} />
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[9px] text-on-surface text-center line-clamp-2 leading-tight">{item.name}</span>
                   </button>
                 ))}
               </div>

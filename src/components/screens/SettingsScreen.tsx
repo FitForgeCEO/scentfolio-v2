@@ -4,6 +4,7 @@ import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/contexts/ToastContext'
+import { useTheme } from '@/contexts/ThemeContext'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { Profile } from '@/types/database'
 
@@ -38,6 +39,7 @@ export function SettingsScreen() {
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
   const toast = useToast()
+  const { theme, toggleTheme } = useTheme()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [settings, setSettings] = useState<UserSettings>(loadSettings)
@@ -223,6 +225,28 @@ export function SettingsScreen() {
               <option key={c} value={c}>{CURRENCY_SYMBOLS[c]} {c}</option>
             ))}
           </select>
+        </div>
+
+        {/* Theme Toggle */}
+        <div className="bg-surface-container rounded-xl px-4 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Icon name={theme === 'dark' ? 'dark_mode' : 'light_mode'} className="text-primary" size={20} />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Theme</p>
+              <p className="text-[10px] text-secondary/50">{theme === 'dark' ? 'Dark mode' : 'Light mode'}</p>
+            </div>
+          </div>
+          <button
+            onClick={toggleTheme}
+            className={`w-11 h-6 rounded-full transition-colors relative ${theme === 'light' ? 'bg-primary' : 'bg-surface-container-highest'}`}
+            role="switch"
+            aria-checked={theme === 'light'}
+            aria-label="Toggle light mode"
+          >
+            <div className="w-5 h-5 rounded-full bg-white shadow-sm absolute top-0.5 transition-transform"
+              style={{ transform: theme === 'light' ? 'translateX(21px)' : 'translateX(1px)' }}
+            />
+          </button>
         </div>
 
         {/* Season auto-detect */}

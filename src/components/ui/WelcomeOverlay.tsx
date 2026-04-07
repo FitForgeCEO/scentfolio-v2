@@ -11,19 +11,29 @@ const STEPS = [
     body: 'Your personal fragrance journal. Catalogue your collection, log daily wears, and discover what suits you best.',
   },
   {
+    icon: 'search',
+    title: 'Search & Discover',
+    body: 'Browse 2,700+ fragrances. Add to your collection, wishlist, or explore notes and accords.',
+  },
+  {
     icon: 'calendar_today',
     title: 'Log Your Wears',
-    body: 'Track what you wear each day. Build streaks, earn XP, and unlock milestones as you go.',
+    body: 'Track what you wear each day. Build streaks, earn XP, and see your most-worn scents rise to the top.',
   },
   {
     icon: 'science',
     title: 'The Layering Lab',
-    body: 'Get AI-powered layering recommendations tailored to your collection and mood. Our signature feature.',
+    body: 'Get AI-powered layering recommendations tailored to your collection and mood. Save winning combos.',
+  },
+  {
+    icon: 'analytics',
+    title: 'Insights & Stats',
+    body: 'Dive into your taste profile — top note families, wearing patterns, budget tracking, and a diversity score.',
   },
   {
     icon: 'emoji_events',
-    title: 'Level Up',
-    body: "Every wear, review, and collection add earns XP. Rise through the ranks from Newcomer to Legend.",
+    title: 'Achievements & XP',
+    body: "Unlock 25+ badges as you grow your collection. Every action earns XP — rise from Newcomer to Legend.",
   },
 ]
 
