@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { ToastProvider } from './contexts/ToastContext'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { TopAppBar } from './components/layout/TopAppBar'
 import { BottomNav } from './components/layout/BottomNav'
@@ -9,6 +10,9 @@ import { FragranceDetailScreen } from './components/screens/FragranceDetailScree
 import { LayeringLabScreen } from './components/screens/LayeringLabScreen'
 import { ExploreScreen } from './components/screens/ExploreScreen'
 import { ProfileScreen } from './components/screens/ProfileScreen'
+import { WearHistoryScreen } from './components/screens/WearHistoryScreen'
+import { ScentBoardsScreen, BoardDetailScreen } from './components/screens/ScentBoardsScreen'
+import { SavedStacksScreen } from './components/screens/SavedStacksScreen'
 
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
   return (
@@ -24,6 +28,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
+        <ToastProvider>
         <BrowserRouter>
           <div className="max-w-[430px] mx-auto min-h-screen relative bg-background">
             <Routes>
@@ -68,6 +73,38 @@ export default function App() {
                 }
               />
               <Route
+                path="/wear-history"
+                element={
+                  <AppLayout title="WEAR HISTORY" showBack>
+                    <WearHistoryScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/boards"
+                element={
+                  <AppLayout title="SCENT BOARDS" showBack>
+                    <ScentBoardsScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/boards/:id"
+                element={
+                  <AppLayout title="BOARD" showBack>
+                    <BoardDetailScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/saved-stacks"
+                element={
+                  <AppLayout title="SAVED STACKS" showBack>
+                    <SavedStacksScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
                 path="/profile"
                 element={
                   <AppLayout title="SCENTFOLIO">
@@ -78,6 +115,7 @@ export default function App() {
             </Routes>
           </div>
         </BrowserRouter>
+        </ToastProvider>
       </AuthProvider>
     </ErrorBoundary>
   )

@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { awardXP, XP_AWARDS } from '@/lib/xp'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { useToast } from '@/contexts/ToastContext'
 import type { Fragrance } from '@/types/database'
 
 const OCCASIONS = ['Casual', 'Office', 'Date Night', 'Night Out', 'Special Event']
@@ -33,6 +34,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const trapRef = useFocusTrap(isOpen, onClose)
+  const { showToast } = useToast()
   const fragrance = passedFragrance ?? chosenFragrance
 
   // Reset state when sheet closes
@@ -101,9 +103,15 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
 
       // Award XP
       const result = await awardXP(user.id, 'LOG_WEAR')
-      setXpGained(result ? XP_AWARDS.LOG_WEAR : 0)
+      const gained = result ? XP_AWARDS.LOG_WEAR : 0
+      setXpGained(gained)
       setSaving(false)
       setSuccess(true)
+      showToast(
+        gained > 0 ? `Wear logged! +${gained} XP` : 'Wear logged!',
+        'success',
+        'check_circle'
+      )
       setTimeout(() => {
         setSuccess(false)
         setXpGained(0)
@@ -115,7 +123,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
         setChosenFragrance(null)
         setSearchQuery('')
         onClose()
-      }, 1200)
+      }, 800)
     } catch (err: any) {
       setErrorMsg(err?.message || 'Something went wrong — please try again.')
       setSaving(false)

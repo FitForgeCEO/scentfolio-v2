@@ -7,6 +7,7 @@ import { useTrendingFragrances } from '@/hooks/useFragrances'
 import { useHomeStats } from '@/hooks/useHomeStats'
 import { useAuth } from '@/contexts/AuthContext'
 import { LogWearSheet } from './LogWearSheet'
+import { PullToRefresh } from '../ui/PullToRefresh'
 
 function getGreeting(): string {
   const h = new Date().getHours()
@@ -19,12 +20,18 @@ export function HomeScreen() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { data: trending, loading, error: trendingError, retry: retryTrending } = useTrendingFragrances(4)
-  const { stats } = useHomeStats(user?.id)
+  const { stats, retry: retryStats } = useHomeStats(user?.id)
   const [logSheetOpen, setLogSheetOpen] = useState(false)
 
   const displayName = user?.user_metadata?.display_name || 'fragrance lover'
 
+  const handleRefresh = async () => {
+    retryTrending()
+    retryStats()
+  }
+
   return (
+    <PullToRefresh onRefresh={handleRefresh}>
     <main className="pt-24 pb-32 px-6 space-y-10">
       {/* Greeting & Quick Action Hero */}
       <section className="space-y-6">
@@ -61,7 +68,10 @@ export function HomeScreen() {
 
       {/* Streak Counter */}
       <section className="grid grid-cols-2 gap-4">
-        <div className="bg-surface-container p-4 rounded-xl flex flex-col justify-between h-28">
+        <button
+          onClick={() => navigate('/wear-history')}
+          className="bg-surface-container p-4 rounded-xl flex flex-col justify-between h-28 text-left active:scale-[0.97] transition-transform"
+        >
           <div className="flex items-center gap-2">
             <Icon name="local_fire_department" filled className="text-primary text-sm" />
             <span className="text-[10px] uppercase tracking-[0.1em] font-label text-secondary">
@@ -71,8 +81,11 @@ export function HomeScreen() {
           <p className="font-headline text-2xl">
             {stats.streak} day{stats.streak !== 1 ? 's' : ''}
           </p>
-        </div>
-        <div className="bg-surface-container p-4 rounded-xl flex flex-col justify-between h-28">
+        </button>
+        <button
+          onClick={() => navigate('/wear-history')}
+          className="bg-surface-container p-4 rounded-xl flex flex-col justify-between h-28 text-left active:scale-[0.97] transition-transform"
+        >
           <div className="flex items-center gap-2">
             <Icon name="calendar_month" filled className="text-primary text-sm" />
             <span className="text-[10px] uppercase tracking-[0.1em] font-label text-secondary">
@@ -82,7 +95,7 @@ export function HomeScreen() {
           <p className="font-headline text-2xl">
             {stats.monthWears} wear{stats.monthWears !== 1 ? 's' : ''}
           </p>
-        </div>
+        </button>
       </section>
 
       {/* Streak Milestones */}
@@ -131,10 +144,10 @@ export function HomeScreen() {
           <span className="text-[10px] uppercase tracking-[0.1em] font-label text-secondary">REVIEWS</span>
           <p className="font-headline text-3xl">{stats.reviews}</p>
         </div>
-        <div className="bg-surface-container p-5 rounded-xl space-y-1">
+        <button onClick={() => navigate('/boards')} className="bg-surface-container p-5 rounded-xl space-y-1 text-left active:scale-[0.97] transition-transform">
           <span className="text-[10px] uppercase tracking-[0.1em] font-label text-secondary">BOARDS</span>
           <p className="font-headline text-3xl">{stats.boards}</p>
-        </div>
+        </button>
       </section>
 
       {/* Trending Now — real Supabase data */}
@@ -204,5 +217,6 @@ export function HomeScreen() {
       {/* Welcome onboarding for new users */}
       {user && <WelcomeOverlay userId={user.id} />}
     </main>
+    </PullToRefresh>
   )
 }

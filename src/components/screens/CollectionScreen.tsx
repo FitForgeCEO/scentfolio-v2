@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { awardXP } from '@/lib/xp'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { PullToRefresh } from '../ui/PullToRefresh'
 import type { Fragrance } from '@/types/database'
 
 const STATUS_TABS = ['ALL', 'OWN', 'WISHLIST', 'SAMPLED', 'SOLD'] as const
@@ -145,6 +146,7 @@ export function CollectionScreen() {
   )
 
   return (
+    <PullToRefresh onRefresh={async () => { retry() }}>
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
       {/* Header */}
       <header className="mb-8">
@@ -440,5 +442,6 @@ export function CollectionScreen() {
         </div>
       )}
     </main>
+    </PullToRefresh>
   )
 }

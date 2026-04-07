@@ -3,6 +3,7 @@ import type React from 'react'
 import { useState, useEffect, useCallback } from 'react'
 import { Icon } from '../ui/Icon'
 import { useFragranceDetail, useFragranceReviews, useFragranceTags } from '@/hooks/useFragrances'
+import { useSimilarFragrances } from '@/hooks/useSimilarFragrances'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { LogWearSheet } from './LogWearSheet'
@@ -10,6 +11,7 @@ import { ReviewSheet } from './ReviewSheet'
 import { FragranceNotesPyramid } from '../fragrance/FragranceNotesPyramid'
 import { AccordsRadar } from '../fragrance/AccordsRadar'
 import { awardXP } from '@/lib/xp'
+import { useToast } from '@/contexts/ToastContext'
 
 /* ── Season & Occasion icon maps ── */
 const SEASON_ICONS: Record<string, React.ReactNode> = {
@@ -141,7 +143,9 @@ export function FragranceDetailScreen() {
   const { data: frag, loading } = useFragranceDetail(id)
   const { data: reviews } = useFragranceReviews(id)
   const { data: tags } = useFragranceTags(id)
+  const { data: similarFragrances, loading: similarLoading } = useSimilarFragrances(frag ?? null)
 
+  const { showToast } = useToast()
   // Collection status
   const [collectionStatus, setCollectionStatus] = useState<string | null>(null)
   const [addMenuOpen, setAddMenuOpen] = useState(false)
@@ -165,27 +169,42 @@ export function FragranceDetailScreen() {
   const handleAddToCollection = useCallback(async (status: string) => {
     if (!user) { navigate('/profile'); return }
     if (!id) return
-    setSaving(true)
     setAddMenuOpen(false)
 
-    if (collectionStatus) {
-      // Update existing
-      await supabase
-        .from('user_collections')
-        .update({ status })
-        .eq('user_id', user.id)
-        .eq('fragrance_id', id)
-    } else {
-      // Insert new
-      await supabase
-        .from('user_collections')
-        .insert({ user_id: user.id, fragrance_id: id, status })
-      // Award XP for first add
-      await awardXP(user.id, 'ADD_TO_COLLECTION')
-    }
+    // Optimistic update
+    const previousStatus = collectionStatus
     setCollectionStatus(status)
+    setSaving(true)
+
+    try {
+      if (previousStatus) {
+        const { error } = await supabase
+          .from('user_collections')
+          .update({ status })
+          .eq('user_id', user.id)
+          .eq('fragrance_id', id)
+        if (error) throw error
+      } else {
+        const { error } = await supabase
+          .from('user_collections')
+          .insert({ user_id: user.id, fragrance_id: id, status })
+        if (error) throw error
+        await awardXP(user.id, 'ADD_TO_COLLECTION')
+      }
+      showToast(
+        previousStatus
+          ? `Moved to ${status}`
+          : `Added to ${status}`,
+        'success',
+        status === 'wishlist' ? 'favorite' : 'check_circle'
+      )
+    } catch {
+      // Rollback on failure
+      setCollectionStatus(previousStatus)
+      showToast('Failed to update collection', 'error')
+    }
     setSaving(false)
-  }, [user, id, collectionStatus, navigate])
+  }, [user, id, collectionStatus, navigate, showToast])
 
   if (loading || !frag) {
     return (
@@ -438,6 +457,40 @@ export function FragranceDetailScreen() {
                 <span key={tag} className="px-4 py-2 rounded-full bg-surface-container-highest text-xs text-on-surface-variant">
                   {tag}
                 </span>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Similar Fragrances */}
+        {!similarLoading && similarFragrances.length > 0 && (
+          <section>
+            <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase mb-6">SIMILAR FRAGRANCES</h3>
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+              {similarFragrances.map((sf) => (
+                <button
+                  key={sf.id}
+                  onClick={() => navigate(`/fragrance/${sf.id}`)}
+                  className="flex-shrink-0 w-[120px] text-left active:scale-95 transition-transform"
+                >
+                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-2">
+                    {sf.image_url ? (
+                      <img src={sf.image_url} alt={sf.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-secondary/30">
+                        <Icon name="water_drop" size={32} />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[9px] uppercase tracking-[0.1em] font-label text-secondary/60">{sf.brand}</p>
+                  <p className="text-xs font-medium text-on-surface truncate">{sf.name}</p>
+                  {sf.rating && (
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <Icon name="star" filled className="text-[10px] text-primary" />
+                      <span className="text-[9px] text-primary font-bold">{Number(sf.rating).toFixed(1)}</span>
+                    </div>
+                  )}
+                </button>
               ))}
             </div>
           </section>
