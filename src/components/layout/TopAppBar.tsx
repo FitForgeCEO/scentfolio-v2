@@ -50,7 +50,7 @@ export function TopAppBar({
         {rightAction}
         {showSearch && (
           <button
-            onClick={() => navigate('/explore')}
+            onClick={() => navigate('/search')}
             aria-label="Search fragrances"
             className="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform"
           >
@@ -58,15 +58,24 @@ export function TopAppBar({
           </button>
         )}
         {isHome && !showBack && (
-          <button
-            onClick={() => navigate('/profile')}
-            aria-label="Profile"
-            className="flex items-center gap-2 active:scale-95 transition-transform"
-          >
-            <div className="w-8 h-8 rounded-full overflow-hidden bg-surface-container-highest">
-              <div className="w-full h-full bg-gradient-to-br from-primary/30 to-surface-container-highest" />
-            </div>
-          </button>
+          <>
+            <button
+              onClick={() => navigate('/search')}
+              aria-label="Search fragrances"
+              className="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform"
+            >
+              <Icon name="search" className="text-primary" />
+            </button>
+            <button
+              onClick={() => navigate('/profile')}
+              aria-label="Profile"
+              className="flex items-center gap-2 active:scale-95 transition-transform"
+            >
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-surface-container-highest">
+                <div className="w-full h-full bg-gradient-to-br from-primary/30 to-surface-container-highest" />
+              </div>
+            </button>
+          </>
         )}
       </div>
     </header>

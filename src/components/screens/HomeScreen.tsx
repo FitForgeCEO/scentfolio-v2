@@ -136,10 +136,10 @@ export function HomeScreen() {
           <span className="text-[10px] uppercase tracking-[0.1em] font-label text-primary font-bold">OWNED</span>
           <p className="font-headline text-3xl">{stats.owned}</p>
         </div>
-        <div className="bg-surface-container p-5 rounded-xl space-y-1">
+        <button onClick={() => navigate('/wishlist')} className="bg-surface-container p-5 rounded-xl space-y-1 text-left active:scale-[0.97] transition-transform">
           <span className="text-[10px] uppercase tracking-[0.1em] font-label text-secondary">WISHLIST</span>
           <p className="font-headline text-3xl">{stats.wishlist}</p>
-        </div>
+        </button>
         <div className="bg-surface-container p-5 rounded-xl space-y-1">
           <span className="text-[10px] uppercase tracking-[0.1em] font-label text-secondary">REVIEWS</span>
           <p className="font-headline text-3xl">{stats.reviews}</p>
@@ -148,6 +148,41 @@ export function HomeScreen() {
           <span className="text-[10px] uppercase tracking-[0.1em] font-label text-secondary">BOARDS</span>
           <p className="font-headline text-3xl">{stats.boards}</p>
         </button>
+      </section>
+
+      {/* Quick Actions */}
+      <section className="space-y-3">
+        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary">QUICK ACTIONS</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <button onClick={() => navigate('/recommend')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="auto_awesome" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">What to Wear</p>
+              <p className="text-[10px] text-secondary/50">Get a recommendation</p>
+            </div>
+          </button>
+          <button onClick={() => navigate('/compare')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="compare_arrows" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Compare</p>
+              <p className="text-[10px] text-secondary/50">Side by side</p>
+            </div>
+          </button>
+          <button onClick={() => navigate('/insights')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="insights" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Insights</p>
+              <p className="text-[10px] text-secondary/50">Your taste decoded</p>
+            </div>
+          </button>
+          <button onClick={() => navigate('/decants')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="science" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Decants</p>
+              <p className="text-[10px] text-secondary/50">Track samples & ml</p>
+            </div>
+          </button>
+        </div>
       </section>
 
       {/* Trending Now — real Supabase data */}

@@ -12,6 +12,7 @@ import { FragranceNotesPyramid } from '../fragrance/FragranceNotesPyramid'
 import { AccordsRadar } from '../fragrance/AccordsRadar'
 import { awardXP } from '@/lib/xp'
 import { useToast } from '@/contexts/ToastContext'
+import { ShareCardSheet } from '../ui/ShareCard'
 
 /* ── Season & Occasion icon maps ── */
 const SEASON_ICONS: Record<string, React.ReactNode> = {
@@ -152,6 +153,7 @@ export function FragranceDetailScreen() {
   const [saving, setSaving] = useState(false)
   const [logSheetOpen, setLogSheetOpen] = useState(false)
   const [reviewSheetOpen, setReviewSheetOpen] = useState(false)
+  const [shareCardOpen, setShareCardOpen] = useState(false)
 
   useEffect(() => {
     if (!user || !id) return
@@ -344,6 +346,16 @@ export function FragranceDetailScreen() {
           </div>
           <span className="text-[9px] tracking-widest uppercase font-bold text-secondary/60">REVIEW</span>
         </button>
+
+        <button
+          className="flex flex-col items-center gap-2 group"
+          onClick={() => setShareCardOpen(true)}
+        >
+          <div className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-highest group-active:scale-90 transition-transform">
+            <Icon name="share" className="text-secondary" />
+          </div>
+          <span className="text-[9px] tracking-widest uppercase font-bold text-secondary/60">SHARE</span>
+        </button>
       </section>
 
       {/* Log Wear Bottom Sheet */}
@@ -356,6 +368,10 @@ export function FragranceDetailScreen() {
         fragrance={frag}
         isOwner={collectionStatus === 'own'}
       />
+
+      {shareCardOpen && (
+        <ShareCardSheet fragrance={frag} onClose={() => setShareCardOpen(false)} />
+      )}
 
       <div className="px-6 mt-10 space-y-12">
         {/* Accords — Radar Chart */}

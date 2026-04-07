@@ -13,6 +13,13 @@ import { ProfileScreen } from './components/screens/ProfileScreen'
 import { WearHistoryScreen } from './components/screens/WearHistoryScreen'
 import { ScentBoardsScreen, BoardDetailScreen } from './components/screens/ScentBoardsScreen'
 import { SavedStacksScreen } from './components/screens/SavedStacksScreen'
+import { SearchScreen } from './components/screens/SearchScreen'
+import { InstallBanner } from './components/ui/InstallBanner'
+import { DecantsScreen } from './components/screens/DecantsScreen'
+import { WishlistScreen } from './components/screens/WishlistScreen'
+import { InsightsScreen } from './components/screens/InsightsScreen'
+import { CompareScreen } from './components/screens/CompareScreen'
+import { RecommendScreen } from './components/screens/RecommendScreen'
 
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
   return (
@@ -105,6 +112,54 @@ export default function App() {
                 }
               />
               <Route
+                path="/search"
+                element={
+                  <AppLayout title="SEARCH" showBack>
+                    <SearchScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/wishlist"
+                element={
+                  <AppLayout title="WANT TO TRY" showBack>
+                    <WishlistScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/insights"
+                element={
+                  <AppLayout title="INSIGHTS" showBack>
+                    <InsightsScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/compare"
+                element={
+                  <AppLayout title="COMPARE" showBack>
+                    <CompareScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/recommend"
+                element={
+                  <AppLayout title="TODAY'S PICK" showBack>
+                    <RecommendScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/decants"
+                element={
+                  <AppLayout title="DECANTS" showBack>
+                    <DecantsScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
                 path="/profile"
                 element={
                   <AppLayout title="SCENTFOLIO">
@@ -113,6 +168,7 @@ export default function App() {
                 }
               />
             </Routes>
+            <InstallBanner />
           </div>
         </BrowserRouter>
         </ToastProvider>
