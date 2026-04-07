@@ -168,7 +168,6 @@ export function AchievementsScreen() {
   }
 
   const unlocked = ACHIEVEMENTS.filter((a) => a.check(stats))
-  const _locked = ACHIEVEMENTS.filter((a) => !a.check(stats))
   const totalXP = unlocked.reduce((sum, a) => sum + a.xpReward, 0)
   const categories = ['all', 'collection', 'wearing', 'social', 'exploration']
 
