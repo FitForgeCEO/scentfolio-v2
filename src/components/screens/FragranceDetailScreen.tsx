@@ -488,33 +488,34 @@ export function FragranceDetailScreen() {
           </section>
         )}
 
-        {/* Similar Fragrances */}
+        {/* Similar Fragrances — powered by similarity engine */}
         {!similarLoading && similarFragrances.length > 0 && (
           <section>
             <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase mb-6">SIMILAR FRAGRANCES</h3>
             <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-              {similarFragrances.map((sf) => (
+              {similarFragrances.map((sr) => (
                 <button
-                  key={sf.id}
-                  onClick={() => navigate(`/fragrance/${sf.id}`)}
+                  key={sr.fragrance.id}
+                  onClick={() => navigate(`/fragrance/${sr.fragrance.id}`)}
                   className="flex-shrink-0 w-[120px] text-left active:scale-95 transition-transform"
                 >
-                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-2">
-                    {sf.image_url ? (
-                      <img src={sf.image_url} alt={sf.name} className="w-full h-full object-cover" />
+                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-2">
+                    {sr.fragrance.image_url ? (
+                      <img src={sr.fragrance.image_url} alt={sr.fragrance.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-secondary/30">
                         <Icon name="water_drop" size={32} />
                       </div>
                     )}
-                  </div>
-                  <p className="text-[9px] uppercase tracking-[0.1em] font-label text-secondary/60">{sf.brand}</p>
-                  <p className="text-xs font-medium text-on-surface truncate">{sf.name}</p>
-                  {sf.rating && (
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <Icon name="star" filled className="text-[10px] text-primary" />
-                      <span className="text-[9px] text-primary font-bold">{Number(sf.rating).toFixed(1)}</span>
+                    {/* Match score badge */}
+                    <div className="absolute top-1.5 right-1.5 bg-black/60 backdrop-blur-sm rounded-full px-2 py-0.5">
+                      <span className="text-[9px] text-primary font-bold">{sr.score}%</span>
                     </div>
+                  </div>
+                  <p className="text-[9px] uppercase tracking-[0.1em] font-label text-secondary/60">{sr.fragrance.brand}</p>
+                  <p className="text-xs font-medium text-on-surface truncate">{sr.fragrance.name}</p>
+                  {sr.reasons.length > 0 && (
+                    <p className="text-[9px] text-secondary/50 truncate mt-0.5">{sr.reasons[0]}</p>
                   )}
                 </button>
               ))}

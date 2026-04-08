@@ -66,6 +66,7 @@ const ScentQuizScreen = lazy(() => import('./components/screens/ScentQuizScreen'
 const CollectionInsightsScreen = lazy(() => import('./components/screens/CollectionInsightsScreen').then(m => ({ default: m.CollectionInsightsScreen })))
 const WearPredictionsScreen = lazy(() => import('./components/screens/WearPredictionsScreen').then(m => ({ default: m.WearPredictionsScreen })))
 const CollectionHealthScreen = lazy(() => import('./components/screens/CollectionHealthScreen').then(m => ({ default: m.CollectionHealthScreen })))
+const DiscoverScreen = lazy(() => import('./components/screens/DiscoverScreen').then(m => ({ default: m.DiscoverScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -173,6 +174,7 @@ export default function App() {
               <Route path="/collection-insights" element={<AppLayout title="INSIGHTS" showBack><LazyScreen><CollectionInsightsScreen /></LazyScreen></AppLayout>} />
               <Route path="/wear-predictions" element={<AppLayout title="TODAY'S PICKS" showBack><LazyScreen><WearPredictionsScreen /></LazyScreen></AppLayout>} />
               <Route path="/collection-health" element={<AppLayout title="HEALTH SCORE" showBack><LazyScreen><CollectionHealthScreen /></LazyScreen></AppLayout>} />
+              <Route path="/discover" element={<AppLayout title="DISCOVER" showBack><LazyScreen><DiscoverScreen /></LazyScreen></AppLayout>} />
 
               {/* ── Settings ── */}
               <Route path="/settings" element={<AppLayout title="SETTINGS" showBack><LazyScreen><SettingsScreen /></LazyScreen></AppLayout>} />

@@ -132,6 +132,13 @@ export function ExploreScreen() {
       <section className="mb-8">
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
           <button
+            onClick={() => navigate('/discover')}
+            className="flex items-center gap-2 bg-primary/15 px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
+          >
+            <Icon name="explore" className="text-primary" size={18} />
+            <span className="text-xs font-medium text-primary whitespace-nowrap">Discover</span>
+          </button>
+          <button
             onClick={() => navigate('/community')}
             className="flex items-center gap-2 bg-surface-container px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
           >

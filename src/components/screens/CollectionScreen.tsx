@@ -9,6 +9,7 @@ import { awardXP } from '@/lib/xp'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useToast } from '@/contexts/ToastContext'
 import { PullToRefresh } from '../ui/PullToRefresh'
+import { RecommendationCarousel } from '../ui/RecommendationCarousel'
 import type { Fragrance } from '@/types/database'
 
 const STATUS_TABS = ['ALL', 'OWN', 'WISHLIST', 'SAMPLED', 'SOLD'] as const
@@ -697,6 +698,9 @@ export function CollectionScreen() {
         </div>
       )}
       {/* Filter Sheet */}
+      {/* Recommendations based on collection */}
+      <RecommendationCarousel />
+
       {filterOpen && (
         <FilterSheet
           isOpen={filterOpen}

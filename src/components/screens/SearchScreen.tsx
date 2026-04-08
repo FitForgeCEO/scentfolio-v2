@@ -10,6 +10,18 @@ const POPULAR_SEARCHES = [
   'Maison Margiela', 'Jo Malone', 'Byredo', 'Versace', 'YSL',
 ]
 
+const NOTE_FAMILIES = [
+  'Woody', 'Floral', 'Oriental', 'Fresh', 'Citrus', 'Aromatic', 'Gourmand', 'Aquatic', 'Spicy', 'Leather', 'Musk', 'Green',
+]
+
+const CONCENTRATIONS = [
+  'Eau de Parfum', 'Eau de Toilette', 'Parfum', 'Eau de Cologne', 'Extrait',
+]
+
+const GENDERS = ['Unisex', 'Male', 'Female']
+
+type SortOption = 'rating' | 'name' | 'brand'
+
 const MAX_RECENT = 8
 const STORAGE_KEY = 'scentfolio-recent-searches'
 
@@ -42,32 +54,57 @@ export function SearchScreen() {
   const [recentlyViewed, setRecentlyViewed] = useState(getRecentlyViewed)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
+  // Filters
+  const [showFilters, setShowFilters] = useState(false)
+  const [filterFamily, setFilterFamily] = useState<string | null>(null)
+  const [filterConcentration, setFilterConcentration] = useState<string | null>(null)
+  const [filterGender, setFilterGender] = useState<string | null>(null)
+  const [sortBy, setSortBy] = useState<SortOption>('rating')
+
+  const hasActiveFilters = filterFamily !== null || filterConcentration !== null || filterGender !== null
+  const activeFilterCount = [filterFamily, filterConcentration, filterGender].filter(Boolean).length
+
   // Auto-focus on mount
   useEffect(() => { inputRef.current?.focus() }, [])
 
   // Debounced search
-  const search = useCallback((q: string) => {
-    if (q.length < 2) { setResults([]); setLoading(false); return }
+  const search = useCallback((q: string, family?: string | null, conc?: string | null, gender?: string | null, sort?: SortOption) => {
+    if (q.length < 2 && !family && !conc && !gender) { setResults([]); setLoading(false); return }
     setLoading(true)
-    supabase
+
+    let qb = supabase
       .from('fragrances')
       .select('*')
-      .or(`name.ilike.%${q}%,brand.ilike.%${q}%`)
       .not('image_url', 'is', null)
-      .order('rating', { ascending: false, nullsFirst: false })
-      .limit(20)
-      .then(({ data }) => {
-        if (data) setResults(data as Fragrance[])
-        setLoading(false)
-      })
+
+    if (q.length >= 2) {
+      qb = qb.or(`name.ilike.%${q}%,brand.ilike.%${q}%`)
+    }
+    if (family) qb = qb.eq('note_family', family)
+    if (conc) qb = qb.eq('concentration', conc)
+    if (gender) qb = qb.eq('gender', gender)
+
+    const s = sort ?? 'rating'
+    if (s === 'rating') {
+      qb = qb.order('rating', { ascending: false, nullsFirst: false })
+    } else if (s === 'name') {
+      qb = qb.order('name', { ascending: true })
+    } else {
+      qb = qb.order('brand', { ascending: true }).order('name', { ascending: true })
+    }
+
+    qb.limit(30).then(({ data }) => {
+      if (data) setResults(data as Fragrance[])
+      setLoading(false)
+    })
   }, [])
 
   useEffect(() => {
     clearTimeout(debounceRef.current)
-    if (query.length < 2) { setResults([]); return }
-    debounceRef.current = setTimeout(() => search(query), 250)
+    if (query.length < 2 && !hasActiveFilters) { setResults([]); return }
+    debounceRef.current = setTimeout(() => search(query, filterFamily, filterConcentration, filterGender, sortBy), 250)
     return () => clearTimeout(debounceRef.current)
-  }, [query, search])
+  }, [query, search, filterFamily, filterConcentration, filterGender, sortBy, hasActiveFilters])
 
   const handleSelect = (frag: Fragrance) => {
     saveRecentSearch(`${frag.brand} ${frag.name}`)
@@ -89,7 +126,14 @@ export function SearchScreen() {
     setRecentSearches([])
   }
 
-  const isSearching = query.length >= 2
+  const clearAllFilters = () => {
+    setFilterFamily(null)
+    setFilterConcentration(null)
+    setFilterGender(null)
+    setSortBy('rating')
+  }
+
+  const isSearching = query.length >= 2 || hasActiveFilters
   const showLanding = !isSearching && results.length === 0
 
   return (
@@ -112,6 +156,118 @@ export function SearchScreen() {
           </button>
         )}
       </div>
+
+      {/* Filter toggle + active filter pills */}
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium transition-all active:scale-95 ${
+            hasActiveFilters ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary'
+          }`}
+        >
+          <Icon name="tune" size={16} />
+          <span>Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}</span>
+        </button>
+
+        {/* Active filter pills */}
+        {filterFamily && (
+          <button onClick={() => setFilterFamily(null)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary/15 text-primary text-[10px] font-medium active:scale-95">
+            {filterFamily} <Icon name="close" size={12} />
+          </button>
+        )}
+        {filterConcentration && (
+          <button onClick={() => setFilterConcentration(null)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary/15 text-primary text-[10px] font-medium active:scale-95">
+            {filterConcentration} <Icon name="close" size={12} />
+          </button>
+        )}
+        {filterGender && (
+          <button onClick={() => setFilterGender(null)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary/15 text-primary text-[10px] font-medium active:scale-95">
+            {filterGender} <Icon name="close" size={12} />
+          </button>
+        )}
+        {hasActiveFilters && (
+          <button onClick={clearAllFilters} className="text-[10px] text-error/60 font-bold ml-auto active:scale-95">
+            Clear
+          </button>
+        )}
+      </div>
+
+      {/* Filter panel */}
+      {showFilters && (
+        <div className="bg-surface-container rounded-2xl p-4 mb-4 space-y-4 animate-slide-up">
+          {/* Note Family */}
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.15em] text-secondary font-bold mb-2">Note Family</p>
+            <div className="flex flex-wrap gap-1.5">
+              {NOTE_FAMILIES.map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilterFamily(filterFamily === f ? null : f)}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all active:scale-95 ${
+                    filterFamily === f ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-secondary'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Concentration */}
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.15em] text-secondary font-bold mb-2">Concentration</p>
+            <div className="flex flex-wrap gap-1.5">
+              {CONCENTRATIONS.map(c => (
+                <button
+                  key={c}
+                  onClick={() => setFilterConcentration(filterConcentration === c ? null : c)}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all active:scale-95 ${
+                    filterConcentration === c ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-secondary'
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Gender */}
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.15em] text-secondary font-bold mb-2">Gender</p>
+            <div className="flex flex-wrap gap-1.5">
+              {GENDERS.map(g => (
+                <button
+                  key={g}
+                  onClick={() => setFilterGender(filterGender === g ? null : g)}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all active:scale-95 ${
+                    filterGender === g ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-secondary'
+                  }`}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Sort */}
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.15em] text-secondary font-bold mb-2">Sort By</p>
+            <div className="flex gap-1.5">
+              {([['rating', 'Top Rated'], ['name', 'Name A-Z'], ['brand', 'Brand A-Z']] as [SortOption, string][]).map(([val, label]) => (
+                <button
+                  key={val}
+                  onClick={() => setSortBy(val)}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all active:scale-95 ${
+                    sortBy === val ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-secondary'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Loading indicator */}
       {loading && (
