@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { supabase } from '@/lib/supabase'
+import { ReviewShareCard } from '../ui/ReviewShareCard'
 
 interface FeedItem {
   id: string
@@ -20,6 +21,7 @@ export function CommunityFeedScreen() {
   const [items, setItems] = useState<FeedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'reviews' | 'activity'>('reviews')
+  const [sharingReview, setSharingReview] = useState<FeedItem | null>(null)
 
   useEffect(() => {
     fetchFeed()
@@ -170,9 +172,29 @@ export function CommunityFeedScreen() {
               {item.review_text && (
                 <p className="text-sm text-on-surface/70 leading-relaxed line-clamp-3">{item.review_text}</p>
               )}
+
+              {/* Share button */}
+              <button
+                onClick={() => setSharingReview(item)}
+                className="flex items-center gap-1.5 text-[10px] text-secondary/40 hover:text-primary transition-colors active:scale-95"
+              >
+                <Icon name="share" size={14} />
+                Share
+              </button>
             </div>
           ))}
         </div>
+      )}
+      {sharingReview && (
+        <ReviewShareCard
+          reviewerName={sharingReview.user_display_name}
+          fragranceName={sharingReview.fragrance?.name ?? 'Unknown'}
+          fragranceBrand={sharingReview.fragrance?.brand ?? ''}
+          fragranceImage={sharingReview.fragrance?.image_url ?? null}
+          rating={sharingReview.overall_rating}
+          reviewText={sharingReview.review_text}
+          onClose={() => setSharingReview(null)}
+        />
       )}
     </main>
   )

@@ -207,6 +207,33 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
         </div>
       </section>
 
+      {/* Share & Social */}
+      <section className="mb-10">
+        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary mb-3">SHARE & SOCIAL</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => navigate('/share-collection')}
+            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
+          >
+            <Icon name="auto_awesome" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Share Cards</p>
+              <p className="text-[10px] text-secondary/50">Wrapped-style cards</p>
+            </div>
+          </button>
+          <button
+            onClick={() => navigate('/month-review')}
+            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
+          >
+            <Icon name="calendar_month" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Month Review</p>
+              <p className="text-[10px] text-secondary/50">Monthly highlights</p>
+            </div>
+          </button>
+        </div>
+      </section>
+
       {/* Account */}
       <section className="space-y-2 mb-10">
         <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary mb-3">ACCOUNT</h3>

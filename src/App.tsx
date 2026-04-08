@@ -54,6 +54,9 @@ const LayeringSuggestionsScreen = lazy(() => import('./components/screens/Layeri
 const PriceTrackerScreen = lazy(() => import('./components/screens/PriceTrackerScreen').then(m => ({ default: m.PriceTrackerScreen })))
 const SeasonalSuggestScreen = lazy(() => import('./components/screens/SeasonalSuggestScreen').then(m => ({ default: m.SeasonalSuggestScreen })))
 const DuplicateDetectorScreen = lazy(() => import('./components/screens/DuplicateDetectorScreen').then(m => ({ default: m.DuplicateDetectorScreen })))
+const CollectionShareScreen = lazy(() => import('./components/screens/CollectionShareScreen').then(m => ({ default: m.CollectionShareScreen })))
+const PublicProfileScreen = lazy(() => import('./components/screens/PublicProfileScreen').then(m => ({ default: m.PublicProfileScreen })))
+const MonthInFragranceScreen = lazy(() => import('./components/screens/MonthInFragranceScreen').then(m => ({ default: m.MonthInFragranceScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -140,6 +143,12 @@ export default function App() {
               <Route path="/stats" element={<AppLayout title="STATS" showBack><LazyScreen><StatsScreen /></LazyScreen></AppLayout>} />
               <Route path="/timeline" element={<AppLayout title="TIMELINE" showBack><LazyScreen><TimelineScreen /></LazyScreen></AppLayout>} />
               <Route path="/insights" element={<AppLayout title="INSIGHTS" showBack><LazyScreen><InsightsScreen /></LazyScreen></AppLayout>} />
+
+              {/* ── Share & Social ── */}
+              <Route path="/share-collection" element={<AppLayout title="SHARE" showBack><LazyScreen><CollectionShareScreen /></LazyScreen></AppLayout>} />
+              <Route path="/month-review" element={<AppLayout title="MONTH REVIEW" showBack><LazyScreen><MonthInFragranceScreen /></LazyScreen></AppLayout>} />
+              <Route path="/u/:userId" element={<AppLayout title="PROFILE" showBack><LazyScreen><PublicProfileScreen /></LazyScreen></AppLayout>} />
+              <Route path="/u/:userId/collection" element={<AppLayout title="COLLECTION" showBack><LazyScreen><PublicProfileScreen /></LazyScreen></AppLayout>} />
 
               {/* ── Settings ── */}
               <Route path="/settings" element={<AppLayout title="SETTINGS" showBack><LazyScreen><SettingsScreen /></LazyScreen></AppLayout>} />
