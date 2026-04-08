@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
+import { ReviewLikeButtonBatch } from '../ui/ReviewLikeButton'
+import { useReviewLikeCounts } from '@/hooks/useReviewLikes'
 import { supabase } from '@/lib/supabase'
 import { ReviewShareCard } from '../ui/ReviewShareCard'
 
 interface FeedItem {
   id: string
+  user_id: string
   user_display_name: string
   user_avatar: string | null
   user_level: number
@@ -22,6 +25,8 @@ export function CommunityFeedScreen() {
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'reviews' | 'activity'>('reviews')
   const [sharingReview, setSharingReview] = useState<FeedItem | null>(null)
+  const reviewIds = useMemo(() => items.map(i => i.id), [items])
+  const { counts: likeCounts, userLiked, toggleLike } = useReviewLikeCounts(reviewIds)
 
   useEffect(() => {
     fetchFeed()
@@ -57,6 +62,7 @@ export function CommunityFeedScreen() {
         const prof = profileMap.get(r.user_id)
         return {
           id: r.id,
+          user_id: r.user_id,
           user_display_name: prof?.display_name ?? 'Anonymous',
           user_avatar: prof?.avatar_url ?? null,
           user_level: prof?.level ?? 1,
@@ -88,6 +94,15 @@ export function CommunityFeedScreen() {
         <h2 className="font-headline text-xl mb-1">Community</h2>
         <p className="text-[10px] text-secondary/50">See what others are saying</p>
       </section>
+
+      {/* Explore People button */}
+      <button
+        onClick={() => navigate('/people')}
+        className="w-full flex items-center justify-center gap-2 bg-surface-container rounded-xl py-3 mb-4 active:scale-[0.98] transition-transform"
+      >
+        <Icon name="person_search" className="text-primary" size={16} />
+        <span className="text-xs font-bold uppercase tracking-wider text-primary">Explore People</span>
+      </button>
 
       <div className="flex gap-2 mb-6">
         {[
@@ -122,17 +137,22 @@ export function CommunityFeedScreen() {
             <div key={item.id} className="bg-surface-container rounded-xl p-4 space-y-3">
               {/* User Header */}
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                  {item.user_avatar ? (
-                    <img src={item.user_avatar} alt="" className="w-full h-full rounded-full object-cover" />
-                  ) : (
-                    <span className="text-xs font-bold text-primary">{item.user_display_name[0]?.toUpperCase()}</span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-on-surface font-medium truncate">{item.user_display_name}</p>
-                  <p className="text-[9px] text-secondary/40">Level {item.user_level} · {timeAgo(item.created_at)}</p>
-                </div>
+                <button
+                  onClick={() => navigate(`/u/${item.user_id}`)}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left active:opacity-70 transition-opacity"
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    {item.user_avatar ? (
+                      <img src={item.user_avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      <span className="text-xs font-bold text-primary">{item.user_display_name[0]?.toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-on-surface font-medium truncate">{item.user_display_name}</p>
+                    <p className="text-[9px] text-secondary/40">Level {item.user_level} · {timeAgo(item.created_at)}</p>
+                  </div>
+                </button>
                 <div className="flex items-center gap-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Icon
@@ -173,14 +193,22 @@ export function CommunityFeedScreen() {
                 <p className="text-sm text-on-surface/70 leading-relaxed line-clamp-3">{item.review_text}</p>
               )}
 
-              {/* Share button */}
-              <button
-                onClick={() => setSharingReview(item)}
-                className="flex items-center gap-1.5 text-[10px] text-secondary/40 hover:text-primary transition-colors active:scale-95"
-              >
-                <Icon name="share" size={14} />
-                Share
-              </button>
+              {/* Actions */}
+              <div className="flex items-center gap-4">
+                <ReviewLikeButtonBatch
+                  reviewId={item.id}
+                  liked={userLiked.has(item.id)}
+                  count={likeCounts[item.id] ?? 0}
+                  onToggle={toggleLike}
+                />
+                <button
+                  onClick={() => setSharingReview(item)}
+                  className="flex items-center gap-1.5 text-[10px] text-secondary/40 hover:text-primary transition-colors active:scale-95"
+                >
+                  <Icon name="share" size={14} />
+                  Share
+                </button>
+              </div>
             </div>
           ))}
         </div>

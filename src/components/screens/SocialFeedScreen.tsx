@@ -36,7 +36,7 @@ export function SocialFeedScreen() {
       <div className="flex items-center justify-between mb-2">
         <h2 className="font-headline text-2xl text-on-surface">Feed</h2>
         <button
-          onClick={() => navigate('/community')}
+          onClick={() => navigate('/people')}
           className="text-[10px] text-primary font-bold uppercase tracking-wider active:scale-95 transition-transform"
         >
           Discover people
@@ -65,7 +65,7 @@ export function SocialFeedScreen() {
             Follow other fragrance enthusiasts to see what they're wearing and reviewing.
           </p>
           <button
-            onClick={() => navigate('/community')}
+            onClick={() => navigate('/people')}
             className="gold-gradient text-on-primary-container px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg"
           >
             FIND PEOPLE TO FOLLOW

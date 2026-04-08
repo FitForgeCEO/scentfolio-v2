@@ -16,6 +16,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { TagInput } from '../ui/TagInput'
 import { useUserFragranceTags, useAllUserTags } from '@/hooks/useUserTags'
 import { ShareCardSheet } from '../ui/ShareCard'
+import { ReviewLikeButton } from '../ui/ReviewLikeButton'
 import { addRecentlyViewed } from '@/lib/recentlyViewed'
 
 /* ── Season & Occasion icon maps ── */
@@ -575,6 +576,9 @@ export function FragranceDetailScreen() {
                   {review.review_text && (
                     <p className="text-[13px] text-secondary/90 leading-relaxed italic">"{review.review_text}"</p>
                   )}
+                  <div className="flex items-center gap-3 pt-1">
+                    <ReviewLikeButton reviewId={review.id} />
+                  </div>
                 </div>
               ))}
             </div>
