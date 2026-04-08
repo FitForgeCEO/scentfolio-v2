@@ -354,6 +354,17 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
           </div>
           <Icon name="chevron_right" className="text-secondary/60" />
         </button>
+        <button
+          onClick={() => navigate('/blocked')}
+          className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
+        >
+          <Icon name="block" className="text-primary" />
+          <div className="flex-1">
+            <p className="text-sm text-on-surface font-medium">Blocked Users</p>
+            <p className="text-[10px] text-secondary/50">Manage blocked accounts</p>
+          </div>
+          <Icon name="chevron_right" className="text-secondary/60" />
+        </button>
       </section>
 
       {/* Sign Out */}

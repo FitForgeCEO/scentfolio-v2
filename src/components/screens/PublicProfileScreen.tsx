@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { FollowButton } from '../ui/FollowButton'
+import { ReportSheet } from '../ui/ReportSheet'
 import { useFollowCounts } from '@/hooks/useFollows'
+import { useIsBlocked } from '@/hooks/useBlockUser'
+import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { getLevelTitle } from '@/lib/xp'
 import { copyToClipboard, profileLink } from '@/lib/share'
@@ -34,7 +37,13 @@ export function PublicProfileScreen() {
   const [stats, setStats] = useState<PublicStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [reportOpen, setReportOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const { user: currentUser } = useAuth()
   const { followers: followerCount, following: followingCount } = useFollowCounts(userId)
+  const { blocked, toggleBlock } = useIsBlocked(userId)
+  const isOwnProfile = currentUser?.id === userId
 
   useEffect(() => {
     if (!userId) { setNotFound(true); setLoading(false); return }
@@ -238,7 +247,51 @@ export function PublicProfileScreen() {
         >
           <Icon name="link" size={16} />
         </button>
+        {/* Overflow menu (report/block) */}
+        {!isOwnProfile && currentUser && (
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="bg-surface-container text-on-surface py-3.5 px-3 rounded-xl active:scale-95 transition-all"
+            >
+              <Icon name="more_vert" size={16} />
+            </button>
+            {menuOpen && (
+              <div className="absolute bottom-full right-0 mb-2 w-48 bg-surface-container-highest rounded-xl shadow-lg overflow-hidden z-[var(--z-dropdown)]">
+                <button
+                  onClick={() => { setMenuOpen(false); setReportOpen(true) }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-on-surface hover:bg-surface-container transition-colors"
+                >
+                  <Icon name="flag" size={16} className="text-secondary/60" />
+                  Report User
+                </button>
+                <button
+                  onClick={async () => {
+                    setMenuOpen(false)
+                    await toggleBlock()
+                    showToast(blocked ? 'User unblocked' : 'User blocked', blocked ? 'success' : 'info')
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-error/70 hover:bg-surface-container transition-colors"
+                >
+                  <Icon name={blocked ? 'lock_open' : 'block'} size={16} />
+                  {blocked ? 'Unblock User' : 'Block User'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Report Sheet */}
+      {userId && profile && (
+        <ReportSheet
+          isOpen={reportOpen}
+          onClose={() => setReportOpen(false)}
+          targetType="user"
+          targetId={userId}
+          targetName={profile.display_name}
+        />
+      )}
     </main>
   )
 }
