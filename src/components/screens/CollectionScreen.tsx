@@ -11,6 +11,8 @@ import { useToast } from '@/contexts/ToastContext'
 import { PullToRefresh } from '../ui/PullToRefresh'
 import { RecommendationCarousel } from '../ui/RecommendationCarousel'
 import { CollectionStatsBar } from '../ui/CollectionStatsBar'
+import { useAllUserTags, useFragrancesByTag } from '@/hooks/useUserTags'
+import { tagColour } from '../ui/TagInput'
 import type { Fragrance } from '@/types/database'
 
 const STATUS_TABS = ['ALL', 'OWN', 'WISHLIST', 'SAMPLED', 'SOLD'] as const
@@ -68,6 +70,9 @@ export function CollectionScreen() {
   const userId = user?.id
   const { data: collection, loading, error, retry } = useUserCollection(userId)
   const toast = useToast()
+  const { tags: allUserTags } = useAllUserTags()
+  const [filterTag, setFilterTag] = useState<string | null>(null)
+  const { fragranceIds: tagFilterIds } = useFragrancesByTag(filterTag)
 
   // Batch selection state
   const [selectMode, setSelectMode] = useState(false)
@@ -224,6 +229,8 @@ export function CollectionScreen() {
         const sr = item.fragrance.season_ranking
         if (!sr || !sr.some((s) => filters.seasons.includes(s.name) && s.score > 0.5)) return false
       }
+      // Tag filter
+      if (filterTag && tagFilterIds.length > 0 && !tagFilterIds.includes(item.fragrance.id)) return false
       return true
     })
     .sort((a, b) => {
@@ -540,6 +547,10 @@ export function CollectionScreen() {
             <Icon name="trending_up" className="text-primary" size={14} />
             <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Value</span>
           </button>
+          <button onClick={() => navigate('/tags')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
+            <Icon name="label" className="text-primary" size={14} />
+            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Tags</span>
+          </button>
         </div>
       </section>
 
@@ -567,6 +578,37 @@ export function CollectionScreen() {
 
       {/* Stats Bar */}
       <CollectionStatsBar items={collection} />
+
+      {/* Tag filter pills */}
+      {allUserTags.length > 0 && (
+        <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-6 px-6 scrollbar-hide mb-3">
+          <button
+            onClick={() => navigate('/tags')}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-surface-container text-secondary/50 text-[10px] font-bold flex-shrink-0 active:scale-95 transition-transform"
+          >
+            <Icon name="settings" size={12} />
+          </button>
+          {filterTag && (
+            <button
+              onClick={() => setFilterTag(null)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-error/10 text-error text-[10px] font-bold flex-shrink-0 active:scale-95 transition-transform"
+            >
+              <Icon name="close" size={12} /> Clear
+            </button>
+          )}
+          {allUserTags.slice(0, 15).map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setFilterTag(filterTag === tag ? null : tag)}
+              className={`px-2.5 py-1.5 rounded-full text-[10px] font-medium flex-shrink-0 active:scale-95 transition-all ${
+                filterTag === tag ? tagColour(tag) + ' ring-1 ring-primary/30' : 'bg-surface-container text-secondary/60'
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Sort + Filter Control */}
       <div className="mb-6 flex items-center justify-between relative">

@@ -13,6 +13,8 @@ import { FragranceNotesPyramid } from '../fragrance/FragranceNotesPyramid'
 import { AccordsRadar } from '../fragrance/AccordsRadar'
 import { awardXP } from '@/lib/xp'
 import { useToast } from '@/contexts/ToastContext'
+import { TagInput } from '../ui/TagInput'
+import { useUserFragranceTags, useAllUserTags } from '@/hooks/useUserTags'
 import { ShareCardSheet } from '../ui/ShareCard'
 import { addRecentlyViewed } from '@/lib/recentlyViewed'
 
@@ -147,6 +149,8 @@ export function FragranceDetailScreen() {
   const { data: reviews } = useFragranceReviews(id)
   const { data: tags } = useFragranceTags(id)
   const { data: similarFragrances, loading: similarLoading } = useSimilarFragrances(frag ?? null)
+  const { tags: userTags, setTags: setUserTags } = useUserFragranceTags(id)
+  const { tags: allUserTags } = useAllUserTags()
 
   const { showToast } = useToast()
   // Collection status
@@ -485,6 +489,22 @@ export function FragranceDetailScreen() {
                 </span>
               ))}
             </div>
+          </section>
+        )}
+
+        {/* My Tags — user's personal tags */}
+        {user && collectionStatus && (
+          <section>
+            <div className="mb-4">
+              <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase">MY TAGS</h3>
+            </div>
+            <TagInput
+              tags={userTags}
+              onChange={setUserTags}
+              suggestions={allUserTags}
+              placeholder="Add personal tag..."
+              maxTags={15}
+            />
           </section>
         )}
 

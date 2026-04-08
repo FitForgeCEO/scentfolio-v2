@@ -69,6 +69,7 @@ const CollectionHealthScreen = lazy(() => import('./components/screens/Collectio
 const DiscoverScreen = lazy(() => import('./components/screens/DiscoverScreen').then(m => ({ default: m.DiscoverScreen })))
 const DataManagementScreen = lazy(() => import('./components/screens/DataManagementScreen').then(m => ({ default: m.DataManagementScreen })))
 const ActivityFeedScreen = lazy(() => import('./components/screens/ActivityFeedScreen').then(m => ({ default: m.ActivityFeedScreen })))
+const TagManagerScreen = lazy(() => import('./components/screens/TagManagerScreen').then(m => ({ default: m.TagManagerScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -183,6 +184,9 @@ export default function App() {
 
               {/* ── Notifications & Activity ── */}
               <Route path="/activity" element={<AppLayout title="ACTIVITY" showBack><LazyScreen><ActivityFeedScreen /></LazyScreen></AppLayout>} />
+
+              {/* ── Tags ── */}
+              <Route path="/tags" element={<AppLayout title="MY TAGS" showBack><LazyScreen><TagManagerScreen /></LazyScreen></AppLayout>} />
 
               {/* ── Settings ── */}
               <Route path="/settings" element={<AppLayout title="SETTINGS" showBack><LazyScreen><SettingsScreen /></LazyScreen></AppLayout>} />
