@@ -5,6 +5,7 @@ import { InlineError } from '../ui/InlineError'
 import { useFragranceSearch } from '@/hooks/useFragrances'
 import { supabase } from '@/lib/supabase'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { PullToRefresh } from '../ui/PullToRefresh'
 import type { Fragrance } from '@/types/database'
 
 const PAGE_SIZE = 20
@@ -118,6 +119,7 @@ export function ExploreScreen() {
   const activeFilterCount = countActiveFilters(filters)
 
   return (
+    <PullToRefresh onRefresh={async () => { pageRef.current = 0; fetchPage(0, false) }}>
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
       <header className="mb-6">
         <h2 className="font-headline text-3xl text-on-surface leading-tight mb-1">Explore</h2>
@@ -299,6 +301,7 @@ export function ExploreScreen() {
         />
       )}
     </main>
+    </PullToRefresh>
   )
 }
 

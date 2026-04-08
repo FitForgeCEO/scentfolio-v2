@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getLevelProgress, getXPForNextLevel, getLevelTitle } from '@/lib/xp'
 import { EditProfileSheet } from './EditProfileSheet'
+import { PullToRefresh } from '../ui/PullToRefresh'
 import type { Profile } from '@/types/database'
 
 export function ProfileScreen() {
@@ -33,7 +34,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
   const [loading, setLoading] = useState(true)
   const [editSheetOpen, setEditSheetOpen] = useState(false)
 
-  useEffect(() => {
+  const fetchData = () => {
     Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).single(),
       supabase.from('user_collections').select('id', { count: 'exact', head: true }).eq('user_id', userId),
@@ -46,7 +47,9 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
       setReviewCount(reviewRes.count ?? 0)
       setLoading(false)
     })
-  }, [userId])
+  }
+
+  useEffect(() => { fetchData() }, [userId])
 
   if (loading) {
     return (
@@ -57,6 +60,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
   }
 
   return (
+    <PullToRefresh onRefresh={async () => fetchData()}>
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
       {/* Avatar + Name */}
       <section className="flex flex-col items-center mb-10">
@@ -250,5 +254,6 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
         }}
       />
     </main>
+    </PullToRefresh>
   )
 }

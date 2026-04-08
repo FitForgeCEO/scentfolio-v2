@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
 import { awardXP } from '@/lib/xp'
+import { hapticLight } from '@/lib/haptics'
 import type { Fragrance } from '@/types/database'
 
 interface UnratedItem {
@@ -62,6 +63,7 @@ export function QuickRateScreen() {
       toast.showToast('Failed to save rating', 'error')
     } else {
       await awardXP(user.id, 'WRITE_REVIEW')
+      hapticLight()
       setRated((r) => r + 1)
     }
 

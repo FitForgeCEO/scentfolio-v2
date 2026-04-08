@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { LogWearSheet } from './LogWearSheet'
 import { ReviewSheet } from './ReviewSheet'
+import { hapticMedium } from '@/lib/haptics'
 import { FragranceNotesPyramid } from '../fragrance/FragranceNotesPyramid'
 import { AccordsRadar } from '../fragrance/AccordsRadar'
 import { awardXP } from '@/lib/xp'
@@ -201,6 +202,7 @@ export function FragranceDetailScreen() {
         if (error) throw error
         await awardXP(user.id, 'ADD_TO_COLLECTION')
       }
+      hapticMedium()
       showToast(
         previousStatus
           ? `Moved to ${status}`
