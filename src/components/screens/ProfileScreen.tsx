@@ -116,9 +116,96 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
         ))}
       </section>
 
-      {/* Menu Items */}
+      {/* My Scent Identity */}
+      <section className="mb-10">
+        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary mb-3">MY SCENT IDENTITY</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => navigate('/dna')}
+            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
+          >
+            <Icon name="fingerprint" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">DNA Profile</p>
+              <p className="text-[10px] text-secondary/50">Your scent radar</p>
+            </div>
+          </button>
+          <button
+            onClick={() => navigate('/profile-card')}
+            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
+          >
+            <Icon name="badge" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Profile Card</p>
+              <p className="text-[10px] text-secondary/50">Share your taste</p>
+            </div>
+          </button>
+          <button
+            onClick={() => navigate('/stats')}
+            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
+          >
+            <Icon name="analytics" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Stats</p>
+              <p className="text-[10px] text-secondary/50">Your taste decoded</p>
+            </div>
+          </button>
+          <button
+            onClick={() => navigate('/achievements')}
+            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
+          >
+            <Icon name="emoji_events" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Achievements</p>
+              <p className="text-[10px] text-secondary/50">Badges & milestones</p>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      {/* Personal Tools */}
+      <section className="mb-10">
+        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary mb-3">PERSONAL</h3>
+        <div className="space-y-2">
+          <button
+            onClick={() => navigate('/journal')}
+            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
+          >
+            <Icon name="edit_note" className="text-primary" />
+            <div className="flex-1">
+              <p className="text-sm text-on-surface font-medium">Scent Journal</p>
+              <p className="text-[10px] text-secondary/50">Your fragrance diary</p>
+            </div>
+            <Icon name="chevron_right" className="text-secondary/60" />
+          </button>
+          <button
+            onClick={() => navigate('/calendar')}
+            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
+          >
+            <Icon name="calendar_month" className="text-primary" />
+            <div className="flex-1">
+              <p className="text-sm text-on-surface font-medium">Wear Calendar</p>
+              <p className="text-[10px] text-secondary/50">Monthly wear overview</p>
+            </div>
+            <Icon name="chevron_right" className="text-secondary/60" />
+          </button>
+          <button
+            onClick={() => navigate('/timeline')}
+            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
+          >
+            <Icon name="timeline" className="text-primary" />
+            <div className="flex-1">
+              <p className="text-sm text-on-surface font-medium">Timeline</p>
+              <p className="text-[10px] text-secondary/50">Your fragrance journey</p>
+            </div>
+            <Icon name="chevron_right" className="text-secondary/60" />
+          </button>
+        </div>
+      </section>
+
+      {/* Account */}
       <section className="space-y-2 mb-10">
-        {/* Edit Profile — functional */}
+        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary mb-3">ACCOUNT</h3>
         <button
           onClick={() => setEditSheetOpen(true)}
           className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
@@ -130,8 +217,6 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
           </div>
           <Icon name="chevron_right" className="text-secondary/60" />
         </button>
-
-        {/* Settings */}
         <button
           onClick={() => navigate('/settings')}
           className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
@@ -143,7 +228,6 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
           </div>
           <Icon name="chevron_right" className="text-secondary/60" />
         </button>
-
       </section>
 
       {/* Sign Out */}

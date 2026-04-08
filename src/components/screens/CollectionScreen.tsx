@@ -285,6 +285,44 @@ export function CollectionScreen() {
         </div>
       </section>
 
+      {/* Collection Tools */}
+      <section className="mb-4">
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-6 px-6 scrollbar-hide">
+          <button onClick={() => navigate('/prices')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
+            <Icon name="payments" className="text-primary" size={14} />
+            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Prices</span>
+          </button>
+          <button onClick={() => navigate('/duplicates')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
+            <Icon name="find_replace" className="text-primary" size={14} />
+            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Duplicates</span>
+          </button>
+          <button onClick={() => navigate('/import')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
+            <Icon name="upload_file" className="text-primary" size={14} />
+            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Import</span>
+          </button>
+          <button onClick={() => navigate('/compare')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
+            <Icon name="compare_arrows" className="text-primary" size={14} />
+            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Compare</span>
+          </button>
+          <button onClick={() => navigate('/budget')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
+            <Icon name="account_balance_wallet" className="text-primary" size={14} />
+            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Budget</span>
+          </button>
+          <button onClick={() => navigate('/rotation')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
+            <Icon name="autorenew" className="text-primary" size={14} />
+            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Rotation</span>
+          </button>
+          <button onClick={() => navigate('/combos')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
+            <Icon name="layers" className="text-primary" size={14} />
+            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Combos</span>
+          </button>
+          <button onClick={() => navigate('/lists')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
+            <Icon name="bookmarks" className="text-primary" size={14} />
+            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Lists</span>
+          </button>
+        </div>
+      </section>
+
       {/* Status Tabs */}
       <nav className="sticky top-16 z-[var(--z-sticky)] -mx-6 bg-background/95 backdrop-blur-sm py-4 mb-2 overflow-x-auto no-scrollbar">
         <div className="flex gap-2 px-6">

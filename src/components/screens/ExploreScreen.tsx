@@ -126,6 +126,54 @@ export function ExploreScreen() {
         </p>
       </header>
 
+      {/* Discover Section */}
+      <section className="mb-8">
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
+          <button
+            onClick={() => navigate('/community')}
+            className="flex items-center gap-2 bg-surface-container px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
+          >
+            <Icon name="forum" className="text-primary" size={18} />
+            <span className="text-xs font-medium text-on-surface whitespace-nowrap">Reviews Feed</span>
+          </button>
+          <button
+            onClick={() => navigate('/leaderboard')}
+            className="flex items-center gap-2 bg-surface-container px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
+          >
+            <Icon name="leaderboard" className="text-primary" size={18} />
+            <span className="text-xs font-medium text-on-surface whitespace-nowrap">Trending</span>
+          </button>
+          <button
+            onClick={() => navigate('/smart-recs')}
+            className="flex items-center gap-2 bg-surface-container px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
+          >
+            <Icon name="auto_awesome" className="text-primary" size={18} />
+            <span className="text-xs font-medium text-on-surface whitespace-nowrap">For You</span>
+          </button>
+          <button
+            onClick={() => navigate('/notes')}
+            className="flex items-center gap-2 bg-surface-container px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
+          >
+            <Icon name="spa" className="text-primary" size={18} />
+            <span className="text-xs font-medium text-on-surface whitespace-nowrap">Notes</span>
+          </button>
+          <button
+            onClick={() => navigate('/seasonal')}
+            className="flex items-center gap-2 bg-surface-container px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
+          >
+            <Icon name="eco" className="text-primary" size={18} />
+            <span className="text-xs font-medium text-on-surface whitespace-nowrap">Seasonal</span>
+          </button>
+          <button
+            onClick={() => navigate('/layering')}
+            className="flex items-center gap-2 bg-surface-container px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
+          >
+            <Icon name="layers" className="text-primary" size={18} />
+            <span className="text-xs font-medium text-on-surface whitespace-nowrap">Layering</span>
+          </button>
+        </div>
+      </section>
+
       {/* Search + Filter Row */}
       <section className="mb-6 space-y-3">
         <div className="relative flex items-center bg-surface-container rounded-xl px-4 py-3.5 focus-within:ring-1 ring-primary/30 transition-all">

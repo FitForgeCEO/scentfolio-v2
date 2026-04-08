@@ -154,7 +154,7 @@ export function HomeScreen() {
         </button>
       </section>
 
-      {/* Quick Actions */}
+      {/* Quick Actions — just the daily essentials */}
       <section className="space-y-3">
         <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary">QUICK ACTIONS</h3>
         <div className="grid grid-cols-2 gap-3">
@@ -165,98 +165,26 @@ export function HomeScreen() {
               <p className="text-[10px] text-secondary/50">Today's suggestion</p>
             </div>
           </button>
-          <button onClick={() => navigate('/rotation')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="calendar_month" className="text-primary" />
+          <button onClick={() => navigate('/mood')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="mood" className="text-primary" />
             <div>
-              <p className="text-sm text-on-surface font-medium">Rotation</p>
-              <p className="text-[10px] text-secondary/50">Seasonal capsule</p>
+              <p className="text-sm text-on-surface font-medium">Mood Pick</p>
+              <p className="text-[10px] text-secondary/50">Match your vibe</p>
             </div>
           </button>
-          <button onClick={() => navigate('/stats')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="analytics" className="text-primary" />
+          <button onClick={() => navigate('/quick-rate')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="star_rate" className="text-primary" />
             <div>
-              <p className="text-sm text-on-surface font-medium">Stats</p>
-              <p className="text-[10px] text-secondary/50">Your taste decoded</p>
+              <p className="text-sm text-on-surface font-medium">Quick Rate</p>
+              <p className="text-[10px] text-secondary/50">Rate your collection</p>
             </div>
           </button>
-          <button onClick={() => navigate('/smart-recs')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="auto_awesome" className="text-primary" />
+          <button onClick={() => navigate('/journal')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="edit_note" className="text-primary" />
             <div>
-              <p className="text-sm text-on-surface font-medium">For You</p>
-              <p className="text-[10px] text-secondary/50">Smart picks</p>
+              <p className="text-sm text-on-surface font-medium">Journal</p>
+              <p className="text-[10px] text-secondary/50">Log thoughts</p>
             </div>
-          </button>
-        </div>
-        <div className="grid grid-cols-4 gap-2">
-          <button onClick={() => navigate('/notes')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="spa" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Notes</p>
-          </button>
-          <button onClick={() => navigate('/combos')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="layers" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Combos</p>
-          </button>
-          <button onClick={() => navigate('/lists')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="bookmarks" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Lists</p>
-          </button>
-          <button onClick={() => navigate('/timeline')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="timeline" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Timeline</p>
-          </button>
-        </div>
-        <div className="grid grid-cols-4 gap-2">
-          <button onClick={() => navigate('/mood')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="mood" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Mood</p>
-          </button>
-          <button onClick={() => navigate('/journal')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="edit_note" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Journal</p>
-          </button>
-          <button onClick={() => navigate('/calendar')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="calendar_month" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Calendar</p>
-          </button>
-          <button onClick={() => navigate('/quick-rate')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="star_rate" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Rate</p>
-          </button>
-        </div>
-        <div className="grid grid-cols-4 gap-2">
-          <button onClick={() => navigate('/community')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="forum" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Feed</p>
-          </button>
-          <button onClick={() => navigate('/leaderboard')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="leaderboard" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Trending</p>
-          </button>
-          <button onClick={() => navigate('/dna')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="fingerprint" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">DNA</p>
-          </button>
-          <button onClick={() => navigate('/layering')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="layers" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Layer</p>
-          </button>
-        </div>
-        <div className="grid grid-cols-4 gap-2">
-          <button onClick={() => navigate('/prices')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="payments" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Prices</p>
-          </button>
-          <button onClick={() => navigate('/seasonal')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="eco" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Seasonal</p>
-          </button>
-          <button onClick={() => navigate('/duplicates')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="find_replace" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Dupes</p>
-          </button>
-          <button onClick={() => navigate('/profile-card')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
-            <Icon name="badge" className="text-primary" size={20} />
-            <p className="text-[9px] text-on-surface font-medium">Card</p>
           </button>
         </div>
       </section>
