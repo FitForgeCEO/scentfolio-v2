@@ -70,6 +70,7 @@ const DiscoverScreen = lazy(() => import('./components/screens/DiscoverScreen').
 const DataManagementScreen = lazy(() => import('./components/screens/DataManagementScreen').then(m => ({ default: m.DataManagementScreen })))
 const ActivityFeedScreen = lazy(() => import('./components/screens/ActivityFeedScreen').then(m => ({ default: m.ActivityFeedScreen })))
 const TagManagerScreen = lazy(() => import('./components/screens/TagManagerScreen').then(m => ({ default: m.TagManagerScreen })))
+const WearHeatmapScreen = lazy(() => import('./components/screens/WearHeatmapScreen').then(m => ({ default: m.WearHeatmapScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -187,6 +188,9 @@ export default function App() {
 
               {/* ── Tags ── */}
               <Route path="/tags" element={<AppLayout title="MY TAGS" showBack><LazyScreen><TagManagerScreen /></LazyScreen></AppLayout>} />
+
+              {/* ── Wear Heatmap ── */}
+              <Route path="/heatmap" element={<AppLayout title="WEAR HEATMAP" showBack><LazyScreen><WearHeatmapScreen /></LazyScreen></AppLayout>} />
 
               {/* ── Settings ── */}
               <Route path="/settings" element={<AppLayout title="SETTINGS" showBack><LazyScreen><SettingsScreen /></LazyScreen></AppLayout>} />

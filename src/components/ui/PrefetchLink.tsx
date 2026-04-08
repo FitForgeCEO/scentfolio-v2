@@ -24,6 +24,7 @@ const ROUTE_CHUNKS: Record<string, () => Promise<unknown>> = {
   '/weather': () => import('@/components/screens/WeatherMatchScreen'),
   '/activity': () => import('@/components/screens/ActivityFeedScreen'),
   '/tags': () => import('@/components/screens/TagManagerScreen'),
+  '/heatmap': () => import('@/components/screens/WearHeatmapScreen'),
 }
 
 const prefetched = new Set<string>()

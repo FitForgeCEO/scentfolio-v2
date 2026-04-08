@@ -247,6 +247,17 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
             <Icon name="chevron_right" className="text-secondary/60" />
           </button>
           <button
+            onClick={() => navigate('/heatmap')}
+            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
+          >
+            <Icon name="grid_on" className="text-primary" />
+            <div className="flex-1">
+              <p className="text-sm text-on-surface font-medium">Wear Heatmap</p>
+              <p className="text-[10px] text-secondary/50">Activity heatmap & cost per wear</p>
+            </div>
+            <Icon name="chevron_right" className="text-secondary/60" />
+          </button>
+          <button
             onClick={() => navigate('/timeline')}
             className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
           >
