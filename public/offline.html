@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScentFolio — Offline</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #191210;
+      color: #faf0e6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+    }
+    .container { max-width: 320px; }
+    .icon {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: rgba(229, 194, 118, 0.1);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 2rem;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: #e5c276;
+    }
+    p {
+      font-size: 0.875rem;
+      color: rgba(208, 196, 187, 0.7);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    button {
+      background: linear-gradient(135deg, #e5c276, #c4a35a);
+      color: #191210;
+      border: none;
+      padding: 0.75rem 2rem;
+      border-radius: 0.75rem;
+      font-weight: 700;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    button:active { transform: scale(0.95); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">📡</div>
+    <h1>You're Offline</h1>
+    <p>ScentFolio needs an internet connection to load your collection. Reconnect and try again.</p>
+    <button onclick="location.reload()">TRY AGAIN</button>
+  </div>
+</body>
+</html>

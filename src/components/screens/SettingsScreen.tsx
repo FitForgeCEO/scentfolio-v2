@@ -4,6 +4,15 @@ import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/contexts/ToastContext'
+import {
+  isNotificationSupported,
+  getNotificationPermission,
+  requestNotificationPermission,
+  getNotificationSettings,
+  saveNotificationSettings,
+  scheduleDailyReminder,
+  cancelDailyReminder,
+} from '@/lib/notifications'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { Profile } from '@/types/database'
@@ -47,6 +56,44 @@ export function SettingsScreen() {
   const [exportingData, setExportingData] = useState(false)
   const [deletingData, setDeletingData] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+
+  // Notification settings
+  const [notifSettings, setNotifSettings] = useState(getNotificationSettings)
+  const [notifPermission, setNotifPermission] = useState(getNotificationPermission)
+
+  const handleEnableNotifications = async () => {
+    const perm = await requestNotificationPermission()
+    setNotifPermission(perm)
+    if (perm === 'granted') {
+      const updated = saveNotificationSettings({ enabled: true })
+      setNotifSettings(updated)
+      scheduleDailyReminder()
+      toast.showToast('Notifications enabled', 'success')
+    } else {
+      toast.showToast('Permission denied — enable in browser settings', 'error')
+    }
+  }
+
+  const handleToggleNotifSetting = (key: 'dailyReminder' | 'streakReminder' | 'weeklyDigest') => {
+    const updated = saveNotificationSettings({ [key]: !notifSettings[key] })
+    setNotifSettings(updated)
+    if (key === 'dailyReminder') {
+      updated.dailyReminder ? scheduleDailyReminder() : cancelDailyReminder()
+    }
+  }
+
+  const handleChangeReminderTime = (time: string) => {
+    const updated = saveNotificationSettings({ dailyReminderTime: time })
+    setNotifSettings(updated)
+    scheduleDailyReminder()
+  }
+
+  const handleDisableNotifications = () => {
+    const updated = saveNotificationSettings({ enabled: false })
+    setNotifSettings(updated)
+    cancelDailyReminder()
+    toast.showToast('Notifications disabled', 'success')
+  }
 
   useEffect(() => {
     if (!user) { setLoading(false); return }
@@ -290,6 +337,94 @@ export function SettingsScreen() {
           </select>
         </div>
       </section>
+
+      {/* Notifications */}
+      {isNotificationSupported() && (
+        <section className="space-y-2">
+          <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary px-1 mb-3">NOTIFICATIONS</h3>
+
+          {notifPermission !== 'granted' || !notifSettings.enabled ? (
+            <button
+              onClick={handleEnableNotifications}
+              className="w-full bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left"
+            >
+              <Icon name="notifications" className="text-primary" size={20} />
+              <div className="flex-1">
+                <p className="text-sm text-on-surface font-medium">Enable notifications</p>
+                <p className="text-[10px] text-secondary/50">Get reminders to log your daily wear</p>
+              </div>
+              <Icon name="chevron_right" className="text-secondary/60" size={18} />
+            </button>
+          ) : (
+            <>
+              {/* Daily reminder toggle */}
+              <div className="bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3">
+                <Icon name="schedule" className="text-primary" size={20} />
+                <div className="flex-1">
+                  <p className="text-sm text-on-surface font-medium">Daily reminder</p>
+                  <p className="text-[10px] text-secondary/50">Remind me to log my wear</p>
+                </div>
+                <button
+                  onClick={() => handleToggleNotifSetting('dailyReminder')}
+                  className={`w-11 h-6 rounded-full transition-colors relative ${
+                    notifSettings.dailyReminder ? 'bg-primary' : 'bg-surface-container-highest'
+                  }`}
+                >
+                  <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                    notifSettings.dailyReminder ? 'translate-x-5' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              {/* Reminder time */}
+              {notifSettings.dailyReminder && (
+                <div className="bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3">
+                  <Icon name="alarm" className="text-primary/60" size={20} />
+                  <div className="flex-1">
+                    <p className="text-sm text-on-surface font-medium">Reminder time</p>
+                  </div>
+                  <input
+                    type="time"
+                    value={notifSettings.dailyReminderTime}
+                    onChange={(e) => handleChangeReminderTime(e.target.value)}
+                    className="bg-surface-container-highest text-on-surface text-xs font-bold px-3 py-1.5 rounded-lg border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
+                  />
+                </div>
+              )}
+
+              {/* Streak reminder toggle */}
+              <div className="bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3">
+                <Icon name="local_fire_department" className="text-primary" size={20} />
+                <div className="flex-1">
+                  <p className="text-sm text-on-surface font-medium">Streak alerts</p>
+                  <p className="text-[10px] text-secondary/50">Warn when streak is about to break</p>
+                </div>
+                <button
+                  onClick={() => handleToggleNotifSetting('streakReminder')}
+                  className={`w-11 h-6 rounded-full transition-colors relative ${
+                    notifSettings.streakReminder ? 'bg-primary' : 'bg-surface-container-highest'
+                  }`}
+                >
+                  <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                    notifSettings.streakReminder ? 'translate-x-5' : 'translate-x-0.5'
+                  }`} />
+                </button>
+              </div>
+
+              {/* Disable all */}
+              <button
+                onClick={handleDisableNotifications}
+                className="w-full bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left"
+              >
+                <Icon name="notifications_off" className="text-secondary/40" size={20} />
+                <div className="flex-1">
+                  <p className="text-sm text-secondary/60 font-medium">Disable all notifications</p>
+                </div>
+              </button>
+            </>
+          )}
+        </section>
+      )}
 
       {/* Data Management */}
       <section className="space-y-2">
