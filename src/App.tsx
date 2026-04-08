@@ -38,6 +38,13 @@ import { ProfileCardScreen } from './components/screens/ProfileCardScreen'
 import { MoodPickerScreen } from './components/screens/MoodPickerScreen'
 import { JournalScreen } from './components/screens/JournalScreen'
 import { QuickRateScreen } from './components/screens/QuickRateScreen'
+import { CommunityFeedScreen } from './components/screens/CommunityFeedScreen'
+import { LeaderboardScreen } from './components/screens/LeaderboardScreen'
+import { DNAProfileScreen } from './components/screens/DNAProfileScreen'
+import { LayeringSuggestionsScreen } from './components/screens/LayeringSuggestionsScreen'
+import { PriceTrackerScreen } from './components/screens/PriceTrackerScreen'
+import { SeasonalSuggestScreen } from './components/screens/SeasonalSuggestScreen'
+import { DuplicateDetectorScreen } from './components/screens/DuplicateDetectorScreen'
 
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
   return (
@@ -319,6 +326,62 @@ export default function App() {
                 element={
                   <AppLayout title="QUICK RATE" showBack>
                     <QuickRateScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/community"
+                element={
+                  <AppLayout title="COMMUNITY" showBack>
+                    <CommunityFeedScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/leaderboard"
+                element={
+                  <AppLayout title="TRENDING" showBack>
+                    <LeaderboardScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/dna"
+                element={
+                  <AppLayout title="YOUR DNA" showBack>
+                    <DNAProfileScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/layering"
+                element={
+                  <AppLayout title="LAYERING" showBack>
+                    <LayeringSuggestionsScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/prices"
+                element={
+                  <AppLayout title="PRICES" showBack>
+                    <PriceTrackerScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/seasonal"
+                element={
+                  <AppLayout title="SEASONAL" showBack>
+                    <SeasonalSuggestScreen />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/duplicates"
+                element={
+                  <AppLayout title="DUPLICATES" showBack>
+                    <DuplicateDetectorScreen />
                   </AppLayout>
                 }
               />

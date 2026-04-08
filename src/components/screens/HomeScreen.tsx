@@ -8,6 +8,7 @@ import { useHomeStats } from '@/hooks/useHomeStats'
 import { useAuth } from '@/contexts/AuthContext'
 import { LogWearSheet } from './LogWearSheet'
 import { PullToRefresh } from '../ui/PullToRefresh'
+import { WearStreakWidget } from './WearStreakWidget'
 
 function getGreeting(): string {
   const h = new Date().getHours()
@@ -130,6 +131,9 @@ export function HomeScreen() {
         </div>
       </section>
 
+      {/* Wear Streak Widget */}
+      {user && <WearStreakWidget />}
+
       {/* Collection Stats Bento */}
       <section className="grid grid-cols-2 gap-4">
         <div className="bg-surface-container p-5 rounded-xl space-y-1">
@@ -217,6 +221,42 @@ export function HomeScreen() {
           <button onClick={() => navigate('/quick-rate')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
             <Icon name="star_rate" className="text-primary" size={20} />
             <p className="text-[9px] text-on-surface font-medium">Rate</p>
+          </button>
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          <button onClick={() => navigate('/community')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="forum" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Feed</p>
+          </button>
+          <button onClick={() => navigate('/leaderboard')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="leaderboard" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Trending</p>
+          </button>
+          <button onClick={() => navigate('/dna')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="fingerprint" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">DNA</p>
+          </button>
+          <button onClick={() => navigate('/layering')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="layers" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Layer</p>
+          </button>
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          <button onClick={() => navigate('/prices')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="payments" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Prices</p>
+          </button>
+          <button onClick={() => navigate('/seasonal')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="eco" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Seasonal</p>
+          </button>
+          <button onClick={() => navigate('/duplicates')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="find_replace" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Dupes</p>
+          </button>
+          <button onClick={() => navigate('/profile-card')} className="flex flex-col items-center gap-1.5 bg-surface-container p-3 rounded-xl active:scale-[0.97] transition-transform">
+            <Icon name="badge" className="text-primary" size={20} />
+            <p className="text-[9px] text-on-surface font-medium">Card</p>
           </button>
         </div>
       </section>
