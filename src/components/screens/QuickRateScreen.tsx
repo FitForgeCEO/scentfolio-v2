@@ -61,7 +61,7 @@ export function QuickRateScreen() {
     if (error) {
       toast.showToast('Failed to save rating', 'error')
     } else {
-      await awardXP(user.id, 3, 'quick_rate')
+      await awardXP(user.id, 'WRITE_REVIEW')
       setRated((r) => r + 1)
     }
 

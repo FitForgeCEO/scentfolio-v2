@@ -18,7 +18,7 @@ export function ImportScreen() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const toast = useToast()
-  const fileRef = useRef<HTMLInputElement>(undefined)
+  const fileRef = useRef<HTMLInputElement>(null)
   const [step, setStep] = useState<ImportStep>('upload')
   const [rows, setRows] = useState<ParsedRow[]>([])
   const [imported, setImported] = useState(0)

@@ -143,7 +143,7 @@ export function MoodPickerScreen() {
     try {
       const today = new Date().toISOString().slice(0, 10)
       await supabase.from('wear_logs').insert({ user_id: user.id, fragrance_id: frag.id, wear_date: today })
-      await awardXP(user.id, 5, 'wear_logged')
+      await awardXP(user.id, 'LOG_WEAR')
       toast.showToast(`Wearing ${frag.name} today!`, 'success')
     } catch {
       toast.showToast('Failed to log wear', 'error')
@@ -221,7 +221,7 @@ export function MoodPickerScreen() {
           ) : (
             <div className="space-y-3">
               <p className="text-[10px] uppercase tracking-[0.15em] text-secondary font-bold">
-                {results.some((r) => true) ? 'PERFECT MATCHES' : 'SUGGESTIONS'}
+                {results.length > 0 ? 'PERFECT MATCHES' : 'SUGGESTIONS'}
               </p>
               {results.map((frag) => (
                 <div

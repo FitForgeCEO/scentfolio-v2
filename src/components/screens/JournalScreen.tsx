@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
@@ -42,9 +42,7 @@ export function JournalScreen() {
   const [fragSearch, setFragSearch] = useState('')
   const [fragResults, setFragResults] = useState<Fragrance[]>([])
   const [saving, setSaving] = useState(false)
-  const [searchingFrags, setSearchingFrags] = useState(false)
-  const sheetRef = useRef<HTMLDivElement>(undefined)
-  useFocusTrap(sheetRef, composing)
+  const sheetRef = useFocusTrap(composing, () => setComposing(false))
 
   useEffect(() => {
     if (!user) { setLoading(false); return }
@@ -66,14 +64,12 @@ export function JournalScreen() {
   useEffect(() => {
     if (fragSearch.length < 2) { setFragResults([]); return }
     const timer = setTimeout(async () => {
-      setSearchingFrags(true)
       const { data } = await supabase
         .from('fragrances')
         .select('id, name, brand, image_url')
         .or(`name.ilike.%${fragSearch}%,brand.ilike.%${fragSearch}%`)
         .limit(5)
       setFragResults((data ?? []) as Fragrance[])
-      setSearchingFrags(false)
     }, 300)
     return () => clearTimeout(timer)
   }, [fragSearch])

@@ -58,8 +58,6 @@ export function SmartRecsScreen() {
 
     const topFamilies = [...familyCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([f]) => f)
     const topBrands = [...brandCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([b]) => b)
-    const topNotes = [...noteCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([n]) => n)
-
     // Fetch candidates (not in collection)
     let query = supabase.from('fragrances').select('*').limit(200)
 

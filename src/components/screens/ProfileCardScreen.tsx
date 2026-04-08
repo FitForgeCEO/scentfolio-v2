@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
 import { getLevelTitle } from '@/lib/xp'
-import type { Profile, Fragrance } from '@/types/database'
+import type { Profile } from '@/types/database'
 
 interface ProfileStats {
   owned: number
@@ -21,7 +21,7 @@ interface ProfileStats {
 export function ProfileCardScreen() {
   const { user } = useAuth()
   const toast = useToast()
-  const cardRef = useRef<HTMLDivElement>(undefined)
+  const cardRef = useRef<HTMLDivElement>(null)
   const [stats, setStats] = useState<ProfileStats | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
