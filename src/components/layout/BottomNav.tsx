@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
+import { prefetchRoute } from '../ui/PrefetchLink'
 
 const navItems = [
   { to: '/', icon: 'home', label: 'Home' },
@@ -18,6 +19,8 @@ export function BottomNav() {
           to={item.to}
           end={item.to === '/'}
           aria-label={item.label}
+          onMouseEnter={() => prefetchRoute(item.to)}
+          onFocus={() => prefetchRoute(item.to)}
           className={({ isActive }) =>
             `flex flex-col items-center justify-center px-4 py-1.5 transition-all duration-300 ${
               isActive

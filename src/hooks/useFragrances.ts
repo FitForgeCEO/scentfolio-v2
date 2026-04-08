@@ -1,11 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getStale, setCache } from '@/lib/cache'
 import type { Fragrance, UserCollection } from '@/types/database'
 
-/** Fetch top-rated fragrances for trending section */
+/** Fetch top-rated fragrances for trending section (cached 5 min) */
 export function useTrendingFragrances(limit = 6) {
-  const [data, setData] = useState<Fragrance[]>([])
-  const [loading, setLoading] = useState(true)
+  const cacheKey = `trending_${limit}`
+  const [data, setData] = useState<Fragrance[]>(() => {
+    const cached = getStale<Fragrance[]>(cacheKey)
+    return cached?.data ?? []
+  })
+  const [loading, setLoading] = useState(() => {
+    const cached = getStale<Fragrance[]>(cacheKey)
+    return !cached || cached.isStale
+  })
   const [error, setError] = useState<string | null>(null)
 
   const fetch = useCallback(() => {
@@ -20,10 +28,14 @@ export function useTrendingFragrances(limit = 6) {
       .limit(limit)
       .then(({ data, error }) => {
         if (error) setError(error.message)
-        else if (data) setData(data as Fragrance[])
+        else if (data) {
+          const typed = data as Fragrance[]
+          setData(typed)
+          setCache(cacheKey, typed)
+        }
         setLoading(false)
       })
-  }, [limit])
+  }, [limit, cacheKey])
 
   useEffect(() => { fetch() }, [fetch])
 
