@@ -71,6 +71,8 @@ const DataManagementScreen = lazy(() => import('./components/screens/DataManagem
 const ActivityFeedScreen = lazy(() => import('./components/screens/ActivityFeedScreen').then(m => ({ default: m.ActivityFeedScreen })))
 const TagManagerScreen = lazy(() => import('./components/screens/TagManagerScreen').then(m => ({ default: m.TagManagerScreen })))
 const WearHeatmapScreen = lazy(() => import('./components/screens/WearHeatmapScreen').then(m => ({ default: m.WearHeatmapScreen })))
+const SocialFeedScreen = lazy(() => import('./components/screens/SocialFeedScreen').then(m => ({ default: m.SocialFeedScreen })))
+const FollowListScreen = lazy(() => import('./components/screens/FollowListScreen').then(m => ({ default: m.FollowListScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -166,6 +168,9 @@ export default function App() {
               <Route path="/year-wrapped" element={<AppLayout title="YEAR WRAPPED" showBack><LazyScreen><YearInFragranceScreen /></LazyScreen></AppLayout>} />
               <Route path="/u/:userId" element={<AppLayout title="PROFILE" showBack><LazyScreen><PublicProfileScreen /></LazyScreen></AppLayout>} />
               <Route path="/u/:userId/collection" element={<AppLayout title="COLLECTION" showBack><LazyScreen><PublicProfileScreen /></LazyScreen></AppLayout>} />
+              <Route path="/u/:userId/followers" element={<AppLayout title="FOLLOWERS" showBack><LazyScreen><FollowListScreen /></LazyScreen></AppLayout>} />
+              <Route path="/u/:userId/following" element={<AppLayout title="FOLLOWING" showBack><LazyScreen><FollowListScreen /></LazyScreen></AppLayout>} />
+              <Route path="/feed" element={<AppLayout title="FEED" showBack><LazyScreen><SocialFeedScreen /></LazyScreen></AppLayout>} />
 
               {/* ── Analytics & Engagement ── */}
               <Route path="/smart-collections" element={<AppLayout title="SMART COLLECTIONS" showBack><LazyScreen><SmartCollectionsScreen /></LazyScreen></AppLayout>} />

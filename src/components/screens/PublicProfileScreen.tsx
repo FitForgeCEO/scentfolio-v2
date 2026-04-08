@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
+import { FollowButton } from '../ui/FollowButton'
+import { useFollowCounts } from '@/hooks/useFollows'
 import { supabase } from '@/lib/supabase'
 import { getLevelTitle } from '@/lib/xp'
 import { copyToClipboard, profileLink } from '@/lib/share'
@@ -32,6 +34,7 @@ export function PublicProfileScreen() {
   const [stats, setStats] = useState<PublicStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const { followers: followerCount, following: followingCount } = useFollowCounts(userId)
 
   useEffect(() => {
     if (!userId) { setNotFound(true); setLoading(false); return }
@@ -136,6 +139,28 @@ export function PublicProfileScreen() {
           <p className="text-xs text-on-surface-variant">Level {profile.level} · {getLevelTitle(profile.level)}</p>
           <p className="text-[10px] text-secondary/40">Member since {joined}</p>
         </div>
+
+        {/* Follow counts */}
+        <div className="flex items-center gap-4 mt-1">
+          <button
+            onClick={() => navigate(`/u/${userId}/followers`)}
+            className="text-center active:opacity-70 transition-opacity"
+          >
+            <span className="font-headline text-sm text-on-surface">{followerCount}</span>
+            <span className="text-[10px] text-secondary/50 ml-1">Followers</span>
+          </button>
+          <div className="w-px h-4 bg-outline-variant/20" />
+          <button
+            onClick={() => navigate(`/u/${userId}/following`)}
+            className="text-center active:opacity-70 transition-opacity"
+          >
+            <span className="font-headline text-sm text-on-surface">{followingCount}</span>
+            <span className="text-[10px] text-secondary/50 ml-1">Following</span>
+          </button>
+        </div>
+
+        {/* Follow button */}
+        {userId && <FollowButton targetUserId={userId} />}
       </div>
 
       {/* Stats */}

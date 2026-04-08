@@ -274,6 +274,17 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
       {/* Share & Social */}
       <section className="mb-10">
         <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary mb-3">SHARE & SOCIAL</h3>
+        <button
+          onClick={() => navigate('/feed')}
+          className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left mb-3"
+        >
+          <Icon name="dynamic_feed" className="text-primary" />
+          <div className="flex-1">
+            <p className="text-sm text-on-surface font-medium">Social Feed</p>
+            <p className="text-[10px] text-secondary/50">See what people you follow are wearing</p>
+          </div>
+          <Icon name="chevron_right" className="text-secondary/60" />
+        </button>
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => navigate('/share-collection')}
