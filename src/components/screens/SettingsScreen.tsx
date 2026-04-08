@@ -53,7 +53,6 @@ export function SettingsScreen() {
   const [loading, setLoading] = useState(true)
   const [settings, setSettings] = useState<UserSettings>(loadSettings)
   const [editNameOpen, setEditNameOpen] = useState(false)
-  const [exportingData, setExportingData] = useState(false)
   const [deletingData, setDeletingData] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
@@ -113,79 +112,6 @@ export function SettingsScreen() {
     setSettings(next)
     saveSettings(next)
     toast.showToast('Setting updated', 'success')
-  }
-
-  const handleExportJSON = async () => {
-    if (!user) return
-    setExportingData(true)
-    try {
-      const [collRes, wearRes, reviewRes, decantRes] = await Promise.all([
-        supabase.from('user_collections').select('*, fragrance:fragrances(name, brand, concentration)').eq('user_id', user.id),
-        supabase.from('wear_logs').select('*, fragrance:fragrances(name, brand)').eq('user_id', user.id),
-        supabase.from('reviews').select('*').eq('user_id', user.id),
-        supabase.from('decants').select('*, fragrance:fragrances(name, brand)').eq('user_id', user.id),
-      ])
-      const exportData = {
-        exported_at: new Date().toISOString(),
-        collection: collRes.data ?? [],
-        wear_logs: wearRes.data ?? [],
-        reviews: reviewRes.data ?? [],
-        decants: decantRes.data ?? [],
-      }
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `scentfolio-export-${new Date().toISOString().split('T')[0]}.json`
-      a.click()
-      URL.revokeObjectURL(url)
-      toast.showToast('Data exported', 'success')
-    } catch {
-      toast.showToast('Export failed', 'error')
-    }
-    setExportingData(false)
-  }
-
-  const handleExportCSV = async () => {
-    if (!user) return
-    setExportingData(true)
-    try {
-      const { data } = await supabase
-        .from('user_collections')
-        .select('status, personal_rating, date_added, fragrance:fragrances(name, brand, concentration, note_family, rating)')
-        .eq('user_id', user.id)
-
-      if (!data || data.length === 0) {
-        toast.showToast('No collection data to export', 'error')
-        setExportingData(false)
-        return
-      }
-
-      const headers = ['Brand', 'Name', 'Status', 'Concentration', 'Note Family', 'Your Rating', 'Community Rating', 'Date Added']
-      const rows = data.map((item: any) => [
-        item.fragrance?.brand ?? '',
-        item.fragrance?.name ?? '',
-        item.status,
-        item.fragrance?.concentration ?? '',
-        item.fragrance?.note_family ?? '',
-        item.personal_rating ?? '',
-        item.fragrance?.rating ?? '',
-        item.date_added?.split('T')[0] ?? '',
-      ])
-
-      const csv = [headers.join(','), ...rows.map((r: string[]) => r.map((v: string) => `"${String(v).replace(/"/g, '""')}"`).join(','))].join('\n')
-      const blob = new Blob([csv], { type: 'text/csv' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `scentfolio-collection-${new Date().toISOString().split('T')[0]}.csv`
-      a.click()
-      URL.revokeObjectURL(url)
-      toast.showToast('CSV exported', 'success')
-    } catch {
-      toast.showToast('Export failed', 'error')
-    }
-    setExportingData(false)
   }
 
   const handleDeleteAllData = async () => {
@@ -431,27 +357,13 @@ export function SettingsScreen() {
         <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary px-1 mb-3">DATA</h3>
 
         <button
-          onClick={handleExportJSON}
-          disabled={exportingData}
-          className="w-full bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left disabled:opacity-50"
+          onClick={() => navigate('/data')}
+          className="w-full bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left"
         >
-          <Icon name="download" className="text-primary" size={20} />
+          <Icon name="cloud_download" className="text-primary" size={20} />
           <div className="flex-1">
-            <p className="text-sm text-on-surface font-medium">Export as JSON</p>
-            <p className="text-[10px] text-secondary/50">Full backup of all your data</p>
-          </div>
-          <Icon name="chevron_right" className="text-secondary/60" size={18} />
-        </button>
-
-        <button
-          onClick={handleExportCSV}
-          disabled={exportingData}
-          className="w-full bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left disabled:opacity-50"
-        >
-          <Icon name="table_chart" className="text-primary" size={20} />
-          <div className="flex-1">
-            <p className="text-sm text-on-surface font-medium">Export collection as CSV</p>
-            <p className="text-[10px] text-secondary/50">Open in Excel or Google Sheets</p>
+            <p className="text-sm text-on-surface font-medium">Export & Backup</p>
+            <p className="text-[10px] text-secondary/50">JSON, CSV, HTML report, restore from backup</p>
           </div>
           <Icon name="chevron_right" className="text-secondary/60" size={18} />
         </button>
