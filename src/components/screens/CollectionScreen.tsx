@@ -320,6 +320,14 @@ export function CollectionScreen() {
             <Icon name="bookmarks" className="text-primary" size={14} />
             <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Lists</span>
           </button>
+          <button onClick={() => navigate('/smart-collections')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
+            <Icon name="auto_fix_high" className="text-primary" size={14} />
+            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Smart</span>
+          </button>
+          <button onClick={() => navigate('/value')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
+            <Icon name="trending_up" className="text-primary" size={14} />
+            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Value</span>
+          </button>
         </div>
       </section>
 

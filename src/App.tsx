@@ -57,6 +57,11 @@ const DuplicateDetectorScreen = lazy(() => import('./components/screens/Duplicat
 const CollectionShareScreen = lazy(() => import('./components/screens/CollectionShareScreen').then(m => ({ default: m.CollectionShareScreen })))
 const PublicProfileScreen = lazy(() => import('./components/screens/PublicProfileScreen').then(m => ({ default: m.PublicProfileScreen })))
 const MonthInFragranceScreen = lazy(() => import('./components/screens/MonthInFragranceScreen').then(m => ({ default: m.MonthInFragranceScreen })))
+const YearInFragranceScreen = lazy(() => import('./components/screens/YearInFragranceScreen').then(m => ({ default: m.YearInFragranceScreen })))
+const SmartCollectionsScreen = lazy(() => import('./components/screens/SmartCollectionsScreen').then(m => ({ default: m.SmartCollectionsScreen })))
+const WeatherMatchScreen = lazy(() => import('./components/screens/WeatherMatchScreen').then(m => ({ default: m.WeatherMatchScreen })))
+const CollectionValueScreen = lazy(() => import('./components/screens/CollectionValueScreen').then(m => ({ default: m.CollectionValueScreen })))
+const BadgesScreen = lazy(() => import('./components/screens/BadgesScreen').then(m => ({ default: m.BadgesScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -147,8 +152,15 @@ export default function App() {
               {/* ── Share & Social ── */}
               <Route path="/share-collection" element={<AppLayout title="SHARE" showBack><LazyScreen><CollectionShareScreen /></LazyScreen></AppLayout>} />
               <Route path="/month-review" element={<AppLayout title="MONTH REVIEW" showBack><LazyScreen><MonthInFragranceScreen /></LazyScreen></AppLayout>} />
+              <Route path="/year-wrapped" element={<AppLayout title="YEAR WRAPPED" showBack><LazyScreen><YearInFragranceScreen /></LazyScreen></AppLayout>} />
               <Route path="/u/:userId" element={<AppLayout title="PROFILE" showBack><LazyScreen><PublicProfileScreen /></LazyScreen></AppLayout>} />
               <Route path="/u/:userId/collection" element={<AppLayout title="COLLECTION" showBack><LazyScreen><PublicProfileScreen /></LazyScreen></AppLayout>} />
+
+              {/* ── Analytics & Engagement ── */}
+              <Route path="/smart-collections" element={<AppLayout title="SMART COLLECTIONS" showBack><LazyScreen><SmartCollectionsScreen /></LazyScreen></AppLayout>} />
+              <Route path="/weather" element={<AppLayout title="WEATHER MATCH" showBack><LazyScreen><WeatherMatchScreen /></LazyScreen></AppLayout>} />
+              <Route path="/value" element={<AppLayout title="VALUE TRACKER" showBack><LazyScreen><CollectionValueScreen /></LazyScreen></AppLayout>} />
+              <Route path="/badges" element={<AppLayout title="BADGES" showBack><LazyScreen><BadgesScreen /></LazyScreen></AppLayout>} />
 
               {/* ── Settings ── */}
               <Route path="/settings" element={<AppLayout title="SETTINGS" showBack><LazyScreen><SettingsScreen /></LazyScreen></AppLayout>} />

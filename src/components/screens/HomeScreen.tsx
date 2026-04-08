@@ -165,11 +165,11 @@ export function HomeScreen() {
               <p className="text-[10px] text-secondary/50">Today's suggestion</p>
             </div>
           </button>
-          <button onClick={() => navigate('/mood')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="mood" className="text-primary" />
+          <button onClick={() => navigate('/weather')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="cloud" className="text-primary" />
             <div>
-              <p className="text-sm text-on-surface font-medium">Mood Pick</p>
-              <p className="text-[10px] text-secondary/50">Match your vibe</p>
+              <p className="text-sm text-on-surface font-medium">Weather Match</p>
+              <p className="text-[10px] text-secondary/50">Based on conditions</p>
             </div>
           </button>
           <button onClick={() => navigate('/quick-rate')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">

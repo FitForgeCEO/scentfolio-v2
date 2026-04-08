@@ -222,6 +222,16 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
             </div>
           </button>
           <button
+            onClick={() => navigate('/year-wrapped')}
+            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
+          >
+            <Icon name="celebration" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Year Wrapped</p>
+              <p className="text-[10px] text-secondary/50">Annual summary</p>
+            </div>
+          </button>
+          <button
             onClick={() => navigate('/month-review')}
             className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
           >
@@ -229,6 +239,16 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
             <div>
               <p className="text-sm text-on-surface font-medium">Month Review</p>
               <p className="text-[10px] text-secondary/50">Monthly highlights</p>
+            </div>
+          </button>
+          <button
+            onClick={() => navigate('/badges')}
+            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
+          >
+            <Icon name="military_tech" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Badges</p>
+              <p className="text-[10px] text-secondary/50">Shareable proof</p>
             </div>
           </button>
         </div>
