@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { InlineError } from '../ui/InlineError'
@@ -10,6 +10,7 @@ import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useToast } from '@/contexts/ToastContext'
 import { PullToRefresh } from '../ui/PullToRefresh'
 import { RecommendationCarousel } from '../ui/RecommendationCarousel'
+import { CollectionStatsBar } from '../ui/CollectionStatsBar'
 import type { Fragrance } from '@/types/database'
 
 const STATUS_TABS = ['ALL', 'OWN', 'WISHLIST', 'SAMPLED', 'SOLD'] as const
@@ -25,6 +26,15 @@ const SORT_OPTIONS = [
   { value: 'price-desc', label: 'Price High–Low' },
 ] as const
 type SortOption = (typeof SORT_OPTIONS)[number]['value']
+
+const GROUP_OPTIONS = [
+  { value: 'none', label: 'No Grouping', icon: 'list' },
+  { value: 'brand', label: 'Brand', icon: 'business' },
+  { value: 'family', label: 'Note Family', icon: 'spa' },
+  { value: 'concentration', label: 'Concentration', icon: 'opacity' },
+  { value: 'season', label: 'Best Season', icon: 'thermostat' },
+] as const
+type GroupOption = (typeof GROUP_OPTIONS)[number]['value']
 
 interface Filters {
   brands: string[]
@@ -47,7 +57,10 @@ export function CollectionScreen() {
   const [sortBy, setSortBy] = useState<SortOption>('recent')
   const [sortMenuOpen, setSortMenuOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'compact'>('grid')
+  const [groupBy, setGroupBy] = useState<GroupOption>('none')
+  const [groupMenuOpen, setGroupMenuOpen] = useState(false)
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
   const [filters, setFilters] = useState<Filters>({ brands: [], concentrations: [], noteFamilies: [], minRating: 0, seasons: [] })
   const navigate = useNavigate()
 
@@ -241,6 +254,204 @@ export function CollectionScreen() {
     {} as Record<string, number>
   )
 
+  // Group items
+  const groupedItems = useMemo(() => {
+    if (groupBy === 'none') return null
+
+    const groups: Record<string, typeof filtered> = {}
+    for (const item of filtered) {
+      let key: string
+      switch (groupBy) {
+        case 'brand':
+          key = item.fragrance.brand
+          break
+        case 'family':
+          key = item.fragrance.note_family || 'Unknown'
+          break
+        case 'concentration':
+          key = item.fragrance.concentration || 'Unknown'
+          break
+        case 'season': {
+          const sr = item.fragrance.season_ranking
+          if (sr && sr.length > 0) {
+            const best = sr.reduce((a, b) => (b.score > a.score ? b : a))
+            key = best.name
+          } else {
+            key = 'Unclassified'
+          }
+          break
+        }
+        default:
+          key = 'Other'
+      }
+      if (!groups[key]) groups[key] = []
+      groups[key].push(item)
+    }
+
+    // Sort group keys alphabetically, with "Unknown"/"Unclassified" last
+    return Object.entries(groups).sort((a, b) => {
+      if (a[0] === 'Unknown' || a[0] === 'Unclassified') return 1
+      if (b[0] === 'Unknown' || b[0] === 'Unclassified') return -1
+      return a[0].localeCompare(b[0])
+    })
+  }, [filtered, groupBy])
+
+  const toggleGroupCollapse = (groupName: string) => {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev)
+      if (next.has(groupName)) next.delete(groupName)
+      else next.add(groupName)
+      return next
+    })
+  }
+
+  const cycleViewMode = () => {
+    setViewMode((prev) => {
+      if (prev === 'grid') return 'list'
+      if (prev === 'list') return 'compact'
+      return 'grid'
+    })
+  }
+
+  const viewModeIcon = viewMode === 'grid' ? 'view_list' : viewMode === 'list' ? 'density_small' : 'grid_view'
+  const viewModeLabel = viewMode === 'grid' ? 'list' : viewMode === 'list' ? 'compact' : 'grid'
+
+  // Shared item renderer for flat + grouped views
+  const renderItemList = (items: typeof filtered) => {
+    if (viewMode === 'grid') {
+      return (
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8">
+          {items.map((item) => {
+            const isSelected = selected.has(item.id)
+            return (
+              <div
+                key={item.id}
+                className={`flex flex-col group cursor-pointer ${isSelected ? 'ring-2 ring-primary rounded-xl' : ''}`}
+                role="link"
+                tabIndex={0}
+                onClick={() => { if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) } }}
+              >
+                <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-3">
+                  {item.fragrance.image_url ? (
+                    <img src={item.fragrance.image_url} alt={item.fragrance.name} className="w-full h-full object-cover grayscale-[20%] group-hover:scale-105 transition-transform duration-700" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-secondary/20"><Icon name="water_drop" size={40} /></div>
+                  )}
+                  {selectMode && (
+                    <div className={`absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center transition-all ${isSelected ? 'bg-primary' : 'bg-black/40 ring-2 ring-white/40'}`}>
+                      {isSelected && <Icon name="check" className="text-on-primary" size={14} />}
+                    </div>
+                  )}
+                  <div className="absolute top-2 right-2 px-2 py-0.5 backdrop-blur-md rounded text-[8px] font-bold tracking-widest" style={{ background: item.status === 'wishlist' ? 'rgba(229, 194, 118, 0.2)' : 'rgba(25, 18, 16, 0.6)', color: '#e5c276' }}>
+                    {STATUS_MAP[item.status] || item.status.toUpperCase()}
+                  </div>
+                  <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-background/80 to-transparent" />
+                </div>
+                <span className="font-label text-[9px] tracking-[0.2em] text-secondary opacity-60 uppercase mb-0.5">{item.fragrance.brand}</span>
+                <h3 className="font-body text-sm font-medium text-on-surface line-clamp-1 mb-1">{item.fragrance.name}</h3>
+                {(item.personal_rating || item.fragrance.rating) && (
+                  <div className="flex items-center gap-1">
+                    <Icon name="star" filled className="text-[12px] text-primary" />
+                    <span className="font-body text-[10px] text-primary font-semibold">{(item.personal_rating || Number(item.fragrance.rating))?.toFixed(1)}</span>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )
+    }
+
+    if (viewMode === 'compact') {
+      return (
+        <div className="space-y-px">
+          {items.map((item) => {
+            const isSelected = selected.has(item.id)
+            return (
+              <div
+                key={item.id}
+                className={`flex items-center gap-3 px-3 py-2 cursor-pointer active:bg-surface-container/60 transition-colors ${isSelected ? 'bg-primary/10' : 'hover:bg-surface-container/30'}`}
+                role="link"
+                tabIndex={0}
+                onClick={() => { if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) } }}
+              >
+                {selectMode && (
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-primary' : 'ring-1.5 ring-outline-variant/30'}`}>
+                    {isSelected && <Icon name="check" className="text-on-primary" size={12} />}
+                  </div>
+                )}
+                <div className="w-8 h-8 rounded-md overflow-hidden bg-surface-container flex-shrink-0">
+                  {item.fragrance.image_url ? (
+                    <img src={item.fragrance.image_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center"><Icon name="water_drop" className="text-secondary/20" size={14} /></div>
+                  )}
+                </div>
+                <p className="text-xs text-on-surface font-medium truncate flex-1">{item.fragrance.name}</p>
+                <span className="text-[9px] text-secondary/40 flex-shrink-0 truncate max-w-[60px]">{item.fragrance.brand}</span>
+                {(item.personal_rating || item.fragrance.rating) && (
+                  <div className="flex items-center gap-0.5 flex-shrink-0">
+                    <Icon name="star" filled className="text-primary" size={10} />
+                    <span className="text-[10px] text-primary font-semibold">{(item.personal_rating || Number(item.fragrance.rating))?.toFixed(1)}</span>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )
+    }
+
+    // List view (default)
+    return (
+      <div className="space-y-2">
+        {items.map((item) => {
+          const isSelected = selected.has(item.id)
+          return (
+            <div
+              key={item.id}
+              className={`flex items-center gap-4 bg-surface-container rounded-xl p-3 cursor-pointer active:scale-[0.98] transition-transform ${isSelected ? 'ring-2 ring-primary' : ''}`}
+              role="link"
+              tabIndex={0}
+              onClick={() => { if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) } }}
+            >
+              {selectMode && (
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-primary' : 'bg-surface-container-low ring-2 ring-outline-variant/30'}`}>
+                  {isSelected && <Icon name="check" className="text-on-primary" size={14} />}
+                </div>
+              )}
+              <div className="w-12 h-12 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
+                {item.fragrance.image_url ? (
+                  <img src={item.fragrance.image_url} alt={item.fragrance.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center"><Icon name="water_drop" className="text-secondary/20" size={20} /></div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[9px] uppercase tracking-[0.1em] text-secondary/50">{item.fragrance.brand}</p>
+                <p className="text-sm text-on-surface font-medium truncate">{item.fragrance.name}</p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="text-[8px] uppercase tracking-widest px-2 py-0.5 rounded" style={{ background: item.status === 'wishlist' ? 'rgba(229, 194, 118, 0.2)' : 'rgba(25, 18, 16, 0.6)', color: '#e5c276' }}>
+                  {STATUS_MAP[item.status] || item.status.toUpperCase()}
+                </span>
+                {(item.personal_rating || item.fragrance.rating) && (
+                  <div className="flex items-center gap-0.5">
+                    <Icon name="star" filled className="text-primary" size={10} />
+                    <span className="text-[10px] text-primary font-semibold">{(item.personal_rating || Number(item.fragrance.rating))?.toFixed(1)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
   return (
     <PullToRefresh onRefresh={async () => { retry() }}>
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
@@ -354,6 +565,9 @@ export function CollectionScreen() {
         </div>
       </nav>
 
+      {/* Stats Bar */}
+      <CollectionStatsBar items={collection} />
+
       {/* Sort + Filter Control */}
       <div className="mb-6 flex items-center justify-between relative">
         <button
@@ -364,12 +578,21 @@ export function CollectionScreen() {
           <Icon name="expand_more" size={16} className="text-primary" />
         </button>
         <div className="flex items-center gap-2">
+          {/* Group-by toggle */}
           <button
-            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-            className="p-1.5 rounded-lg bg-surface-container active:scale-90 transition-transform"
-            aria-label={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
+            onClick={() => setGroupMenuOpen(!groupMenuOpen)}
+            className={`p-1.5 rounded-lg active:scale-90 transition-transform ${groupBy !== 'none' ? 'bg-primary/15' : 'bg-surface-container'}`}
+            aria-label="Group by"
           >
-            <Icon name={viewMode === 'grid' ? 'view_list' : 'grid_view'} size={16} className="text-secondary" />
+            <Icon name="workspaces" size={16} className={groupBy !== 'none' ? 'text-primary' : 'text-secondary'} />
+          </button>
+          {/* View mode cycle */}
+          <button
+            onClick={cycleViewMode}
+            className="p-1.5 rounded-lg bg-surface-container active:scale-90 transition-transform"
+            aria-label={`Switch to ${viewModeLabel} view`}
+          >
+            <Icon name={viewModeIcon} size={16} className="text-secondary" />
           </button>
           <button
             onClick={() => setFilterOpen(true)}
@@ -396,6 +619,30 @@ export function CollectionScreen() {
                   {option.label}
                   {sortBy === option.value && (
                     <Icon name="check" className="float-right text-primary text-sm" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+        {groupMenuOpen && (
+          <>
+            <div className="fixed inset-0 z-[var(--z-sticky)]" onClick={() => setGroupMenuOpen(false)} />
+            <div className="absolute top-8 right-0 z-[var(--z-dropdown)] bg-surface-container-highest rounded-xl py-2 min-w-[180px] shadow-xl border border-outline-variant/10">
+              {GROUP_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => { setGroupBy(option.value); setGroupMenuOpen(false); setCollapsedGroups(new Set()) }}
+                  className={`w-full text-left px-4 py-2.5 text-xs font-medium transition-colors flex items-center gap-2 ${
+                    groupBy === option.value
+                      ? 'text-primary bg-primary/10'
+                      : 'text-on-surface hover:bg-surface-container'
+                  }`}
+                >
+                  <Icon name={option.icon} size={16} className={groupBy === option.value ? 'text-primary' : 'text-secondary/50'} />
+                  {option.label}
+                  {groupBy === option.value && (
+                    <Icon name="check" className="ml-auto text-primary text-sm" />
                   )}
                 </button>
               ))}
@@ -450,127 +697,31 @@ export function CollectionScreen() {
         </div>
       ) : (
         <>
-        {viewMode === 'grid' ? (
-        <section className="grid grid-cols-2 gap-x-4 gap-y-8 mb-16">
-          {filtered.map((item) => {
-            const isSelected = selected.has(item.id)
-            return (
-            <div
-              key={item.id}
-              className={`flex flex-col group cursor-pointer ${isSelected ? 'ring-2 ring-primary rounded-xl' : ''}`}
-              role="link"
-              tabIndex={0}
-              onClick={() => {
-                if (selectMode) toggleSelect(item.id)
-                else navigate(`/fragrance/${item.fragrance.id}`)
-              }}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) } }}
-            >
-              <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-3">
-                {item.fragrance.image_url ? (
-                  <img
-                    src={item.fragrance.image_url}
-                    alt={item.fragrance.name}
-                    className="w-full h-full object-cover grayscale-[20%] group-hover:scale-105 transition-transform duration-700"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-secondary/20">
-                    <Icon name="water_drop" size={40} />
-                  </div>
-                )}
-                {selectMode && (
-                  <div className={`absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center transition-all ${isSelected ? 'bg-primary' : 'bg-black/40 ring-2 ring-white/40'}`}>
-                    {isSelected && <Icon name="check" className="text-on-primary" size={14} />}
-                  </div>
-                )}
-                <div
-                  className="absolute top-2 right-2 px-2 py-0.5 backdrop-blur-md rounded text-[8px] font-bold tracking-widest"
-                  style={{
-                    background:
-                      item.status === 'wishlist'
-                        ? 'rgba(229, 194, 118, 0.2)'
-                        : 'rgba(25, 18, 16, 0.6)',
-                    color: '#e5c276',
-                  }}
-                >
-                  {STATUS_MAP[item.status] || item.status.toUpperCase()}
-                </div>
-                <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-background/80 to-transparent" />
-              </div>
-              <span className="font-label text-[9px] tracking-[0.2em] text-secondary opacity-60 uppercase mb-0.5">
-                {item.fragrance.brand}
-              </span>
-              <h3 className="font-body text-sm font-medium text-on-surface line-clamp-1 mb-1">
-                {item.fragrance.name}
-              </h3>
-              {(item.personal_rating || item.fragrance.rating) && (
-                <div className="flex items-center gap-1">
-                  <Icon name="star" filled className="text-[12px] text-primary" />
-                  <span className="font-body text-[10px] text-primary font-semibold">
-                    {(item.personal_rating || Number(item.fragrance.rating))?.toFixed(1)}
-                  </span>
-                </div>
-              )}
-            </div>
-            )
-          })}
-        </section>
-        ) : (
-        <section className="space-y-2 mb-16">
-          {filtered.map((item) => {
-            const isSelected = selected.has(item.id)
-            return (
-              <div
-                key={item.id}
-                className={`flex items-center gap-4 bg-surface-container rounded-xl p-3 cursor-pointer active:scale-[0.98] transition-transform ${isSelected ? 'ring-2 ring-primary' : ''}`}
-                role="link"
-                tabIndex={0}
-                onClick={() => {
-                  if (selectMode) toggleSelect(item.id)
-                  else navigate(`/fragrance/${item.fragrance.id}`)
-                }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) } }}
-              >
-                {selectMode && (
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-primary' : 'bg-surface-container-low ring-2 ring-outline-variant/30'}`}>
-                    {isSelected && <Icon name="check" className="text-on-primary" size={14} />}
-                  </div>
-                )}
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
-                  {item.fragrance.image_url ? (
-                    <img src={item.fragrance.image_url} alt={item.fragrance.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Icon name="water_drop" className="text-secondary/20" size={20} />
-                    </div>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[9px] uppercase tracking-[0.1em] text-secondary/50">{item.fragrance.brand}</p>
-                  <p className="text-sm text-on-surface font-medium truncate">{item.fragrance.name}</p>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-[8px] uppercase tracking-widest px-2 py-0.5 rounded"
-                    style={{
-                      background: item.status === 'wishlist' ? 'rgba(229, 194, 118, 0.2)' : 'rgba(25, 18, 16, 0.6)',
-                      color: '#e5c276',
-                    }}
+        {groupedItems ? (
+          /* ── Grouped rendering ── */
+          <div className="space-y-6 mb-16">
+            {groupedItems.map(([groupName, items]) => {
+              const isCollapsed = collapsedGroups.has(groupName)
+              return (
+                <section key={groupName}>
+                  <button
+                    onClick={() => toggleGroupCollapse(groupName)}
+                    className="w-full flex items-center justify-between mb-3 active:opacity-70 transition-opacity"
                   >
-                    {STATUS_MAP[item.status] || item.status.toUpperCase()}
-                  </span>
-                  {(item.personal_rating || item.fragrance.rating) && (
-                    <div className="flex items-center gap-0.5">
-                      <Icon name="star" filled className="text-primary" size={10} />
-                      <span className="text-[10px] text-primary font-semibold">
-                        {(item.personal_rating || Number(item.fragrance.rating))?.toFixed(1)}
-                      </span>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-headline font-bold text-on-surface">{groupName}</h4>
+                      <span className="text-[10px] text-secondary/40 font-bold">{items.length}</span>
                     </div>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </section>
+                    <Icon name={isCollapsed ? 'expand_more' : 'expand_less'} size={18} className="text-secondary/40" />
+                  </button>
+                  {!isCollapsed && renderItemList(items)}
+                </section>
+              )
+            })}
+          </div>
+        ) : (
+          /* ── Flat rendering ── */
+          <div className="mb-16">{renderItemList(filtered)}</div>
         )}
 
         {/* Batch Action Bar */}
