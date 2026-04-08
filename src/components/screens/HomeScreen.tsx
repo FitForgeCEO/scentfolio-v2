@@ -10,6 +10,7 @@ import { LogWearSheet } from './LogWearSheet'
 import { PullToRefresh } from '../ui/PullToRefresh'
 import { WearStreakWidget } from './WearStreakWidget'
 import { GettingStartedCard } from '../ui/GettingStartedCard'
+import { useSmartNotifications } from '@/hooks/useSmartNotifications'
 
 function getGreeting(): string {
   const h = new Date().getHours()
@@ -24,6 +25,9 @@ export function HomeScreen() {
   const { data: trending, loading, error: trendingError, retry: retryTrending } = useTrendingFragrances(4)
   const { stats, retry: retryStats } = useHomeStats(user?.id)
   const [logSheetOpen, setLogSheetOpen] = useState(false)
+
+  // Generate smart notifications on home screen load
+  useSmartNotifications()
 
   const displayName = user?.user_metadata?.display_name || 'fragrance lover'
 

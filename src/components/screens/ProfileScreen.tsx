@@ -192,6 +192,17 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
         <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary mb-3">PERSONAL</h3>
         <div className="space-y-2">
           <button
+            onClick={() => navigate('/activity')}
+            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
+          >
+            <Icon name="notifications" className="text-primary" />
+            <div className="flex-1">
+              <p className="text-sm text-on-surface font-medium">Activity & Notifications</p>
+              <p className="text-[10px] text-secondary/50">Your recent activity log</p>
+            </div>
+            <Icon name="chevron_right" className="text-secondary/60" />
+          </button>
+          <button
             onClick={() => navigate('/scent-quiz')}
             className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
           >

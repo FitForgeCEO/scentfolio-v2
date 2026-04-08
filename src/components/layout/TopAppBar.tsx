@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
+import { NotificationBell } from '../ui/NotificationCenter'
 
 interface TopAppBarProps {
   title?: string
@@ -74,6 +75,7 @@ export function TopAppBar({
             >
               <Icon name="search" className="text-primary" />
             </button>
+            <NotificationBell />
             <button
               onClick={() => navigate('/profile')}
               aria-label="Profile"

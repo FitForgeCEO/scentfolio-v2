@@ -68,6 +68,7 @@ const WearPredictionsScreen = lazy(() => import('./components/screens/WearPredic
 const CollectionHealthScreen = lazy(() => import('./components/screens/CollectionHealthScreen').then(m => ({ default: m.CollectionHealthScreen })))
 const DiscoverScreen = lazy(() => import('./components/screens/DiscoverScreen').then(m => ({ default: m.DiscoverScreen })))
 const DataManagementScreen = lazy(() => import('./components/screens/DataManagementScreen').then(m => ({ default: m.DataManagementScreen })))
+const ActivityFeedScreen = lazy(() => import('./components/screens/ActivityFeedScreen').then(m => ({ default: m.ActivityFeedScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -179,6 +180,9 @@ export default function App() {
 
               {/* ── Data & Export ── */}
               <Route path="/data" element={<AppLayout title="DATA & EXPORT" showBack><LazyScreen><DataManagementScreen /></LazyScreen></AppLayout>} />
+
+              {/* ── Notifications & Activity ── */}
+              <Route path="/activity" element={<AppLayout title="ACTIVITY" showBack><LazyScreen><ActivityFeedScreen /></LazyScreen></AppLayout>} />
 
               {/* ── Settings ── */}
               <Route path="/settings" element={<AppLayout title="SETTINGS" showBack><LazyScreen><SettingsScreen /></LazyScreen></AppLayout>} />
