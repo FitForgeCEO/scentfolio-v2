@@ -72,7 +72,9 @@ function AppLayout({ children, showBack, title }: { children: React.ReactNode; s
   return (
     <>
       <TopAppBar showBack={showBack} title={title} showSearch={showBack} />
-      {children}
+      <div id="main-content">
+        {children}
+      </div>
       <BottomNav />
     </>
   )

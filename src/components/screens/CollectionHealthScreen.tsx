@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
+import { ScoreRingSkeleton, CardListSkeleton } from '../ui/ContentSkeleton'
 import type { Fragrance } from '@/types/database'
 
 /* ── Types ─────────────────────────────────────────────── */
@@ -323,8 +324,12 @@ export function CollectionHealthScreen() {
 
   if (loading || !health) {
     return (
-      <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      <main className="pt-24 pb-32 px-4 max-w-[430px] mx-auto min-h-screen space-y-6">
+        <div className="text-center">
+          <div className="h-5 w-40 bg-surface-container rounded mx-auto mb-4 animate-pulse" />
+        </div>
+        <ScoreRingSkeleton />
+        <CardListSkeleton count={6} />
       </main>
     )
   }

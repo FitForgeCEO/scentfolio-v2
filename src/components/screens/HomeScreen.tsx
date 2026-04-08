@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { LogWearSheet } from './LogWearSheet'
 import { PullToRefresh } from '../ui/PullToRefresh'
 import { WearStreakWidget } from './WearStreakWidget'
+import { GettingStartedCard } from '../ui/GettingStartedCard'
 
 function getGreeting(): string {
   const h = new Date().getHours()
@@ -153,6 +154,9 @@ export function HomeScreen() {
           <p className="font-headline text-3xl">{stats.boards}</p>
         </button>
       </section>
+
+      {/* Getting Started checklist for new users */}
+      {user && <GettingStartedCard />}
 
       {/* Quick Actions — just the daily essentials */}
       <section className="space-y-3">

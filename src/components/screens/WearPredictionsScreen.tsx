@@ -4,6 +4,7 @@ import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { hapticLight } from '@/lib/haptics'
+import { HeroListSkeleton } from '../ui/ContentSkeleton'
 import type { Fragrance } from '@/types/database'
 
 /* ── Types ─────────────────────────────────────────────── */
@@ -211,8 +212,12 @@ export function WearPredictionsScreen() {
 
   if (loading) {
     return (
-      <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      <main className="pt-24 pb-32 px-4 max-w-[430px] mx-auto min-h-screen space-y-4">
+        <div className="text-center mb-2">
+          <div className="h-5 w-32 bg-surface-container rounded mx-auto mb-2 animate-pulse" />
+          <div className="h-3 w-48 bg-surface-container rounded mx-auto animate-pulse" />
+        </div>
+        <HeroListSkeleton />
       </main>
     )
   }

@@ -21,19 +21,19 @@ const STEPS = [
     body: 'Track what you wear each day. Build streaks, earn XP, and see your most-worn scents rise to the top.',
   },
   {
-    icon: 'science',
-    title: 'The Layering Lab',
-    body: 'Get AI-powered layering recommendations tailored to your collection and mood. Save winning combos.',
+    icon: 'smart_toy',
+    title: 'Smart Suggestions',
+    body: 'Get daily wear predictions based on your habits, the weather, and what day of the week it is.',
   },
   {
-    icon: 'analytics',
-    title: 'Insights & Stats',
-    body: 'Dive into your taste profile — top note families, wearing patterns, budget tracking, and a diversity score.',
+    icon: 'health_and_safety',
+    title: 'Collection Health',
+    body: 'See your collection score — diversity, usage balance, season coverage, and more. Track how it improves.',
   },
   {
     icon: 'emoji_events',
-    title: 'Achievements & XP',
-    body: "Unlock 25+ badges as you grow your collection. Every action earns XP — rise from Newcomer to Legend.",
+    title: 'Achievements & Sharing',
+    body: "Earn badges, create Wrapped summaries, share profile cards, and see how your taste evolves over time.",
   },
 ]
 

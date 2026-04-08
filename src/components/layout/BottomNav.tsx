@@ -16,6 +16,8 @@ export function BottomNav() {
         <NavLink
           key={item.to}
           to={item.to}
+          end={item.to === '/'}
+          aria-label={item.label}
           className={({ isActive }) =>
             `flex flex-col items-center justify-center px-4 py-1.5 transition-all duration-300 ${
               isActive
