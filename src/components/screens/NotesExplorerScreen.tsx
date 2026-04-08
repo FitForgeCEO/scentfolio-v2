@@ -5,24 +5,28 @@ import { InlineError } from '../ui/InlineError'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
 
-const NOTE_FAMILIES = [
-  { name: 'Woody', icon: 'park', color: '#8B6914' },
-  { name: 'Floral', icon: 'local_florist', color: '#C77DB5' },
-  { name: 'Citrus', icon: 'sunny', color: '#E5C276' },
-  { name: 'Oriental', icon: 'auto_awesome', color: '#B8860B' },
-  { name: 'Fresh', icon: 'water_drop', color: '#5BA3C9' },
-  { name: 'Aromatic', icon: 'spa', color: '#6B8F71' },
-  { name: 'Gourmand', icon: 'cake', color: '#D4845A' },
-  { name: 'Aquatic', icon: 'waves', color: '#4A90B8' },
-  { name: 'Leather', icon: 'work', color: '#8B4513' },
-  { name: 'Fruity', icon: 'nutrition', color: '#E07A5F' },
-  { name: 'Powdery', icon: 'cloud', color: '#C8B8D8' },
-  { name: 'Spicy', icon: 'whatshot', color: '#C75B39' },
-  { name: 'Green', icon: 'eco', color: '#5A8C4F' },
-  { name: 'Amber', icon: 'diamond', color: '#FFBF00' },
-  { name: 'Musky', icon: 'blur_on', color: '#9E8C7C' },
-  { name: 'Oud', icon: 'forest', color: '#5C4033' },
-] as const
+const NOTE_FAMILIES: Record<string, { icon: string; color: string }> = {
+  'woody': { icon: 'park', color: '#8B6914' },
+  'floral': { icon: 'local_florist', color: '#C77DB5' },
+  'white floral': { icon: 'local_florist', color: '#E8D0E8' },
+  'citrus': { icon: 'sunny', color: '#E5C276' },
+  'aromatic': { icon: 'spa', color: '#6B8F71' },
+  'amber': { icon: 'diamond', color: '#FFBF00' },
+  'warm spicy': { icon: 'whatshot', color: '#C75B39' },
+  'fruity': { icon: 'nutrition', color: '#E07A5F' },
+  'rose': { icon: 'local_florist', color: '#D4788E' },
+  'vanilla': { icon: 'cake', color: '#D4845A' },
+  'sweet': { icon: 'cake', color: '#E8A87C' },
+  'powdery': { icon: 'cloud', color: '#C8B8D8' },
+  'musky': { icon: 'blur_on', color: '#9E8C7C' },
+  'fresh spicy': { icon: 'whatshot', color: '#5BA3C9' },
+  'green': { icon: 'eco', color: '#5A8C4F' },
+  'leather': { icon: 'work', color: '#8B4513' },
+  'oud': { icon: 'forest', color: '#5C4033' },
+  'aquatic': { icon: 'waves', color: '#4A90B8' },
+  'iris': { icon: 'filter_vintage', color: '#9B8EC8' },
+  'patchouli': { icon: 'eco', color: '#6B5B3E' },
+}
 
 type ViewMode = 'families' | 'accords' | 'notes'
 
@@ -37,6 +41,11 @@ interface AccordResult {
   count: number
 }
 
+interface AccordDetail {
+  accord: string
+  fragrances: Fragrance[]
+}
+
 export function NotesExplorerScreen() {
   const navigate = useNavigate()
   const [mode, setMode] = useState<ViewMode>('families')
@@ -44,6 +53,7 @@ export function NotesExplorerScreen() {
   const [familyResults, setFamilyResults] = useState<FamilyResult[]>([])
   const [accordResults, setAccordResults] = useState<AccordResult[]>([])
   const [selectedFamilyFragrances, setSelectedFamilyFragrances] = useState<Fragrance[]>([])
+  const [selectedAccord, setSelectedAccord] = useState<AccordDetail | null>(null)
   const [noteSearch, setNoteSearch] = useState('')
   const [noteResults, setNoteResults] = useState<Fragrance[]>([])
   const [loading, setLoading] = useState(true)
@@ -110,6 +120,19 @@ export function NotesExplorerScreen() {
     setLoading(false)
   }
 
+  const handleAccordTap = async (accord: string) => {
+    setLoading(true)
+    const { data } = await supabase
+      .from('fragrances')
+      .select('*')
+      .contains('accords', [accord])
+      .not('image_url', 'is', null)
+      .order('rating', { ascending: false, nullsFirst: false })
+      .limit(20)
+    setSelectedAccord({ accord, fragrances: (data ?? []) as Fragrance[] })
+    setLoading(false)
+  }
+
   const handleNoteSearch = useCallback((q: string) => {
     setNoteSearch(q)
     if (q.length < 2) { setNoteResults([]); return }
@@ -145,7 +168,7 @@ export function NotesExplorerScreen() {
         ] as const).map((tab) => (
           <button
             key={tab.value}
-            onClick={() => { setMode(tab.value); setSelectedFamily(null) }}
+            onClick={() => { setMode(tab.value); setSelectedFamily(null); setSelectedAccord(null) }}
             className={`px-4 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all ${mode === tab.value ? 'bg-primary text-on-primary-container' : 'bg-surface-container text-secondary'}`}
           >
             {tab.label}
@@ -161,44 +184,28 @@ export function NotesExplorerScreen() {
               <div key={i} className="h-16 rounded-xl bg-surface-container animate-pulse" />
             ))
           ) : (
-            <>
-              {/* Visual cards for known families */}
-              <div className="grid grid-cols-2 gap-3">
-                {NOTE_FAMILIES.filter((nf) => familyResults.some((fr) => fr.family.toLowerCase().includes(nf.name.toLowerCase()))).map((nf) => {
-                  const match = familyResults.find((fr) => fr.family.toLowerCase().includes(nf.name.toLowerCase()))
-                  return (
-                    <button
-                      key={nf.name}
-                      onClick={() => handleFamilyTap(match?.family ?? nf.name)}
-                      className="bg-surface-container rounded-xl p-4 text-left active:scale-[0.97] transition-transform space-y-2"
-                    >
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${nf.color}20` }}>
-                        <Icon name={nf.icon} style={{ color: nf.color }} size={20} />
-                      </div>
-                      <p className="text-sm text-on-surface font-medium">{nf.name}</p>
-                      <p className="text-[10px] text-secondary/50">{match?.count ?? 0} fragrances</p>
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Other families not in our known list */}
-              {familyResults
-                .filter((fr) => !NOTE_FAMILIES.some((nf) => fr.family.toLowerCase().includes(nf.name.toLowerCase())))
-                .map((fr) => (
+            <div className="grid grid-cols-2 gap-3">
+              {familyResults.map((fr) => {
+                const key = fr.family.toLowerCase()
+                const meta = NOTE_FAMILIES[key]
+                const icon = meta?.icon ?? 'spa'
+                const color = meta?.color ?? '#e5c276'
+                const label = fr.family.charAt(0).toUpperCase() + fr.family.slice(1)
+                return (
                   <button
                     key={fr.family}
                     onClick={() => handleFamilyTap(fr.family)}
-                    className="w-full bg-surface-container rounded-xl px-4 py-3 flex items-center justify-between text-left active:scale-[0.98] transition-transform"
+                    className="bg-surface-container rounded-xl p-4 text-left active:scale-[0.97] transition-transform space-y-2"
                   >
-                    <div className="flex items-center gap-3">
-                      <Icon name="spa" className="text-primary" size={18} />
-                      <span className="text-sm text-on-surface">{fr.family}</span>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${color}20` }}>
+                      <Icon name={icon} style={{ color }} size={20} />
                     </div>
-                    <span className="text-[10px] text-secondary/50">{fr.count}</span>
+                    <p className="text-sm text-on-surface font-medium">{label}</p>
+                    <p className="text-[10px] text-secondary/50">{fr.count} fragrances</p>
                   </button>
-                ))}
-            </>
+                )
+              })}
+            </div>
           )}
         </section>
       )}
@@ -246,17 +253,63 @@ export function NotesExplorerScreen() {
       )}
 
       {/* Accords View */}
-      {mode === 'accords' && (
+      {mode === 'accords' && !selectedAccord && (
         <section className="space-y-3">
           {accordResults.length === 0 && !loading ? (
             <p className="text-sm text-secondary/50 text-center py-8">No accord data available</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {accordResults.map((a) => (
-                <span key={a.accord} className="bg-surface-container px-3 py-2 rounded-full flex items-center gap-2">
+                <button
+                  key={a.accord}
+                  onClick={() => handleAccordTap(a.accord)}
+                  className="bg-surface-container px-3 py-2 rounded-full flex items-center gap-2 active:scale-95 transition-all hover:bg-surface-container-highest"
+                >
                   <span className="text-xs text-on-surface font-medium">{a.accord}</span>
                   <span className="text-[9px] text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded-full">{a.count}</span>
-                </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Selected Accord Detail */}
+      {mode === 'accords' && selectedAccord && (
+        <section className="space-y-4">
+          <button onClick={() => setSelectedAccord(null)} className="flex items-center gap-2 text-primary text-sm font-medium active:opacity-70">
+            <Icon name="arrow_back" size={18} /> All Accords
+          </button>
+          <h3 className="font-headline text-2xl text-on-surface capitalize">{selectedAccord.accord}</h3>
+          {loading ? (
+            <div className="grid grid-cols-2 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[3/4] rounded-xl bg-surface-container animate-pulse" />)}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {selectedAccord.fragrances.map((frag) => (
+                <div
+                  key={frag.id}
+                  className="space-y-2 group cursor-pointer"
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => navigate(`/fragrance/${frag.id}`)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/fragrance/${frag.id}`) }}
+                >
+                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low">
+                    {frag.image_url && <img src={frag.image_url} alt={frag.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+                  </div>
+                  <div>
+                    <span className="text-[9px] uppercase tracking-[0.15em] text-secondary/60">{frag.brand}</span>
+                    <h4 className="text-sm font-medium text-on-surface truncate">{frag.name}</h4>
+                    {frag.rating && (
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <Icon name="star" filled className="text-[10px] text-primary" />
+                        <span className="text-[10px] text-on-surface-variant">{Number(frag.rating).toFixed(1)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               ))}
             </div>
           )}
