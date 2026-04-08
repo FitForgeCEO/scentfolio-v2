@@ -179,11 +179,11 @@ export function HomeScreen() {
               <p className="text-[10px] text-secondary/50">Rate your collection</p>
             </div>
           </button>
-          <button onClick={() => navigate('/journal')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="edit_note" className="text-primary" />
+          <button onClick={() => navigate('/wear-predictions')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
+            <Icon name="smart_toy" className="text-primary" />
             <div>
-              <p className="text-sm text-on-surface font-medium">Journal</p>
-              <p className="text-[10px] text-secondary/50">Log thoughts</p>
+              <p className="text-sm text-on-surface font-medium">Today's Picks</p>
+              <p className="text-[10px] text-secondary/50">AI suggestions</p>
             </div>
           </button>
         </div>

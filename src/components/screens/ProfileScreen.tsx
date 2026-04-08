@@ -164,6 +164,26 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
               <p className="text-[10px] text-secondary/50">Badges & milestones</p>
             </div>
           </button>
+          <button
+            onClick={() => navigate('/collection-insights')}
+            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
+          >
+            <Icon name="psychology" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Insights</p>
+              <p className="text-[10px] text-secondary/50">Collection decoded</p>
+            </div>
+          </button>
+          <button
+            onClick={() => navigate('/collection-health')}
+            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
+          >
+            <Icon name="health_and_safety" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Health Score</p>
+              <p className="text-[10px] text-secondary/50">Rate your collection</p>
+            </div>
+          </button>
         </div>
       </section>
 
@@ -171,6 +191,28 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
       <section className="mb-10">
         <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary mb-3">PERSONAL</h3>
         <div className="space-y-2">
+          <button
+            onClick={() => navigate('/scent-quiz')}
+            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
+          >
+            <Icon name="quiz" className="text-primary" />
+            <div className="flex-1">
+              <p className="text-sm text-on-surface font-medium">Scent Quiz</p>
+              <p className="text-[10px] text-secondary/50">Discover your profile</p>
+            </div>
+            <Icon name="chevron_right" className="text-secondary/60" />
+          </button>
+          <button
+            onClick={() => navigate('/wear-predictions')}
+            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
+          >
+            <Icon name="smart_toy" className="text-primary" />
+            <div className="flex-1">
+              <p className="text-sm text-on-surface font-medium">Today's Picks</p>
+              <p className="text-[10px] text-secondary/50">Smart wear suggestions</p>
+            </div>
+            <Icon name="chevron_right" className="text-secondary/60" />
+          </button>
           <button
             onClick={() => navigate('/journal')}
             className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"

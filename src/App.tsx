@@ -62,6 +62,10 @@ const SmartCollectionsScreen = lazy(() => import('./components/screens/SmartColl
 const WeatherMatchScreen = lazy(() => import('./components/screens/WeatherMatchScreen').then(m => ({ default: m.WeatherMatchScreen })))
 const CollectionValueScreen = lazy(() => import('./components/screens/CollectionValueScreen').then(m => ({ default: m.CollectionValueScreen })))
 const BadgesScreen = lazy(() => import('./components/screens/BadgesScreen').then(m => ({ default: m.BadgesScreen })))
+const ScentQuizScreen = lazy(() => import('./components/screens/ScentQuizScreen').then(m => ({ default: m.ScentQuizScreen })))
+const CollectionInsightsScreen = lazy(() => import('./components/screens/CollectionInsightsScreen').then(m => ({ default: m.CollectionInsightsScreen })))
+const WearPredictionsScreen = lazy(() => import('./components/screens/WearPredictionsScreen').then(m => ({ default: m.WearPredictionsScreen })))
+const CollectionHealthScreen = lazy(() => import('./components/screens/CollectionHealthScreen').then(m => ({ default: m.CollectionHealthScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -161,6 +165,12 @@ export default function App() {
               <Route path="/weather" element={<AppLayout title="WEATHER MATCH" showBack><LazyScreen><WeatherMatchScreen /></LazyScreen></AppLayout>} />
               <Route path="/value" element={<AppLayout title="VALUE TRACKER" showBack><LazyScreen><CollectionValueScreen /></LazyScreen></AppLayout>} />
               <Route path="/badges" element={<AppLayout title="BADGES" showBack><LazyScreen><BadgesScreen /></LazyScreen></AppLayout>} />
+
+              {/* ── Data Quality & Personalization ── */}
+              <Route path="/scent-quiz" element={<AppLayout title="SCENT QUIZ" showBack><LazyScreen><ScentQuizScreen /></LazyScreen></AppLayout>} />
+              <Route path="/collection-insights" element={<AppLayout title="INSIGHTS" showBack><LazyScreen><CollectionInsightsScreen /></LazyScreen></AppLayout>} />
+              <Route path="/wear-predictions" element={<AppLayout title="TODAY'S PICKS" showBack><LazyScreen><WearPredictionsScreen /></LazyScreen></AppLayout>} />
+              <Route path="/collection-health" element={<AppLayout title="HEALTH SCORE" showBack><LazyScreen><CollectionHealthScreen /></LazyScreen></AppLayout>} />
 
               {/* ── Settings ── */}
               <Route path="/settings" element={<AppLayout title="SETTINGS" showBack><LazyScreen><SettingsScreen /></LazyScreen></AppLayout>} />
