@@ -9,14 +9,12 @@ import { BottomNav } from './components/layout/BottomNav'
 import { InstallBanner } from './components/ui/InstallBanner'
 import { ScreenSkeleton, GridSkeleton } from './components/ui/ScreenSkeleton'
 
-// ── Core tab screens (eagerly loaded — always needed) ──────────────
-import { HomeScreen } from './components/screens/HomeScreen'
-import { CollectionScreen } from './components/screens/CollectionScreen'
-import { ExploreScreen } from './components/screens/ExploreScreen'
-import { ProfileScreen } from './components/screens/ProfileScreen'
-
-// ── Lazy-loaded screens ────────────────────────────────────────────
-// Each chunk is only fetched when the user navigates to that route.
+// ── All screens lazy-loaded for optimal code splitting ────────────
+// Core tabs prefetch immediately via PrefetchLink; rest load on navigate.
+const HomeScreen = lazy(() => import('./components/screens/HomeScreen').then(m => ({ default: m.HomeScreen })))
+const CollectionScreen = lazy(() => import('./components/screens/CollectionScreen').then(m => ({ default: m.CollectionScreen })))
+const ExploreScreen = lazy(() => import('./components/screens/ExploreScreen').then(m => ({ default: m.ExploreScreen })))
+const ProfileScreen = lazy(() => import('./components/screens/ProfileScreen').then(m => ({ default: m.ProfileScreen })))
 const FragranceDetailScreen = lazy(() => import('./components/screens/FragranceDetailScreen').then(m => ({ default: m.FragranceDetailScreen })))
 const LayeringLabScreen = lazy(() => import('./components/screens/LayeringLabScreen').then(m => ({ default: m.LayeringLabScreen })))
 const WearHistoryScreen = lazy(() => import('./components/screens/WearHistoryScreen').then(m => ({ default: m.WearHistoryScreen })))
@@ -128,7 +126,9 @@ function HomeGate() {
 
   return (
     <AppLayout>
-      <HomeScreen />
+      <LazyScreen>
+        <HomeScreen />
+      </LazyScreen>
     </AppLayout>
   )
 }
@@ -146,11 +146,11 @@ export default function App() {
               {/* ── Onboarding (no AppLayout — full-screen flow) ── */}
               <Route path="/onboarding" element={<LazyScreen><OnboardingFlowScreen /></LazyScreen>} />
 
-              {/* ── Core tabs (eager) ── */}
+              {/* ── Core tabs (lazy with instant prefetch) ── */}
               <Route path="/" element={<HomeGate />} />
-              <Route path="/collection" element={<AppLayout title="SCENTFOLIO" showBack={false}><CollectionScreen /></AppLayout>} />
-              <Route path="/explore" element={<AppLayout title="SCENTFOLIO"><ExploreScreen /></AppLayout>} />
-              <Route path="/profile" element={<AppLayout title="SCENTFOLIO"><ProfileScreen /></AppLayout>} />
+              <Route path="/collection" element={<AppLayout title="SCENTFOLIO" showBack={false}><LazyScreen grid><CollectionScreen /></LazyScreen></AppLayout>} />
+              <Route path="/explore" element={<AppLayout title="SCENTFOLIO"><LazyScreen grid><ExploreScreen /></LazyScreen></AppLayout>} />
+              <Route path="/profile" element={<AppLayout title="SCENTFOLIO"><LazyScreen><ProfileScreen /></LazyScreen></AppLayout>} />
 
               {/* ── Fragrance detail ── */}
               <Route path="/fragrance/:id" element={<AppLayout showBack title="SCENT PROFILE"><LazyScreen><FragranceDetailScreen /></LazyScreen></AppLayout>} />
