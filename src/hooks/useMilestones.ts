@@ -60,7 +60,7 @@ export function useMilestones() {
       supabase.from('user_collections').select('fragrance_id, fragrance:fragrances(brand, note_family)', { count: 'exact' }).eq('user_id', user.id).eq('status', 'own'),
       supabase.from('wear_logs').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
       supabase.from('reviews').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
-      supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', user.id),
+      supabase.from('user_follows').select('id', { count: 'exact', head: true }).eq('following_id', user.id),
     ]).then(([collRes, wearRes, reviewRes, followerRes]) => {
       const collCount = collRes.count ?? 0
       const wearCount = wearRes.count ?? 0
