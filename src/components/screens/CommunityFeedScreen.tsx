@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { ReviewLikeButtonBatch } from '../ui/ReviewLikeButton'
+import { SubRatingBars } from '../ui/SubRatingBars'
 import { useReviewLikeCounts } from '@/hooks/useReviewLikes'
 import { supabase } from '@/lib/supabase'
 import { ReviewShareCard } from '../ui/ReviewShareCard'
@@ -13,10 +14,15 @@ interface FeedItem {
   user_avatar: string | null
   user_level: number
   overall_rating: number
+  scent_rating: number | null
+  longevity_rating: number | null
+  sillage_rating: number | null
+  value_rating: number | null
   review_text: string | null
   title: string | null
   created_at: string
   fragrance: { id: string; name: string; brand: string; image_url: string | null } | null
+  is_verified_owner: boolean
 }
 
 export function CommunityFeedScreen() {
@@ -37,12 +43,12 @@ export function CommunityFeedScreen() {
     if (tab === 'reviews') {
       const { data } = await supabase
         .from('reviews')
-        .select('id, overall_rating, review_text, title, created_at, user_id, fragrance:fragrances(id, name, brand, image_url)')
+        .select('id, overall_rating, scent_rating, longevity_rating, sillage_rating, value_rating, review_text, title, created_at, user_id, fragrance_id, fragrance:fragrances(id, name, brand, image_url)')
         .not('review_text', 'is', null)
         .order('created_at', { ascending: false })
         .limit(30)
 
-      type Row = { id: string; overall_rating: number; review_text: string | null; title: string | null; created_at: string; user_id: string; fragrance: { id: string; name: string; brand: string; image_url: string | null } | null }
+      type Row = { id: string; overall_rating: number; scent_rating: number | null; longevity_rating: number | null; sillage_rating: number | null; value_rating: number | null; review_text: string | null; title: string | null; created_at: string; user_id: string; fragrance_id: string; fragrance: { id: string; name: string; brand: string; image_url: string | null } | null }
       const rows = (data ?? []) as unknown as Row[]
 
       // Fetch profiles for all user_ids
@@ -58,6 +64,23 @@ export function CommunityFeedScreen() {
         profileMap.set(p.id, p)
       }
 
+      // Check verified ownership — which reviewers own the fragrance they reviewed
+      const ownerPairs = rows.map((r) => ({ user_id: r.user_id, fragrance_id: r.fragrance_id }))
+      const ownerSet = new Set<string>()
+      if (ownerPairs.length > 0) {
+        try {
+          const { data: collections } = await supabase
+            .from('user_collections')
+            .select('user_id, fragrance_id')
+            .in('user_id', userIds)
+          if (collections) {
+            for (const c of collections as { user_id: string; fragrance_id: string }[]) {
+              ownerSet.add(`${c.user_id}:${c.fragrance_id}`)
+            }
+          }
+        } catch { /* graceful fallback */ }
+      }
+
       setItems(rows.map((r) => {
         const prof = profileMap.get(r.user_id)
         return {
@@ -67,10 +90,15 @@ export function CommunityFeedScreen() {
           user_avatar: prof?.avatar_url ?? null,
           user_level: prof?.level ?? 1,
           overall_rating: r.overall_rating,
+          scent_rating: r.scent_rating,
+          longevity_rating: r.longevity_rating,
+          sillage_rating: r.sillage_rating,
+          value_rating: r.value_rating,
           review_text: r.review_text,
           title: r.title,
           created_at: r.created_at,
           fragrance: r.fragrance,
+          is_verified_owner: ownerSet.has(`${r.user_id}:${r.fragrance_id}`),
         }
       }))
     }
@@ -149,7 +177,12 @@ export function CommunityFeedScreen() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-on-surface font-medium truncate">{item.user_display_name}</p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm text-on-surface font-medium truncate">{item.user_display_name}</p>
+                      {item.is_verified_owner && (
+                        <Icon name="verified" filled className="text-primary text-[12px] flex-shrink-0" />
+                      )}
+                    </div>
                     <p className="text-[9px] text-secondary/40">Level {item.user_level} · {timeAgo(item.created_at)}</p>
                   </div>
                 </button>
@@ -188,10 +221,24 @@ export function CommunityFeedScreen() {
                 </button>
               )}
 
+              {/* Review Title */}
+              {item.title && (
+                <p className="text-sm font-bold text-on-surface">{item.title}</p>
+              )}
+
               {/* Review Text */}
               {item.review_text && (
                 <p className="text-sm text-on-surface/70 leading-relaxed line-clamp-3">{item.review_text}</p>
               )}
+
+              {/* Sub-ratings (compact) */}
+              <SubRatingBars
+                scent={item.scent_rating}
+                longevity={item.longevity_rating}
+                sillage={item.sillage_rating}
+                value={item.value_rating}
+                compact
+              />
 
               {/* Actions */}
               <div className="flex items-center gap-4">

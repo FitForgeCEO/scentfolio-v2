@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getStale, setCache } from '@/lib/cache'
-import type { Fragrance, UserCollection } from '@/types/database'
+import type { Fragrance, UserCollection, Review } from '@/types/database'
+import type { ReviewSortOption } from './useReviewEnhancements'
 
 /** Fetch top-rated fragrances for trending section (cached 5 min) */
 export function useTrendingFragrances(limit = 6) {
@@ -128,29 +129,51 @@ export function useFragrancesBrowse(page = 0, pageSize = 20) {
   return { data, loading, count, error, retry: fetch }
 }
 
-/** Get reviews for a fragrance */
-export function useFragranceReviews(fragranceId: string | undefined) {
-  const [data, setData] = useState<any[]>([])
+/** Get reviews for a fragrance with sorting support */
+export function useFragranceReviews(fragranceId: string | undefined, sort: ReviewSortOption = 'newest') {
+  const [data, setData] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
+  const fetchReviews = useCallback(() => {
     if (!fragranceId) return
+    setLoading(true)
     setError(null)
-    supabase
+
+    let query = supabase
       .from('reviews')
       .select('*, profile:profiles(display_name, avatar_url)')
       .eq('fragrance_id', fragranceId)
-      .order('created_at', { ascending: false })
-      .limit(10)
+
+    // Apply sort order
+    switch (sort) {
+      case 'oldest':
+        query = query.order('created_at', { ascending: true })
+        break
+      case 'highest':
+        query = query.order('overall_rating', { ascending: false }).order('created_at', { ascending: false })
+        break
+      case 'lowest':
+        query = query.order('overall_rating', { ascending: true }).order('created_at', { ascending: false })
+        break
+      case 'newest':
+      default:
+        query = query.order('created_at', { ascending: false })
+        break
+    }
+
+    query
+      .limit(50)
       .then(({ data, error }) => {
         if (error) setError(error.message)
-        else if (data) setData(data)
+        else if (data) setData(data as unknown as Review[])
         setLoading(false)
       })
-  }, [fragranceId])
+  }, [fragranceId, sort])
 
-  return { data, loading, error }
+  useEffect(() => { fetchReviews() }, [fetchReviews])
+
+  return { data, loading, error, refetch: fetchReviews }
 }
 
 /** Fetch user collection with joined fragrance data */

@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import type React from 'react'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Icon } from '../ui/Icon'
 import { useFragranceDetail, useFragranceReviews, useFragranceTags } from '@/hooks/useFragrances'
 import { useSimilarFragrances } from '@/hooks/useSimilarFragrances'
@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { LogWearSheet } from './LogWearSheet'
 import { ReviewSheet } from './ReviewSheet'
+import { EditReviewSheet } from './EditReviewSheet'
 import { hapticMedium } from '@/lib/haptics'
 import { FragranceNotesPyramid } from '../fragrance/FragranceNotesPyramid'
 import { AccordsRadar } from '../fragrance/AccordsRadar'
@@ -16,7 +17,10 @@ import { useToast } from '@/contexts/ToastContext'
 import { TagInput } from '../ui/TagInput'
 import { useUserFragranceTags, useAllUserTags } from '@/hooks/useUserTags'
 import { ShareCardSheet } from '../ui/ShareCard'
-import { ReviewLikeButton } from '../ui/ReviewLikeButton'
+import { EnhancedReviewCard } from '../ui/EnhancedReviewCard'
+import { useReviewOwners, useDeleteReview } from '@/hooks/useReviewEnhancements'
+import type { ReviewSortOption } from '@/hooks/useReviewEnhancements'
+import type { Review } from '@/types/database'
 import { addRecentlyViewed } from '@/lib/recentlyViewed'
 
 /* ── Season & Occasion icon maps ── */
@@ -147,11 +151,17 @@ export function FragranceDetailScreen() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { data: frag, loading } = useFragranceDetail(id)
-  const { data: reviews } = useFragranceReviews(id)
+  const [reviewSort, setReviewSort] = useState<ReviewSortOption>('newest')
+  const { data: reviews, refetch: refetchReviews } = useFragranceReviews(id, reviewSort)
   const { data: tags } = useFragranceTags(id)
   const { data: similarFragrances, loading: similarLoading } = useSimilarFragrances(frag ?? null)
   const { tags: userTags, setTags: setUserTags } = useUserFragranceTags(id)
   const { tags: allUserTags } = useAllUserTags()
+
+  // Verified owner badges — check which reviewers own this fragrance
+  const reviewerIds = useMemo(() => reviews.map((r) => r.user_id), [reviews])
+  const ownerIds = useReviewOwners(id, reviewerIds)
+  const { deleteReview } = useDeleteReview(refetchReviews)
 
   const { showToast } = useToast()
   // Collection status
@@ -160,6 +170,7 @@ export function FragranceDetailScreen() {
   const [saving, setSaving] = useState(false)
   const [logSheetOpen, setLogSheetOpen] = useState(false)
   const [reviewSheetOpen, setReviewSheetOpen] = useState(false)
+  const [editingReview, setEditingReview] = useState<Review | null>(null)
   const [shareCardOpen, setShareCardOpen] = useState(false)
 
   // Track recently viewed
@@ -382,7 +393,18 @@ export function FragranceDetailScreen() {
         onClose={() => setReviewSheetOpen(false)}
         fragrance={frag}
         isOwner={collectionStatus === 'own'}
+        onSubmitted={refetchReviews}
       />
+
+      {/* Edit Review Sheet */}
+      {editingReview && (
+        <EditReviewSheet
+          isOpen={!!editingReview}
+          onClose={() => setEditingReview(null)}
+          review={editingReview}
+          onUpdated={refetchReviews}
+        />
+      )}
 
       {shareCardOpen && (
         <ShareCardSheet fragrance={frag} onClose={() => setShareCardOpen(false)} />
@@ -547,39 +569,46 @@ export function FragranceDetailScreen() {
         {/* Reviews */}
         {reviews.length > 0 && (
           <section>
-            <div className="mb-6">
-              <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase">
-                REVIEWS ({reviews.length})
-              </h3>
+            <div className="mb-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase">
+                  REVIEWS ({reviews.length})
+                </h3>
+              </div>
+              {/* Sort controls */}
+              <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar">
+                {([
+                  { key: 'newest', label: 'Newest' },
+                  { key: 'oldest', label: 'Oldest' },
+                  { key: 'highest', label: 'Highest' },
+                  { key: 'lowest', label: 'Lowest' },
+                ] as { key: ReviewSortOption; label: string }[]).map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setReviewSort(opt.key)}
+                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider whitespace-nowrap transition-colors ${
+                      reviewSort === opt.key
+                        ? 'bg-primary text-on-primary'
+                        : 'bg-surface-container-highest text-secondary/60'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="space-y-4">
               {reviews.map((review) => (
-                <div key={review.id} className="p-5 bg-surface-container rounded-2xl space-y-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-surface-container-highest" />
-                      <div>
-                        <p className="text-xs font-bold text-on-surface">
-                          {review.profile?.display_name || 'Anonymous'}
-                        </p>
-                        <p className="text-[9px] text-secondary/60">
-                          {new Date(review.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex text-primary">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Icon key={i} name="star" filled={i < review.overall_rating} className="text-[14px]" />
-                      ))}
-                    </div>
-                  </div>
-                  {review.review_text && (
-                    <p className="text-[13px] text-secondary/90 leading-relaxed italic">"{review.review_text}"</p>
-                  )}
-                  <div className="flex items-center gap-3 pt-1">
-                    <ReviewLikeButton reviewId={review.id} />
-                  </div>
-                </div>
+                <EnhancedReviewCard
+                  key={review.id}
+                  review={review}
+                  isVerifiedOwner={ownerIds.has(review.user_id)}
+                  onEdit={user?.id === review.user_id ? () => setEditingReview(review) : undefined}
+                  onDelete={user?.id === review.user_id ? () => {
+                    deleteReview(review.id)
+                    showToast('Review deleted', 'success')
+                  } : undefined}
+                />
               ))}
             </div>
           </section>
