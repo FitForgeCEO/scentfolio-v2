@@ -1,7 +1,7 @@
 {
-  "name": "ScentFolio",
+  "name": "ScentFolio — Your Fragrance Collection",
   "short_name": "ScentFolio",
-  "description": "Your fragrance journey — track, discover, and curate your scent collection",
+  "description": "Track your fragrance collection, log daily wears, discover new scents, and share your taste. The Letterboxd for fragrance lovers.",
   "start_url": "/",
   "id": "/",
   "display": "standalone",
@@ -12,6 +12,7 @@
   "lang": "en",
   "dir": "ltr",
   "prefer_related_applications": false,
+  "scope": "/",
   "icons": [
     { "src": "/icons/icon-72x72.png", "sizes": "72x72", "type": "image/png" },
     { "src": "/icons/icon-96x96.png", "sizes": "96x96", "type": "image/png" },
@@ -26,8 +27,8 @@
   ],
   "shortcuts": [
     {
-      "name": "Log Wear",
-      "short_name": "Log",
+      "name": "Log Today's Wear",
+      "short_name": "Log Wear",
       "description": "Log what you're wearing today",
       "url": "/wear-history",
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
@@ -40,7 +41,7 @@
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
-      "name": "Explore",
+      "name": "Explore Fragrances",
       "short_name": "Explore",
       "description": "Discover new fragrances",
       "url": "/explore",
@@ -49,18 +50,18 @@
     {
       "name": "Layering Lab",
       "short_name": "Layering",
-      "description": "Create fragrance combos",
+      "description": "Create and save fragrance combos",
       "url": "/layering-lab",
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     }
   ],
   "screenshots": [
     {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
+      "src": "/og-image.png",
+      "sizes": "1200x630",
       "type": "image/png",
-      "form_factor": "narrow",
-      "label": "ScentFolio — Your fragrance collection"
+      "form_factor": "wide",
+      "label": "ScentFolio — Track, discover, and curate your fragrance collection"
     }
   ]
 }
