@@ -5,6 +5,7 @@ import { FollowButton } from '../ui/FollowButton'
 import { ReportSheet } from '../ui/ReportSheet'
 import { useFollowCounts } from '@/hooks/useFollows'
 import { useIsBlocked } from '@/hooks/useBlockUser'
+import { usePublicProfileExtras, useSignatureFragrance } from '@/hooks/useProfileExtras'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { getLevelTitle } from '@/lib/xp'
@@ -43,6 +44,8 @@ export function PublicProfileScreen() {
   const { user: currentUser } = useAuth()
   const { followers: followerCount, following: followingCount } = useFollowCounts(userId)
   const { blocked, toggleBlock } = useIsBlocked(userId)
+  const { data: profileExtras } = usePublicProfileExtras(userId)
+  const signatureFragrance = useSignatureFragrance(profileExtras?.signature_fragrance_id ?? null)
   const isOwnProfile = currentUser?.id === userId
 
   useEffect(() => {
@@ -148,6 +151,43 @@ export function PublicProfileScreen() {
           <p className="text-xs text-on-surface-variant">Level {profile.level} · {getLevelTitle(profile.level)}</p>
           <p className="text-[10px] text-secondary/40">Member since {joined}</p>
         </div>
+
+        {/* Bio */}
+        {profileExtras?.bio && (
+          <p className="text-sm text-on-surface-variant/80 max-w-[300px] text-center italic leading-relaxed">
+            "{profileExtras.bio}"
+          </p>
+        )}
+
+        {/* Signature Scent */}
+        {signatureFragrance && (
+          <div className="flex items-center gap-2.5 bg-surface-container px-3.5 py-2.5 rounded-2xl">
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-surface-container-highest flex-shrink-0">
+              {signatureFragrance.image_url ? (
+                <img src={signatureFragrance.image_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Icon name="water_drop" className="text-secondary/30" size={14} />
+                </div>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[8px] uppercase tracking-[0.15em] text-primary/70 font-bold">Signature Scent</p>
+              <p className="text-xs text-on-surface truncate">{signatureFragrance.brand} — {signatureFragrance.name}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Favourite Notes */}
+        {profileExtras && profileExtras.favorite_notes.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-1.5 max-w-[300px]">
+            {profileExtras.favorite_notes.map((note) => (
+              <span key={note} className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
+                {note}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Follow counts */}
         <div className="flex items-center gap-4 mt-1">

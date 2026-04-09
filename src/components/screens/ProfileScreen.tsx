@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { getLevelProgress, getXPForNextLevel, getLevelTitle } from '@/lib/xp'
 import { EditProfileSheet } from './EditProfileSheet'
 import { PullToRefresh } from '../ui/PullToRefresh'
+import { useProfileExtras, useSignatureFragrance } from '@/hooks/useProfileExtras'
 import type { Profile } from '@/types/database'
 
 export function ProfileScreen() {
@@ -33,6 +34,8 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
   const [reviewCount, setReviewCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [editSheetOpen, setEditSheetOpen] = useState(false)
+  const { data: extras } = useProfileExtras(userId)
+  const signatureFragrance = useSignatureFragrance(extras.signature_fragrance_id)
 
   const fetchData = () => {
     Promise.all([
@@ -73,6 +76,43 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
         </div>
         <h2 className="font-headline text-2xl text-on-surface">{profile?.display_name ?? 'Fragrance Lover'}</h2>
         <p className="text-xs text-secondary/50 mt-1">{email}</p>
+
+        {/* Bio */}
+        {extras.bio && (
+          <p className="text-sm text-on-surface-variant/80 mt-3 max-w-[300px] text-center italic leading-relaxed">
+            "{extras.bio}"
+          </p>
+        )}
+
+        {/* Signature Scent */}
+        {signatureFragrance && (
+          <div className="mt-3 flex items-center gap-2.5 bg-surface-container px-3.5 py-2.5 rounded-2xl">
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-surface-container-highest flex-shrink-0">
+              {signatureFragrance.image_url ? (
+                <img src={signatureFragrance.image_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Icon name="water_drop" className="text-secondary/30" size={14} />
+                </div>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[8px] uppercase tracking-[0.15em] text-primary/70 font-bold">Signature Scent</p>
+              <p className="text-xs text-on-surface truncate">{signatureFragrance.brand} — {signatureFragrance.name}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Favourite Notes */}
+        {extras.favorite_notes.length > 0 && (
+          <div className="mt-3 flex flex-wrap justify-center gap-1.5 max-w-[300px]">
+            {extras.favorite_notes.map((note) => (
+              <span key={note} className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
+                {note}
+              </span>
+            ))}
+          </div>
+        )}
 
         {/* Level + XP progress */}
         {(() => {
@@ -349,7 +389,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
           <Icon name="edit" className="text-primary" />
           <div className="flex-1">
             <p className="text-sm text-on-surface font-medium">Edit Profile</p>
-            <p className="text-[10px] text-secondary/50">Update your display name and avatar</p>
+            <p className="text-[10px] text-secondary/50">Name, bio, signature scent & notes</p>
           </div>
           <Icon name="chevron_right" className="text-secondary/60" />
         </button>
