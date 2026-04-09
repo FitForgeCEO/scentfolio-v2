@@ -13,6 +13,7 @@ import { GettingStartedCard } from '../ui/GettingStartedCard'
 import { ChallengesWidget } from '../ui/ChallengesWidget'
 import { useSmartNotifications } from '@/hooks/useSmartNotifications'
 import { useOnboarding } from '@/hooks/useOnboarding'
+import { supabase } from '@/lib/supabase'
 
 function getGreeting(): string {
   const h = new Date().getHours()
@@ -210,6 +211,9 @@ export function HomeScreen() {
         </div>
       </section>
 
+      {/* Community Buzz — quick peek at recent activity */}
+      <CommunityBuzzWidget />
+
       {/* Trending Now — real Supabase data */}
       <section className="space-y-4">
         <div className="flex justify-between items-end">
@@ -278,5 +282,121 @@ export function HomeScreen() {
       {user && <WelcomeOverlay userId={user.id} />}
     </main>
     </PullToRefresh>
+  )
+}
+
+/* ── Community Buzz Widget ── */
+
+interface BuzzItem {
+  id: string
+  type: 'review' | 'wear'
+  user_name: string
+  fragrance_name: string
+  fragrance_brand: string
+  created_at: string
+  rating?: number
+}
+
+function CommunityBuzzWidget() {
+  const navigate = useNavigate()
+  const [buzz, setBuzz] = useState<BuzzItem[]>([])
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    async function fetch() {
+      const items: BuzzItem[] = []
+
+      // Latest reviews with text
+      try {
+        const { data } = await supabase
+          .from('reviews')
+          .select('id, overall_rating, created_at, user_id, fragrance:fragrances(name, brand)')
+          .not('review_text', 'is', null)
+          .order('created_at', { ascending: false })
+          .limit(5)
+
+        type Row = { id: string; overall_rating: number; created_at: string; user_id: string; fragrance: { name: string; brand: string } | null }
+        const rows = (data ?? []) as unknown as Row[]
+        const userIds = [...new Set(rows.map(r => r.user_id))]
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, display_name')
+          .in('id', userIds)
+        type P = { id: string; display_name: string }
+        const pMap = new Map<string, string>()
+        for (const p of (profiles ?? []) as P[]) pMap.set(p.id, p.display_name)
+
+        for (const r of rows) {
+          if (!r.fragrance) continue
+          items.push({
+            id: `r-${r.id}`,
+            type: 'review',
+            user_name: pMap.get(r.user_id) ?? 'Someone',
+            fragrance_name: r.fragrance.name,
+            fragrance_brand: r.fragrance.brand,
+            created_at: r.created_at,
+            rating: r.overall_rating,
+          })
+        }
+      } catch { /* ok */ }
+
+      if (!cancelled) {
+        setBuzz(items.slice(0, 4))
+        setLoaded(true)
+      }
+    }
+    fetch()
+    return () => { cancelled = true }
+  }, [])
+
+  if (!loaded || buzz.length === 0) return null
+
+  const timeAgo = (d: string) => {
+    const mins = Math.floor((Date.now() - new Date(d).getTime()) / 60000)
+    if (mins < 60) return `${mins}m`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h`
+    return `${Math.floor(hrs / 24)}d`
+  }
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary">COMMUNITY BUZZ</h3>
+        <button
+          onClick={() => navigate('/community')}
+          className="text-[10px] text-primary font-bold uppercase tracking-wider active:scale-95 transition-transform"
+        >
+          See All
+        </button>
+      </div>
+      <div className="space-y-2">
+        {buzz.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => navigate('/community')}
+            className="w-full text-left bg-surface-container rounded-xl px-4 py-3 flex items-center gap-3 active:scale-[0.98] transition-transform"
+          >
+            <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
+              <Icon name="rate_review" className="text-amber-400" size={16} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] text-on-surface leading-tight truncate">
+                <span className="font-medium">{item.user_name}</span>
+                {' reviewed '}
+                <span className="font-medium">{item.fragrance_name}</span>
+              </p>
+              <p className="text-[10px] text-secondary/40 mt-0.5">
+                {item.fragrance_brand}
+                {item.rating ? ` · ${item.rating}/5` : ''}
+                {' · '}{timeAgo(item.created_at)}
+              </p>
+            </div>
+            <Icon name="chevron_right" className="text-secondary/20 flex-shrink-0" size={16} />
+          </button>
+        ))}
+      </div>
+    </section>
   )
 }

@@ -6,6 +6,7 @@ import { SubRatingBars } from '../ui/SubRatingBars'
 import { useReviewLikeCounts } from '@/hooks/useReviewLikes'
 import { supabase } from '@/lib/supabase'
 import { ReviewShareCard } from '../ui/ReviewShareCard'
+import { FragranceImage } from '../ui/FragranceImage'
 
 interface FeedItem {
   id: string
@@ -25,9 +26,23 @@ interface FeedItem {
   is_verified_owner: boolean
 }
 
+interface ActivityEntry {
+  id: string
+  type: 'wear' | 'collection_add' | 'review'
+  user_id: string
+  user_display_name: string
+  user_avatar: string | null
+  fragrance_name: string
+  fragrance_brand: string
+  fragrance_id: string
+  created_at: string
+  extra?: string
+}
+
 export function CommunityFeedScreen() {
   const navigate = useNavigate()
   const [items, setItems] = useState<FeedItem[]>([])
+  const [activityItems, setActivityItems] = useState<ActivityEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'reviews' | 'activity'>('reviews')
   const [sharingReview, setSharingReview] = useState<FeedItem | null>(null)
@@ -38,8 +53,124 @@ export function CommunityFeedScreen() {
     fetchFeed()
   }, [tab])
 
+  async function fetchActivityFeed() {
+    const entries: ActivityEntry[] = []
+    type Prof = { id: string; display_name: string; avatar_url: string | null }
+    const profileCache = new Map<string, Prof>()
+
+    async function resolveProfiles(userIds: string[]) {
+      const missing = userIds.filter(id => !profileCache.has(id))
+      if (missing.length > 0) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url')
+          .in('id', missing)
+        for (const p of (data ?? []) as Prof[]) profileCache.set(p.id, p)
+      }
+    }
+
+    // Recent wears (community-wide)
+    try {
+      const { data: wears } = await supabase
+        .from('wear_logs')
+        .select('id, user_id, wear_date, occasion, created_at, fragrance:fragrances(id, name, brand)')
+        .order('created_at', { ascending: false })
+        .limit(20)
+
+      type WearRow = { id: string; user_id: string; wear_date: string; occasion: string | null; created_at: string; fragrance: { id: string; name: string; brand: string } | null }
+      const wearRows = (wears ?? []) as unknown as WearRow[]
+      await resolveProfiles(wearRows.map(w => w.user_id))
+
+      for (const w of wearRows) {
+        if (!w.fragrance) continue
+        const prof = profileCache.get(w.user_id)
+        entries.push({
+          id: `wear-${w.id}`,
+          type: 'wear',
+          user_id: w.user_id,
+          user_display_name: prof?.display_name ?? 'Someone',
+          user_avatar: prof?.avatar_url ?? null,
+          fragrance_name: w.fragrance.name,
+          fragrance_brand: w.fragrance.brand,
+          fragrance_id: w.fragrance.id,
+          created_at: w.created_at,
+          extra: w.occasion ?? undefined,
+        })
+      }
+    } catch { /* graceful */ }
+
+    // Recent collection adds
+    try {
+      const { data: adds } = await supabase
+        .from('user_collections')
+        .select('id, user_id, status, date_added, fragrance:fragrances(id, name, brand)')
+        .eq('status', 'owned')
+        .order('date_added', { ascending: false })
+        .limit(15)
+
+      type CollRow = { id: string; user_id: string; status: string; date_added: string; fragrance: { id: string; name: string; brand: string } | null }
+      const collRows = (adds ?? []) as unknown as CollRow[]
+      await resolveProfiles(collRows.map(c => c.user_id))
+
+      for (const c of collRows) {
+        if (!c.fragrance) continue
+        const prof = profileCache.get(c.user_id)
+        entries.push({
+          id: `coll-${c.id}`,
+          type: 'collection_add',
+          user_id: c.user_id,
+          user_display_name: prof?.display_name ?? 'Someone',
+          user_avatar: prof?.avatar_url ?? null,
+          fragrance_name: c.fragrance.name,
+          fragrance_brand: c.fragrance.brand,
+          fragrance_id: c.fragrance.id,
+          created_at: c.date_added,
+        })
+      }
+    } catch { /* graceful */ }
+
+    // Recent reviews (brief — no full text, just that someone reviewed)
+    try {
+      const { data: reviews } = await supabase
+        .from('reviews')
+        .select('id, user_id, overall_rating, created_at, fragrance:fragrances(id, name, brand)')
+        .order('created_at', { ascending: false })
+        .limit(15)
+
+      type RevRow = { id: string; user_id: string; overall_rating: number; created_at: string; fragrance: { id: string; name: string; brand: string } | null }
+      const revRows = (reviews ?? []) as unknown as RevRow[]
+      await resolveProfiles(revRows.map(r => r.user_id))
+
+      for (const r of revRows) {
+        if (!r.fragrance) continue
+        const prof = profileCache.get(r.user_id)
+        entries.push({
+          id: `rev-${r.id}`,
+          type: 'review',
+          user_id: r.user_id,
+          user_display_name: prof?.display_name ?? 'Someone',
+          user_avatar: prof?.avatar_url ?? null,
+          fragrance_name: r.fragrance.name,
+          fragrance_brand: r.fragrance.brand,
+          fragrance_id: r.fragrance.id,
+          created_at: r.created_at,
+          extra: `${r.overall_rating}/5`,
+        })
+      }
+    } catch { /* graceful */ }
+
+    // Sort by time descending
+    entries.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    setActivityItems(entries.slice(0, 40))
+  }
+
   async function fetchFeed() {
     setLoading(true)
+    if (tab === 'activity') {
+      await fetchActivityFeed()
+      setLoading(false)
+      return
+    }
     if (tab === 'reviews') {
       const { data } = await supabase
         .from('reviews')
@@ -154,10 +285,55 @@ export function CommunityFeedScreen() {
         <div className="flex items-center justify-center py-16">
           <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
         </div>
+      ) : tab === 'activity' ? (
+        activityItems.length === 0 ? (
+          <div className="flex flex-col items-center gap-4 py-16">
+            <Icon name="group" className="text-4xl text-secondary/20" />
+            <p className="text-sm text-secondary/50">No community activity yet</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {activityItems.map((entry) => {
+              const typeConfig = {
+                wear: { icon: 'air', color: 'text-blue-400', verb: 'wore' },
+                collection_add: { icon: 'add_circle', color: 'text-emerald-400', verb: 'added' },
+                review: { icon: 'rate_review', color: 'text-amber-400', verb: 'reviewed' },
+              }[entry.type]
+              return (
+                <button
+                  key={entry.id}
+                  onClick={() => navigate(`/fragrance/${entry.fragrance_id}`)}
+                  className="w-full text-left bg-surface-container rounded-xl px-4 py-3 flex items-center gap-3 active:scale-[0.98] transition-transform"
+                >
+                  <div className="w-9 h-9 rounded-full bg-surface-container-highest/60 flex items-center justify-center flex-shrink-0">
+                    <Icon name={typeConfig.icon} className={typeConfig.color} size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-on-surface leading-tight">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigate(`/u/${entry.user_id}`) }}
+                        className="font-medium hover:text-primary transition-colors"
+                      >
+                        {entry.user_display_name}
+                      </button>
+                      {' '}{typeConfig.verb}{' '}
+                      <span className="font-medium">{entry.fragrance_name}</span>
+                    </p>
+                    <p className="text-[10px] text-secondary/40 mt-0.5">
+                      {entry.fragrance_brand}
+                      {entry.extra ? ` · ${entry.extra}` : ''}
+                      {' · '}{timeAgo(entry.created_at)}
+                    </p>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        )
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16">
           <Icon name="forum" className="text-4xl text-secondary/20" />
-          <p className="text-sm text-secondary/50">No community activity yet</p>
+          <p className="text-sm text-secondary/50">No community reviews yet</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -205,15 +381,12 @@ export function CommunityFeedScreen() {
                   onClick={() => navigate(`/fragrance/${item.fragrance!.id}`)}
                   className="flex items-center gap-3 w-full text-left active:scale-[0.98] transition-transform"
                 >
-                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
-                    {item.fragrance.image_url ? (
-                      <img src={item.fragrance.image_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Icon name="water_drop" className="text-secondary/20" size={16} />
-                      </div>
-                    )}
-                  </div>
+                  <FragranceImage
+                    src={item.fragrance.image_url}
+                    alt={item.fragrance.name}
+                    size="sm"
+                    className="w-10 h-10 rounded-lg flex-shrink-0"
+                  />
                   <div className="min-w-0">
                     <p className="text-[9px] uppercase tracking-[0.1em] text-secondary/50">{item.fragrance.brand}</p>
                     <p className="text-sm text-on-surface font-medium truncate">{item.fragrance.name}</p>

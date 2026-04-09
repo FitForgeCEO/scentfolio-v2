@@ -75,6 +75,13 @@ export function TopAppBar({
             >
               <Icon name="search" className="text-primary" />
             </button>
+            <button
+              onClick={() => navigate('/community')}
+              aria-label="Community feed"
+              className="w-10 h-10 flex items-center justify-center active:scale-95 transition-transform"
+            >
+              <Icon name="forum" className="text-primary" />
+            </button>
             <NotificationBell />
             <button
               onClick={() => navigate('/profile')}
