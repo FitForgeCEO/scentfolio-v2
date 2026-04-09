@@ -75,6 +75,7 @@ const SocialFeedScreen = lazy(() => import('./components/screens/SocialFeedScree
 const FollowListScreen = lazy(() => import('./components/screens/FollowListScreen').then(m => ({ default: m.FollowListScreen })))
 const ExplorePeopleScreen = lazy(() => import('./components/screens/ExplorePeopleScreen').then(m => ({ default: m.ExplorePeopleScreen })))
 const BlockedUsersScreen = lazy(() => import('./components/screens/BlockedUsersScreen').then(m => ({ default: m.BlockedUsersScreen })))
+const ChallengesScreen = lazy(() => import('./components/screens/ChallengesScreen').then(m => ({ default: m.ChallengesScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -175,6 +176,7 @@ export default function App() {
               <Route path="/feed" element={<AppLayout title="FEED" showBack><LazyScreen><SocialFeedScreen /></LazyScreen></AppLayout>} />
               <Route path="/people" element={<AppLayout title="EXPLORE PEOPLE" showBack><LazyScreen><ExplorePeopleScreen /></LazyScreen></AppLayout>} />
               <Route path="/blocked" element={<AppLayout title="BLOCKED USERS" showBack><LazyScreen><BlockedUsersScreen /></LazyScreen></AppLayout>} />
+              <Route path="/challenges" element={<AppLayout title="CHALLENGES" showBack><LazyScreen><ChallengesScreen /></LazyScreen></AppLayout>} />
 
               {/* ── Analytics & Engagement ── */}
               <Route path="/smart-collections" element={<AppLayout title="SMART COLLECTIONS" showBack><LazyScreen><SmartCollectionsScreen /></LazyScreen></AppLayout>} />

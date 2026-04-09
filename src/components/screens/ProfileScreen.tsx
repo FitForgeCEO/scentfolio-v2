@@ -165,6 +165,16 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
             </div>
           </button>
           <button
+            onClick={() => navigate('/challenges')}
+            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
+          >
+            <Icon name="flag" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Challenges</p>
+              <p className="text-[10px] text-secondary/50">Goals & rewards</p>
+            </div>
+          </button>
+          <button
             onClick={() => navigate('/collection-insights')}
             className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
           >

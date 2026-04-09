@@ -10,6 +10,7 @@ import { LogWearSheet } from './LogWearSheet'
 import { PullToRefresh } from '../ui/PullToRefresh'
 import { WearStreakWidget } from './WearStreakWidget'
 import { GettingStartedCard } from '../ui/GettingStartedCard'
+import { ChallengesWidget } from '../ui/ChallengesWidget'
 import { useSmartNotifications } from '@/hooks/useSmartNotifications'
 
 function getGreeting(): string {
@@ -161,6 +162,9 @@ export function HomeScreen() {
 
       {/* Getting Started checklist for new users */}
       {user && <GettingStartedCard />}
+
+      {/* Active challenges */}
+      <ChallengesWidget />
 
       {/* Quick Actions — just the daily essentials */}
       <section className="space-y-3">
