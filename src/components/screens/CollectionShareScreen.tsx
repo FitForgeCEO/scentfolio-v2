@@ -115,7 +115,7 @@ export function CollectionShareScreen() {
 
   const handleCopy = async () => {
     if (!stats) return
-    const text = `🧴 My ScentFolio Collection\n${stats.totalOwned} fragrances · ${stats.totalWears} wears\nTop: ${stats.topRated.slice(0, 3).map(f => `${f.brand} ${f.name}`).join(', ')}\n\nscentfolio-app.web.app`
+    const text = `🧴 My ScentFolio Collection\n${stats.totalOwned} fragrances · ${stats.totalWears} wears\nTop: ${stats.topRated.slice(0, 3).map(f => `${f.brand} ${f.name}`).join(', ')}\n\nscentfolio.app`
     const ok = await copyToClipboard(text)
     showToast(ok ? 'Copied!' : 'Copy failed', ok ? 'success' : 'error')
   }
@@ -187,7 +187,7 @@ export function CollectionShareScreen() {
 
           {/* Watermark */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', paddingTop: '8px', borderTop: `1px solid ${theme.dim}` }}>
-            <span style={{ color: theme.dim, fontSize: '8px', letterSpacing: '0.2em', textTransform: 'uppercase' }}>scentfolio-app.web.app</span>
+            <span style={{ color: theme.dim, fontSize: '8px', letterSpacing: '0.2em', textTransform: 'uppercase' }}>scentfolio.app</span>
           </div>
         </div>
       </div>

@@ -286,7 +286,7 @@ ${collection
 
 <div class="footer">
   <p>ScentFolio — Your Personal Fragrance Journal</p>
-  <p>scentfolio-app.web.app</p>
+  <p>scentfolio.app</p>
 </div>
 </body>
 </html>`

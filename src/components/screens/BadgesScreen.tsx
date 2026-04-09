@@ -199,7 +199,7 @@ export function BadgesScreen() {
               })}
             </div>
             <div style={{ textAlign: 'center', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #f0dfdb20' }}>
-              <span style={{ color: '#f0dfdb20', fontSize: '8px', letterSpacing: '0.2em', textTransform: 'uppercase' }}>scentfolio-app.web.app</span>
+              <span style={{ color: '#f0dfdb20', fontSize: '8px', letterSpacing: '0.2em', textTransform: 'uppercase' }}>scentfolio.app</span>
             </div>
           </div>
 

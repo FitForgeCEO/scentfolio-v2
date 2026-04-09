@@ -87,7 +87,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 
 // ── Deep link helpers ────────────────────────────────────────────
 
-const APP_URL = typeof window !== 'undefined' ? window.location.origin : 'https://scentfolio-app.web.app'
+const APP_URL = typeof window !== 'undefined' ? window.location.origin : 'https://scentfolio.app'
 
 export function fragranceLink(id: string): string {
   return `${APP_URL}/fragrance/${id}`

@@ -191,7 +191,7 @@ export function ShareStackCard({
             <div className="mt-auto pt-5 flex items-center justify-center gap-1.5">
               <Icon name="water_drop" filled className="text-primary text-xs" />
               <span className="text-[9px] font-bold tracking-[0.2em] text-primary/60 uppercase">
-                scentfolio-app.web.app
+                scentfolio.app
               </span>
             </div>
           </div>

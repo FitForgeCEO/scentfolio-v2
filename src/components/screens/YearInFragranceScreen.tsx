@@ -296,7 +296,7 @@ export function YearInFragranceScreen() {
 
               {/* Watermark */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', paddingTop: '8px', borderTop: `1px solid ${theme.dim}` }}>
-                <span style={{ color: theme.dim, fontSize: '8px', letterSpacing: '0.2em', textTransform: 'uppercase' }}>scentfolio-app.web.app</span>
+                <span style={{ color: theme.dim, fontSize: '8px', letterSpacing: '0.2em', textTransform: 'uppercase' }}>scentfolio.app</span>
               </div>
             </div>
           </div>
