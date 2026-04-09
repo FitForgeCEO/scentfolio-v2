@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /profile
+Disallow: /settings
+Disallow: /data-management
+
+Sitemap: https://scentfolio.app/sitemap.xml
