@@ -10,6 +10,7 @@ import { LogWearSheet } from './LogWearSheet'
 import { ReviewSheet } from './ReviewSheet'
 import { EditReviewSheet } from './EditReviewSheet'
 import { hapticMedium } from '@/lib/haptics'
+import { FragranceImage } from '../ui/FragranceImage'
 import { FragranceNotesPyramid } from '../fragrance/FragranceNotesPyramid'
 import { AccordsRadar } from '../fragrance/AccordsRadar'
 import { awardXP } from '@/lib/xp'
@@ -271,16 +272,13 @@ export function FragranceDetailScreen() {
     <main className="pb-24">
       {/* Hero Section */}
       <section className="relative w-full aspect-[4/5] overflow-hidden">
-        {frag.image_url ? (
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url('${frag.image_url}')` }}
-          />
-        ) : (
-          <div className="absolute inset-0 bg-surface-container flex items-center justify-center">
-            <Icon name="water_drop" className="text-secondary/20" size={80} />
-          </div>
-        )}
+        <FragranceImage
+          src={frag.image_url}
+          alt={`${frag.brand} ${frag.name}`}
+          noteFamily={frag.note_family}
+          size="lg"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/30 to-transparent" />
         <div className="absolute bottom-8 left-6 right-6 flex justify-between items-end">
           <div className="space-y-1">
@@ -546,13 +544,13 @@ export function FragranceDetailScreen() {
                   className="flex-shrink-0 w-[120px] text-left active:scale-95 transition-transform"
                 >
                   <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-2">
-                    {sr.fragrance.image_url ? (
-                      <img src={sr.fragrance.image_url} alt={sr.fragrance.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-secondary/30">
-                        <Icon name="water_drop" size={32} />
-                      </div>
-                    )}
+                    <FragranceImage
+                      src={sr.fragrance.image_url}
+                      alt={sr.fragrance.name}
+                      noteFamily={sr.fragrance.note_family}
+                      size="md"
+                      className="w-full h-full object-cover"
+                    />
                     {/* Match score badge */}
                     <div className="absolute top-1.5 right-1.5 bg-black/60 backdrop-blur-sm rounded-full px-2 py-0.5">
                       <span className="text-[9px] text-primary font-bold">{sr.score}%</span>

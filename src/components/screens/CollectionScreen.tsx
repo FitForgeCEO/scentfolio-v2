@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
+import { FragranceImage } from '../ui/FragranceImage'
 import { InlineError } from '../ui/InlineError'
 import { useUserCollection } from '@/hooks/useFragrances'
 import { useAuth } from '@/contexts/AuthContext'
@@ -340,11 +341,13 @@ export function CollectionScreen() {
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) } }}
               >
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-3">
-                  {item.fragrance.image_url ? (
-                    <img src={item.fragrance.image_url} alt={item.fragrance.name} className="w-full h-full object-cover grayscale-[20%] group-hover:scale-105 transition-transform duration-700" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-secondary/20"><Icon name="water_drop" size={40} /></div>
-                  )}
+                  <FragranceImage
+                    src={item.fragrance.image_url}
+                    alt={item.fragrance.name}
+                    noteFamily={item.fragrance.note_family}
+                    size="md"
+                    className="w-full h-full object-cover"
+                  />
                   {selectMode && (
                     <div className={`absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center transition-all ${isSelected ? 'bg-primary' : 'bg-black/40 ring-2 ring-white/40'}`}>
                       {isSelected && <Icon name="check" className="text-on-primary" size={14} />}
@@ -390,11 +393,7 @@ export function CollectionScreen() {
                   </div>
                 )}
                 <div className="w-8 h-8 rounded-md overflow-hidden bg-surface-container flex-shrink-0">
-                  {item.fragrance.image_url ? (
-                    <img src={item.fragrance.image_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center"><Icon name="water_drop" className="text-secondary/20" size={14} /></div>
-                  )}
+                  <FragranceImage src={item.fragrance.image_url} alt="" noteFamily={item.fragrance.note_family} size="sm" className="w-full h-full object-cover" />
                 </div>
                 <p className="text-xs text-on-surface font-medium truncate flex-1">{item.fragrance.name}</p>
                 <span className="text-[9px] text-secondary/40 flex-shrink-0 truncate max-w-[60px]">{item.fragrance.brand}</span>

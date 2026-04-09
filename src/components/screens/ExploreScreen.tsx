@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
+import { FragranceImage } from '../ui/FragranceImage'
 import { InlineError } from '../ui/InlineError'
 import { useFragranceSearch } from '@/hooks/useFragrances'
 import { supabase } from '@/lib/supabase'
@@ -265,13 +266,13 @@ export function ExploreScreen() {
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/fragrance/${frag.id}`) } }}
               >
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-3">
-                  {frag.image_url ? (
-                    <img src={frag.image_url} alt={frag.name} className="w-full h-full object-cover grayscale-[20%] group-hover:scale-105 transition-transform duration-700" loading="lazy" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-secondary/20">
-                      <Icon name="water_drop" size={40} />
-                    </div>
-                  )}
+                  <FragranceImage
+                    src={frag.image_url}
+                    alt={frag.name}
+                    noteFamily={frag.note_family}
+                    size="md"
+                    className="w-full h-full object-cover"
+                  />
                   <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-background/80 to-transparent" />
                 </div>
                 <span className="font-label text-[9px] tracking-[0.2em] text-secondary opacity-60 uppercase mb-0.5">{frag.brand}</span>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
+import { FragranceImage } from '../ui/FragranceImage'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
 import { getRecentlyViewed, clearRecentlyViewed } from '@/lib/recentlyViewed'
@@ -292,13 +293,7 @@ export function SearchScreen() {
                 className="w-full flex items-center gap-3.5 py-3 px-3 rounded-xl text-left active:bg-surface-container-highest transition-colors"
               >
                 <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
-                  {frag.image_url ? (
-                    <img src={frag.image_url} alt={frag.name} className="w-full h-full object-cover" loading="lazy" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Icon name="water_drop" className="text-secondary/30" size={16} />
-                    </div>
-                  )}
+                  <FragranceImage src={frag.image_url} alt={frag.name} noteFamily={frag.note_family} size="sm" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[9px] uppercase tracking-[0.15em] text-primary/70 font-bold">{frag.brand}</p>
