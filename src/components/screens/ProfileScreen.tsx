@@ -254,6 +254,26 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
               <p className="text-[10px] text-secondary/50">Browse by note family</p>
             </div>
           </button>
+          <button
+            onClick={() => navigate('/top-shelf')}
+            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
+          >
+            <Icon name="shelves" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Top Shelf</p>
+              <p className="text-[10px] text-secondary/50">Your all-time faves</p>
+            </div>
+          </button>
+          <button
+            onClick={() => navigate('/milestones')}
+            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
+          >
+            <Icon name="workspace_premium" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Milestones</p>
+              <p className="text-[10px] text-secondary/50">Track your journey</p>
+            </div>
+          </button>
         </div>
       </section>
 
@@ -280,6 +300,39 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
             <div className="flex-1">
               <p className="text-sm text-on-surface font-medium">Scent Quiz</p>
               <p className="text-[10px] text-secondary/50">Discover your profile</p>
+            </div>
+            <Icon name="chevron_right" className="text-secondary/60" />
+          </button>
+          <button
+            onClick={() => navigate('/gift-finder')}
+            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
+          >
+            <Icon name="card_giftcard" className="text-primary" />
+            <div className="flex-1">
+              <p className="text-sm text-on-surface font-medium">Gift Finder</p>
+              <p className="text-[10px] text-secondary/50">Find the perfect gift</p>
+            </div>
+            <Icon name="chevron_right" className="text-secondary/60" />
+          </button>
+          <button
+            onClick={() => navigate('/dupes')}
+            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
+          >
+            <Icon name="compare_arrows" className="text-primary" />
+            <div className="flex-1">
+              <p className="text-sm text-on-surface font-medium">Dupe Finder</p>
+              <p className="text-[10px] text-secondary/50">Similar scents & alternatives</p>
+            </div>
+            <Icon name="chevron_right" className="text-secondary/60" />
+          </button>
+          <button
+            onClick={() => navigate('/blind-buys')}
+            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
+          >
+            <Icon name="shopping_bag" className="text-primary" />
+            <div className="flex-1">
+              <p className="text-sm text-on-surface font-medium">Blind Buys</p>
+              <p className="text-[10px] text-secondary/50">Track unsniffed purchases</p>
             </div>
             <Icon name="chevron_right" className="text-secondary/60" />
           </button>

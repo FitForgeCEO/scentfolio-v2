@@ -30,6 +30,11 @@ const ROUTE_CHUNKS: Record<string, () => Promise<unknown>> = {
   '/challenges': () => import('@/components/screens/ChallengesScreen'),
   '/brands': () => import('@/components/screens/BrandExplorerScreen'),
   '/families': () => import('@/components/screens/FamilyExplorerScreen'),
+  '/top-shelf': () => import('@/components/screens/TopShelfScreen'),
+  '/gift-finder': () => import('@/components/screens/GiftRecommenderScreen'),
+  '/dupes': () => import('@/components/screens/DupeFinderScreen'),
+  '/milestones': () => import('@/components/screens/MilestonesScreen'),
+  '/blind-buys': () => import('@/components/screens/BlindBuyScreen'),
 }
 
 const prefetched = new Set<string>()

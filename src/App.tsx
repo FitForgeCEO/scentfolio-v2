@@ -78,6 +78,11 @@ const BlockedUsersScreen = lazy(() => import('./components/screens/BlockedUsersS
 const ChallengesScreen = lazy(() => import('./components/screens/ChallengesScreen').then(m => ({ default: m.ChallengesScreen })))
 const BrandExplorerScreen = lazy(() => import('./components/screens/BrandExplorerScreen').then(m => ({ default: m.BrandExplorerScreen })))
 const FamilyExplorerScreen = lazy(() => import('./components/screens/FamilyExplorerScreen').then(m => ({ default: m.FamilyExplorerScreen })))
+const TopShelfScreen = lazy(() => import('./components/screens/TopShelfScreen').then(m => ({ default: m.TopShelfScreen })))
+const GiftRecommenderScreen = lazy(() => import('./components/screens/GiftRecommenderScreen').then(m => ({ default: m.GiftRecommenderScreen })))
+const DupeFinderScreen = lazy(() => import('./components/screens/DupeFinderScreen').then(m => ({ default: m.DupeFinderScreen })))
+const MilestonesScreen = lazy(() => import('./components/screens/MilestonesScreen').then(m => ({ default: m.MilestonesScreen })))
+const BlindBuyScreen = lazy(() => import('./components/screens/BlindBuyScreen').then(m => ({ default: m.BlindBuyScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -142,6 +147,11 @@ export default function App() {
               {/* ── Brand & Family Explorer ── */}
               <Route path="/brands" element={<AppLayout title="BRANDS" showBack><LazyScreen><BrandExplorerScreen /></LazyScreen></AppLayout>} />
               <Route path="/families" element={<AppLayout title="NOTE FAMILIES" showBack><LazyScreen><FamilyExplorerScreen /></LazyScreen></AppLayout>} />
+              <Route path="/top-shelf" element={<AppLayout title="TOP SHELF" showBack><LazyScreen><TopShelfScreen /></LazyScreen></AppLayout>} />
+              <Route path="/gift-finder" element={<AppLayout title="GIFT FINDER" showBack><LazyScreen><GiftRecommenderScreen /></LazyScreen></AppLayout>} />
+              <Route path="/dupes" element={<AppLayout title="DUPE FINDER" showBack><LazyScreen><DupeFinderScreen /></LazyScreen></AppLayout>} />
+              <Route path="/milestones" element={<AppLayout title="MILESTONES" showBack><LazyScreen><MilestonesScreen /></LazyScreen></AppLayout>} />
+              <Route path="/blind-buys" element={<AppLayout title="BLIND BUYS" showBack><LazyScreen><BlindBuyScreen /></LazyScreen></AppLayout>} />
 
               {/* ── Discovery & explore ── */}
               <Route path="/search" element={<AppLayout title="SEARCH" showBack><LazyScreen grid><SearchScreen /></LazyScreen></AppLayout>} />
