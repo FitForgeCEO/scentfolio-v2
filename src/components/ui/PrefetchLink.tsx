@@ -29,6 +29,7 @@ const ROUTE_CHUNKS: Record<string, () => Promise<unknown>> = {
   '/people': () => import('@/components/screens/ExplorePeopleScreen'),
   '/challenges': () => import('@/components/screens/ChallengesScreen'),
   '/brands': () => import('@/components/screens/BrandExplorerScreen'),
+  '/families': () => import('@/components/screens/FamilyExplorerScreen'),
 }
 
 const prefetched = new Set<string>()
