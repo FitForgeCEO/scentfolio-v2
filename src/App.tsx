@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './contexts/AuthContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -84,6 +84,7 @@ const DupeFinderScreen = lazy(() => import('./components/screens/DupeFinderScree
 const MilestonesScreen = lazy(() => import('./components/screens/MilestonesScreen').then(m => ({ default: m.MilestonesScreen })))
 const BlindBuyScreen = lazy(() => import('./components/screens/BlindBuyScreen').then(m => ({ default: m.BlindBuyScreen })))
 const OnboardingFlowScreen = lazy(() => import('./components/screens/OnboardingFlowScreen').then(m => ({ default: m.OnboardingFlowScreen })))
+const LandingPage = lazy(() => import('./components/screens/LandingPage').then(m => ({ default: m.LandingPage })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -109,6 +110,29 @@ function LazyScreen({ children, grid }: { children: React.ReactNode; grid?: bool
   )
 }
 
+// ── Home route gate — landing page for visitors, home for users ───
+function HomeGate() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return <ScreenSkeleton />
+  }
+
+  if (!user) {
+    return (
+      <Suspense fallback={<ScreenSkeleton />}>
+        <LandingPage />
+      </Suspense>
+    )
+  }
+
+  return (
+    <AppLayout>
+      <HomeScreen />
+    </AppLayout>
+  )
+}
+
 // ── App ────────────────────────────────────────────────────────────
 export default function App() {
   return (
@@ -123,7 +147,7 @@ export default function App() {
               <Route path="/onboarding" element={<LazyScreen><OnboardingFlowScreen /></LazyScreen>} />
 
               {/* ── Core tabs (eager) ── */}
-              <Route path="/" element={<AppLayout><HomeScreen /></AppLayout>} />
+              <Route path="/" element={<HomeGate />} />
               <Route path="/collection" element={<AppLayout title="SCENTFOLIO" showBack={false}><CollectionScreen /></AppLayout>} />
               <Route path="/explore" element={<AppLayout title="SCENTFOLIO"><ExploreScreen /></AppLayout>} />
               <Route path="/profile" element={<AppLayout title="SCENTFOLIO"><ProfileScreen /></AppLayout>} />
