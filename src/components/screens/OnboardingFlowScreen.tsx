@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useOnboarding, NOTE_FAMILIES, VIBE_OPTIONS, EXPERIENCE_LEVELS } from '@/hooks/useOnboarding'
 import { supabase } from '@/lib/supabase'
 import { Icon } from '@/components/ui/Icon'
+import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 
 /* ─── helpers ─── */
 function ProgressDots({ current, total }: { current: number; total: number }) {
@@ -507,11 +508,13 @@ export function OnboardingFlowScreen() {
 
   const handleFinish = useCallback(async () => {
     await onboarding.completeOnboarding()
+    trackEvent(AnalyticsEvents.COMPLETE_ONBOARDING, { method: 'completed' })
     navigate('/', { replace: true })
   }, [onboarding, navigate])
 
   const handleSkip = useCallback(() => {
     onboarding.skipOnboarding()
+    trackEvent(AnalyticsEvents.COMPLETE_ONBOARDING, { method: 'skipped' })
     navigate('/', { replace: true })
   }, [onboarding, navigate])
 

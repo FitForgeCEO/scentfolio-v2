@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { AuthScreen } from './AuthScreen'
 import { supabase } from '@/lib/supabase'
+import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 
 /* ─── Animated counter ─── */
 function AnimatedCount({ target, suffix = '' }: { target: number; suffix?: string }) {
@@ -142,7 +143,7 @@ export function LandingPage() {
         {/* CTA buttons */}
         <div className="w-full max-w-[300px] space-y-3 animate-page-enter" style={{ animationDelay: '200ms' }}>
           <button
-            onClick={() => setShowAuth(true)}
+            onClick={() => { trackEvent(AnalyticsEvents.LANDING_CTA_CLICK, { cta: 'hero_start_collection' }); setShowAuth(true) }}
             className="w-full py-3.5 rounded-xl gold-gradient text-on-primary font-semibold text-sm ambient-glow active:scale-[0.98] transition-transform"
           >
             Start Your Collection
@@ -355,7 +356,7 @@ export function LandingPage() {
         </p>
 
         <button
-          onClick={() => setShowAuth(true)}
+          onClick={() => { trackEvent(AnalyticsEvents.LANDING_CTA_CLICK, { cta: 'bottom_create_account' }); setShowAuth(true) }}
           className="w-full max-w-[300px] py-4 rounded-xl gold-gradient text-on-primary font-semibold text-sm ambient-glow active:scale-[0.98] transition-transform"
         >
           Create Free Account

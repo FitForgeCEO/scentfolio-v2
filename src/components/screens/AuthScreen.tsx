@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
+import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 
 type Mode = 'sign_in' | 'sign_up'
 
@@ -29,6 +30,7 @@ export function AuthScreen() {
       if (error) {
         setError(error)
       } else {
+        trackEvent(AnalyticsEvents.SIGN_UP)
         setConfirmSent(true)
       }
     } else {

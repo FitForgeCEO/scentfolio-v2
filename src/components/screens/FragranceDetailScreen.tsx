@@ -13,6 +13,7 @@ import { hapticMedium } from '@/lib/haptics'
 import { FragranceNotesPyramid } from '../fragrance/FragranceNotesPyramid'
 import { AccordsRadar } from '../fragrance/AccordsRadar'
 import { awardXP } from '@/lib/xp'
+import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 import { useToast } from '@/contexts/ToastContext'
 import { TagInput } from '../ui/TagInput'
 import { useUserFragranceTags, useAllUserTags } from '@/hooks/useUserTags'
@@ -173,10 +174,11 @@ export function FragranceDetailScreen() {
   const [editingReview, setEditingReview] = useState<Review | null>(null)
   const [shareCardOpen, setShareCardOpen] = useState(false)
 
-  // Track recently viewed
+  // Track recently viewed + analytics
   useEffect(() => {
     if (frag) {
       addRecentlyViewed({ id: frag.id, name: frag.name, brand: frag.brand, image_url: frag.image_url })
+      trackEvent(AnalyticsEvents.VIEW_FRAGRANCE, { fragrance_id: frag.id, brand: frag.brand, name: frag.name })
     }
   }, [frag])
 
@@ -219,6 +221,7 @@ export function FragranceDetailScreen() {
         await awardXP(user.id, 'ADD_TO_COLLECTION')
       }
       hapticMedium()
+      trackEvent(AnalyticsEvents.ADD_TO_COLLECTION, { fragrance_id: id, status, was_update: !!previousStatus })
       showToast(
         previousStatus
           ? `Moved to ${status}`

@@ -4,6 +4,7 @@ import { Icon } from '../ui/Icon'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
 import { getRecentlyViewed, clearRecentlyViewed } from '@/lib/recentlyViewed'
+import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 
 const POPULAR_SEARCHES = [
   'Dior', 'Chanel', 'Tom Ford', 'Creed', 'Le Labo',
@@ -96,6 +97,7 @@ export function SearchScreen() {
     qb.limit(30).then(({ data }) => {
       if (data) setResults(data as Fragrance[])
       setLoading(false)
+      if (q.length >= 2) trackEvent(AnalyticsEvents.SEARCH, { query: q, results_count: data?.length ?? 0 })
     })
   }, [])
 

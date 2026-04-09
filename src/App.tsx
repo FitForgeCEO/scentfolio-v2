@@ -7,6 +7,7 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { TopAppBar } from './components/layout/TopAppBar'
 import { BottomNav } from './components/layout/BottomNav'
 import { InstallBanner } from './components/ui/InstallBanner'
+import { AnalyticsTracker } from './components/AnalyticsTracker'
 import { ScreenSkeleton, GridSkeleton } from './components/ui/ScreenSkeleton'
 
 // ── All screens lazy-loaded for optimal code splitting ────────────
@@ -142,6 +143,7 @@ export default function App() {
         <ToastProvider>
         <BrowserRouter>
           <div className="max-w-[430px] mx-auto min-h-screen relative bg-background">
+            <AnalyticsTracker />
             <Routes>
               {/* ── Onboarding (no AppLayout — full-screen flow) ── */}
               <Route path="/onboarding" element={<LazyScreen><OnboardingFlowScreen /></LazyScreen>} />

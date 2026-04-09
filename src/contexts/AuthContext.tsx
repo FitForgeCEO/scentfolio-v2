@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { setAnalyticsUser, trackEvent, AnalyticsEvents } from '@/lib/analytics'
 
 interface AuthState {
   user: User | null
@@ -23,13 +24,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
+      setAnalyticsUser(session?.user?.id ?? null)
       setLoading(false)
     })
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
+      setAnalyticsUser(session?.user?.id ?? null)
+
+      // Track auth events
+      if (event === 'SIGNED_IN') trackEvent(AnalyticsEvents.SIGN_IN)
+      if (event === 'SIGNED_OUT') trackEvent(AnalyticsEvents.SIGN_OUT)
+      if (event === 'USER_UPDATED' && !session?.user) trackEvent(AnalyticsEvents.SIGN_OUT)
     })
 
     return () => subscription.unsubscribe()

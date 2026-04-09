@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { awardXP, XP_AWARDS } from '@/lib/xp'
 import { hapticSuccess } from '@/lib/haptics'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 import { useToast } from '@/contexts/ToastContext'
 import type { Fragrance } from '@/types/database'
 
@@ -109,6 +110,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
       setSaving(false)
       setSuccess(true)
       hapticSuccess()
+      trackEvent(AnalyticsEvents.LOG_WEAR, { fragrance_id: fragrance.id, occasion: selectedOccasion })
       showToast(
         gained > 0 ? `Wear logged! +${gained} XP` : 'Wear logged!',
         'success',

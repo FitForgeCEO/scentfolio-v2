@@ -1,9 +1,19 @@
+import { useEffect, useRef } from 'react'
 import { Icon } from './Icon'
 import { usePWAInstall } from '@/hooks/usePWAInstall'
 import { hapticLight } from '@/lib/haptics'
+import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 
 export function InstallBanner() {
   const { canInstall, install, dismiss } = usePWAInstall()
+  const tracked = useRef(false)
+
+  useEffect(() => {
+    if (canInstall && !tracked.current) {
+      tracked.current = true
+      trackEvent(AnalyticsEvents.PWA_INSTALL_PROMPT)
+    }
+  }, [canInstall])
 
   if (!canInstall) return null
 
@@ -27,7 +37,7 @@ export function InstallBanner() {
           </button>
         </div>
         <button
-          onClick={() => { hapticLight(); install() }}
+          onClick={() => { hapticLight(); trackEvent(AnalyticsEvents.PWA_INSTALLED); install() }}
           className="w-full mt-3 py-3 gold-gradient rounded-xl text-[10px] font-bold uppercase tracking-widest text-on-primary active:scale-[0.98] transition-all ambient-glow"
         >
           ADD TO HOME SCREEN
