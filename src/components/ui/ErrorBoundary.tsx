@@ -1,5 +1,6 @@
 import { Component, type ReactNode, type ErrorInfo } from 'react'
 import { Icon } from './Icon'
+import { trackEvent } from '@/lib/analytics'
 
 interface Props {
   children: ReactNode
@@ -23,6 +24,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('ErrorBoundary caught:', error, info.componentStack)
+    trackEvent('app_error', {
+      message: error.message,
+      name: error.name,
+      stack: (error.stack ?? '').slice(0, 500),
+      component_stack: (info.componentStack ?? '').slice(0, 500),
+    })
   }
 
   handleReset = () => {

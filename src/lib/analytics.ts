@@ -47,6 +47,8 @@ let currentUserId: string | null = null
 
 const FLUSH_INTERVAL = 5_000 // 5 seconds
 const MAX_BATCH = 50
+const MAX_EVENTS_PER_SESSION = 500 // matches server-side trigger
+let eventCount = 0
 
 async function flush() {
   if (queue.length === 0) return
@@ -82,6 +84,10 @@ export function trackEvent(
   eventName: string,
   eventData?: Record<string, unknown>
 ) {
+  // Client-side rate limit (mirrors server trigger)
+  if (eventCount >= MAX_EVENTS_PER_SESSION) return
+  eventCount++
+
   startFlushing()
 
   const event: QueuedEvent = {
