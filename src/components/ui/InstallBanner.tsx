@@ -18,7 +18,7 @@ export function InstallBanner() {
   if (!canInstall) return null
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-[var(--z-overlay)] max-w-[400px] mx-auto animate-slide-up">
+    <div className="fixed bottom-[5.5rem] left-4 right-4 z-[var(--z-overlay)] max-w-[400px] mx-auto animate-slide-up">
       <div className="bg-surface-container-highest rounded-2xl p-4 shadow-xl border border-outline-variant/10">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl gold-gradient flex items-center justify-center flex-shrink-0 ambient-glow">

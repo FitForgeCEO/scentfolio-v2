@@ -33,11 +33,35 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="96x96" href="/icons/icon-96x96.png" />
 
-    <!-- Fonts -->
+    <!-- Fonts — preload icon font for reliability -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" as="style" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <!-- Icon font reliability — retry on failure, cache-bust on retry -->
+    <script>
+      (function(){
+        function retry(n){
+          if(n>=3)return;
+          var l=document.createElement('link');
+          l.rel='stylesheet';
+          l.href='https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap&v='+n;
+          document.head.appendChild(l);
+          setTimeout(function(){check(n+1)},4000);
+        }
+        function check(n){
+          if(document.fonts&&document.fonts.check('24px "Material Symbols Outlined"'))return;
+          retry(n);
+        }
+        if(document.fonts&&document.fonts.ready){
+          document.fonts.ready.then(function(){setTimeout(function(){check(0)},1000)});
+        }else{
+          setTimeout(function(){check(0)},5000);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root">

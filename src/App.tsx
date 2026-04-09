@@ -142,7 +142,7 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
         <BrowserRouter>
-          <div className="max-w-[430px] mx-auto min-h-screen relative bg-background">
+          <div className="max-w-[430px] mx-auto h-dvh overflow-y-auto overflow-x-hidden relative bg-background">
             <AnalyticsTracker />
             <Routes>
               {/* ── Onboarding (no AppLayout — full-screen flow) ── */}
