@@ -234,6 +234,16 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
               <p className="text-[10px] text-secondary/50">Rate your collection</p>
             </div>
           </button>
+          <button
+            onClick={() => navigate('/brands')}
+            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
+          >
+            <Icon name="storefront" className="text-primary" />
+            <div>
+              <p className="text-sm text-on-surface font-medium">Brands</p>
+              <p className="text-[10px] text-secondary/50">Browse by brand</p>
+            </div>
+          </button>
         </div>
       </section>
 

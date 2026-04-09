@@ -76,6 +76,7 @@ const FollowListScreen = lazy(() => import('./components/screens/FollowListScree
 const ExplorePeopleScreen = lazy(() => import('./components/screens/ExplorePeopleScreen').then(m => ({ default: m.ExplorePeopleScreen })))
 const BlockedUsersScreen = lazy(() => import('./components/screens/BlockedUsersScreen').then(m => ({ default: m.BlockedUsersScreen })))
 const ChallengesScreen = lazy(() => import('./components/screens/ChallengesScreen').then(m => ({ default: m.ChallengesScreen })))
+const BrandExplorerScreen = lazy(() => import('./components/screens/BrandExplorerScreen').then(m => ({ default: m.BrandExplorerScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -136,6 +137,9 @@ export default function App() {
               <Route path="/combos" element={<AppLayout title="COMBOS" showBack><LazyScreen><LayeringCombosScreen /></LazyScreen></AppLayout>} />
               <Route path="/lists" element={<AppLayout title="MY LISTS" showBack><LazyScreen><CustomListsScreen /></LazyScreen></AppLayout>} />
               <Route path="/lists/:id" element={<AppLayout title="LIST" showBack><LazyScreen><ListDetailScreen /></LazyScreen></AppLayout>} />
+
+              {/* ── Brand Explorer ── */}
+              <Route path="/brands" element={<AppLayout title="BRANDS" showBack><LazyScreen><BrandExplorerScreen /></LazyScreen></AppLayout>} />
 
               {/* ── Discovery & explore ── */}
               <Route path="/search" element={<AppLayout title="SEARCH" showBack><LazyScreen grid><SearchScreen /></LazyScreen></AppLayout>} />
