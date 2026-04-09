@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
 import { InlineError } from '../ui/InlineError'
@@ -12,6 +12,7 @@ import { WearStreakWidget } from './WearStreakWidget'
 import { GettingStartedCard } from '../ui/GettingStartedCard'
 import { ChallengesWidget } from '../ui/ChallengesWidget'
 import { useSmartNotifications } from '@/hooks/useSmartNotifications'
+import { useOnboarding } from '@/hooks/useOnboarding'
 
 function getGreeting(): string {
   const h = new Date().getHours()
@@ -26,6 +27,14 @@ export function HomeScreen() {
   const { data: trending, loading, error: trendingError, retry: retryTrending } = useTrendingFragrances(4)
   const { stats, retry: retryStats } = useHomeStats(user?.id)
   const [logSheetOpen, setLogSheetOpen] = useState(false)
+
+  // Redirect to onboarding if user hasn't completed it
+  const onboarding = useOnboarding()
+  useEffect(() => {
+    if (onboarding.needsOnboarding) {
+      navigate('/onboarding', { replace: true })
+    }
+  }, [onboarding.needsOnboarding, navigate])
 
   // Generate smart notifications on home screen load
   useSmartNotifications()

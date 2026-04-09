@@ -83,6 +83,7 @@ const GiftRecommenderScreen = lazy(() => import('./components/screens/GiftRecomm
 const DupeFinderScreen = lazy(() => import('./components/screens/DupeFinderScreen').then(m => ({ default: m.DupeFinderScreen })))
 const MilestonesScreen = lazy(() => import('./components/screens/MilestonesScreen').then(m => ({ default: m.MilestonesScreen })))
 const BlindBuyScreen = lazy(() => import('./components/screens/BlindBuyScreen').then(m => ({ default: m.BlindBuyScreen })))
+const OnboardingFlowScreen = lazy(() => import('./components/screens/OnboardingFlowScreen').then(m => ({ default: m.OnboardingFlowScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -118,6 +119,9 @@ export default function App() {
         <BrowserRouter>
           <div className="max-w-[430px] mx-auto min-h-screen relative bg-background">
             <Routes>
+              {/* ── Onboarding (no AppLayout — full-screen flow) ── */}
+              <Route path="/onboarding" element={<LazyScreen><OnboardingFlowScreen /></LazyScreen>} />
+
               {/* ── Core tabs (eager) ── */}
               <Route path="/" element={<AppLayout><HomeScreen /></AppLayout>} />
               <Route path="/collection" element={<AppLayout title="SCENTFOLIO" showBack={false}><CollectionScreen /></AppLayout>} />
