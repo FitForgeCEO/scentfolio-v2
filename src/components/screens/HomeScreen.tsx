@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { InlineError } from '../ui/InlineError'
 import { WelcomeOverlay } from '../ui/WelcomeOverlay'
 import { useTrendingFragrances } from '@/hooks/useFragrances'
@@ -8,12 +7,93 @@ import { useHomeStats } from '@/hooks/useHomeStats'
 import { useAuth } from '@/contexts/AuthContext'
 import { LogWearSheet } from './LogWearSheet'
 import { PullToRefresh } from '../ui/PullToRefresh'
-import { WearStreakWidget } from './WearStreakWidget'
-import { GettingStartedCard } from '../ui/GettingStartedCard'
-import { ChallengesWidget } from '../ui/ChallengesWidget'
 import { useSmartNotifications } from '@/hooks/useSmartNotifications'
 import { useOnboarding } from '@/hooks/useOnboarding'
 import { supabase } from '@/lib/supabase'
+
+/* ──────────────── Noir helpers: "The Morning Edition" voice ──────────────── */
+
+/** "0" → "none", "1" → "one" … "20" → "twenty". Anything > 20 returns the digit as a word-string. */
+function numberToWord(n: number): string {
+  if (!Number.isFinite(n) || n < 0) return 'none'
+  const small = [
+    'none', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
+    'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
+    'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty',
+  ]
+  if (n <= 20) return small[n] ?? 'none'
+  return String(n)
+}
+
+/** Capitalise the first letter of a prose string. */
+function capitalise(s: string): string {
+  return s.length === 0 ? s : s[0].toUpperCase() + s.slice(1)
+}
+
+/** Integer → lowercase roman numeral, capped at 'c' (100). */
+function lowerRoman(n: number): string {
+  if (!Number.isFinite(n) || n <= 0) return ''
+  const map: Array<[number, string]> = [
+    [100, 'c'], [90, 'xc'], [50, 'l'], [40, 'xl'],
+    [10, 'x'], [9, 'ix'], [5, 'v'], [4, 'iv'], [1, 'i'],
+  ]
+  let out = ''
+  let rem = Math.min(100, Math.floor(n))
+  for (const [v, s] of map) {
+    while (rem >= v) { out += s; rem -= v }
+  }
+  return out
+}
+
+/** Editorial masthead date: "Wednesday, xi April · MMXXVI" (italic treatment applied at render). */
+function dateMasthead(d: Date): string {
+  const weekday = d.toLocaleDateString('en-GB', { weekday: 'long' })
+  const day = lowerRoman(d.getDate())
+  const month = d.toLocaleDateString('en-GB', { month: 'long' })
+  const year = yearToLargeRoman(d.getFullYear())
+  return `${weekday}, ${day} ${month} · ${year}`
+}
+
+/** Full uppercase roman numeral (for years). */
+function yearToLargeRoman(n: number): string {
+  if (!Number.isFinite(n) || n <= 0) return ''
+  const map: Array<[number, string]> = [
+    [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
+    [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
+    [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
+  ]
+  let out = ''
+  let rem = Math.floor(n)
+  for (const [v, s] of map) {
+    while (rem >= v) { out += s; rem -= v }
+  }
+  return out
+}
+
+/** Streak headline — "Eleven days on the run." / "No streak yet." */
+function streakHeadline(streak: number): string {
+  if (streak <= 0) return 'No streak yet.'
+  if (streak === 1) return 'One day on the run.'
+  return `${capitalise(numberToWord(streak))} days on the run.`
+}
+
+/** Month wears headline — "Twenty-three wears this month." */
+function wearsHeadline(n: number): string {
+  if (n <= 0) return 'No wears filed this month.'
+  if (n === 1) return 'One wear this month.'
+  return `${capitalise(numberToWord(n))} wears this month.`
+}
+
+/** Relative time prose: "three hours ago" / "six hours ago" / "two days ago". */
+function timeAgoProse(iso: string): string {
+  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+  if (mins < 1) return 'moments ago'
+  if (mins < 60) return `${numberToWord(mins)} minute${mins === 1 ? '' : 's'} ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${numberToWord(hrs)} hour${hrs === 1 ? '' : 's'} ago`
+  const days = Math.floor(hrs / 24)
+  return `${numberToWord(days)} day${days === 1 ? '' : 's'} ago`
+}
 
 function getGreeting(): string {
   const h = new Date().getHours()
@@ -21,6 +101,81 @@ function getGreeting(): string {
   if (h < 18) return 'Good afternoon'
   return 'Good evening'
 }
+
+/* ──────────────── Community Buzz (dispatches) data hook ──────────────── */
+
+interface BuzzItem {
+  id: string
+  user_name: string
+  fragrance_name: string
+  fragrance_brand: string
+  created_at: string
+  rating?: number
+}
+
+function useCommunityBuzz(limit = 3): { buzz: BuzzItem[]; loaded: boolean } {
+  const [buzz, setBuzz] = useState<BuzzItem[]>([])
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    async function fetch() {
+      const items: BuzzItem[] = []
+      try {
+        const { data } = await supabase
+          .from('reviews')
+          .select('id, overall_rating, created_at, user_id, fragrance:fragrances(name, brand)')
+          .not('review_text', 'is', null)
+          .order('created_at', { ascending: false })
+          .limit(limit + 2)
+
+        type Row = {
+          id: string
+          overall_rating: number
+          created_at: string
+          user_id: string
+          fragrance: { name: string; brand: string } | null
+        }
+        const rows = (data ?? []) as unknown as Row[]
+        const userIds = [...new Set(rows.map((r) => r.user_id))]
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, display_name')
+          .in('id', userIds)
+        type P = { id: string; display_name: string }
+        const pMap = new Map<string, string>()
+        for (const p of (profiles ?? []) as P[]) pMap.set(p.id, p.display_name)
+
+        for (const r of rows) {
+          if (!r.fragrance) continue
+          items.push({
+            id: `r-${r.id}`,
+            user_name: pMap.get(r.user_id) ?? 'A keeper',
+            fragrance_name: r.fragrance.name,
+            fragrance_brand: r.fragrance.brand,
+            created_at: r.created_at,
+            rating: r.overall_rating,
+          })
+        }
+      } catch {
+        /* swallow — dispatches are optional furniture */
+      }
+
+      if (!cancelled) {
+        setBuzz(items.slice(0, limit))
+        setLoaded(true)
+      }
+    }
+    fetch()
+    return () => {
+      cancelled = true
+    }
+  }, [limit])
+
+  return { buzz, loaded }
+}
+
+/* ──────────────── The Morning Edition ──────────────── */
 
 export function HomeScreen() {
   const navigate = useNavigate()
@@ -40,363 +195,389 @@ export function HomeScreen() {
   // Generate smart notifications on home screen load
   useSmartNotifications()
 
-  const displayName = user?.user_metadata?.display_name || 'fragrance lover'
+  // Dispatches feed (absorbs CommunityBuzzWidget)
+  const { buzz, loaded: buzzLoaded } = useCommunityBuzz(3)
 
-  const handleRefresh = async () => {
+  const displayName = user?.user_metadata?.display_name || 'fragrance lover'
+  const firstName = displayName.split(' ')[0]
+
+  const handleRefresh = useCallback(async () => {
     retryTrending()
     retryStats()
+  }, [retryTrending, retryStats])
+
+  const handleHeroAction = useCallback(() => {
+    if (!user) {
+      navigate('/profile')
+      return
+    }
+    setLogSheetOpen(true)
+  }, [user, navigate])
+
+  // Four milestone ranks: iii / vii / xiv / xxx
+  const milestones: Array<{ days: number; roman: string }> = [
+    { days: 3, roman: lowerRoman(3) },
+    { days: 7, roman: lowerRoman(7) },
+    { days: 14, roman: lowerRoman(14) },
+    { days: 30, roman: lowerRoman(30) },
+  ]
+
+  // Concierge entries — italic serif lower-roman index + italic serif label
+  const concierge: Array<{ index: string; label: string; to: string }> = [
+    { index: 'i', label: "Today's suggestion.", to: '/daily' },
+    { index: 'ii', label: 'Weather pairing.', to: '/weather' },
+    { index: 'iii', label: 'Quick appraisal.', to: '/quick-rate' },
+    { index: 'iv', label: 'The keeper\u2019s picks.', to: '/wear-predictions' },
+  ]
+
+  // Daily Brief prose — conditional on whether the keeper has anything underway
+  const collectionStarted = stats.owned > 0 || stats.wishlist > 0
+  const reviewsStarted = stats.reviews > 0
+  const dailyBriefProse: string = !collectionStarted
+    ? 'Your folio awaits its first entry. We invite you to shelve a fragrance you already keep, or to pencil in one you long for. The archive begins the moment you do.'
+    : !reviewsStarted
+    ? 'Your shelves are taking shape. When the mood strikes, file an appreciation of a bottle you know well — even a single line helps the editors build your sensory profile.'
+    : 'Three steps remain to refine your sensory profile. A note on your preferred base notes, a thought on vintage reformulations, and an autumn curation await your attention.'
+
+  // Editorial style constants — noir ambient lifts + gradient hairlines (no 1px borders)
+  const ambientGlow = {
+    position: 'absolute' as const,
+    width: 300,
+    height: 300,
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(229,194,118,0.07) 0%, transparent 70%)',
+    filter: 'blur(80px)',
+    pointerEvents: 'none' as const,
+  }
+  const hairline = {
+    height: 1,
+    background:
+      'linear-gradient(to right, rgba(229,194,118,0.4) 0%, rgba(229,194,118,0.1) 40%, transparent 100%)',
+  }
+  const verticalHairline = {
+    width: 1,
+    background:
+      'linear-gradient(to bottom, transparent 0%, rgba(229,194,118,0.25) 40%, rgba(229,194,118,0.1) 70%, transparent 100%)',
   }
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-    <main className="pt-24 pb-32 px-6 space-y-10">
-      {/* Greeting & Quick Action Hero */}
-      <section className="space-y-6">
-        <h2 className="font-headline text-2xl font-bold">
-          {getGreeting()}, {displayName.split(' ')[0]}
-        </h2>
-        <div className="relative h-64 w-full rounded-xl overflow-hidden bg-surface-container-low shadow-xl">
-          {trending[0]?.image_url && (
-            <img
-              src={trending[0].image_url}
-              alt="Hero Scent"
-              className="absolute inset-0 w-full h-full object-cover opacity-60"
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-          <div className="absolute inset-0 p-6 flex flex-col justify-between">
-            <p className="font-headline text-3xl italic text-on-surface opacity-90 max-w-[200px]">
-              What are you wearing today?
-            </p>
-            <div className="flex justify-end">
-              <button
-                onClick={() => {
-                  if (!user) { navigate('/profile'); return }
-                  setLogSheetOpen(true)
-                }}
-                className="gold-gradient text-on-primary-container px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg"
-              >
-                LOG WEAR
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <main className="relative pt-24 pb-32 px-6 space-y-20 overflow-hidden">
+        {/* ambient gold lifts */}
+        <div style={{ ...ambientGlow, top: -120, left: -120 }} />
+        <div style={{ ...ambientGlow, top: 520, right: -140, opacity: 0.5 }} />
+        <div style={{ ...ambientGlow, bottom: 80, left: -100, opacity: 0.35 }} />
 
-      {/* Streak Counter */}
-      <section className="grid grid-cols-2 gap-4">
-        <button
-          onClick={() => navigate('/wear-history')}
-          className="bg-surface-container p-4 rounded-xl flex flex-col justify-between h-28 text-left active:scale-[0.97] transition-transform"
-        >
-          <div className="flex items-center gap-2">
-            <Icon name="local_fire_department" filled className="text-primary text-sm" />
-            <span className="text-[10px] uppercase tracking-[0.1em] font-label text-secondary">
-              STREAK
-            </span>
-          </div>
-          <p className="font-headline text-2xl">
-            {stats.streak} day{stats.streak !== 1 ? 's' : ''}
+        {/* ══════════ I. THE MASTHEAD ══════════ */}
+        <header className="relative">
+          <p className="font-label text-[0.65rem] uppercase tracking-[0.3em] text-primary/60 mb-3">
+            THE MORNING EDITION
           </p>
-        </button>
-        <button
-          onClick={() => navigate('/wear-history')}
-          className="bg-surface-container p-4 rounded-xl flex flex-col justify-between h-28 text-left active:scale-[0.97] transition-transform"
-        >
-          <div className="flex items-center gap-2">
-            <Icon name="calendar_month" filled className="text-primary text-sm" />
-            <span className="text-[10px] uppercase tracking-[0.1em] font-label text-secondary">
-              THIS MONTH
-            </span>
-          </div>
-          <p className="font-headline text-2xl">
-            {stats.monthWears} wear{stats.monthWears !== 1 ? 's' : ''}
+          <h2 className="font-headline italic text-5xl md:text-6xl leading-[1.05] text-on-background mb-5">
+            {getGreeting()}, {firstName}.
+          </h2>
+          <p className="font-headline italic text-base md:text-lg tracking-widest text-secondary/70">
+            {dateMasthead(new Date())}
           </p>
-        </button>
-      </section>
+          <div style={hairline} className="mt-10" />
+        </header>
 
-      {/* Streak Milestones */}
-      <section>
-        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary mb-3">STREAK MILESTONES</h3>
-        <div className="flex gap-3">
-          {[
-            { days: 3, icon: 'bolt', label: '3 Days' },
-            { days: 7, icon: 'whatshot', label: '7 Days' },
-            { days: 14, icon: 'military_tech', label: '14 Days' },
-            { days: 30, icon: 'diamond', label: '30 Days' },
-          ].map((m) => {
-            const achieved = stats.streak >= m.days
-            return (
-              <div
-                key={m.days}
-                className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-xl transition-all ${
-                  achieved ? 'bg-primary/10' : 'bg-surface-container'
-                }`}
-              >
-                <Icon
-                  name={m.icon}
-                  filled={achieved}
-                  className={`text-xl ${achieved ? 'text-primary' : 'text-secondary/50'}`}
-                />
-                <span className={`text-[9px] font-bold tracking-wider ${achieved ? 'text-primary' : 'text-secondary/60'}`}>
-                  {m.label}
-                </span>
+        {/* ══════════ II. THE FRONT PAGE ══════════ */}
+        <section className="relative group">
+          <div className="relative aspect-[4/5] md:aspect-[16/9] w-full overflow-hidden rounded-sm bg-surface-container-low">
+            {trending[0]?.image_url ? (
+              <img
+                src={trending[0].image_url}
+                alt="The front page"
+                className="absolute inset-0 w-full h-full object-cover opacity-75 transition-transform duration-1000 group-hover:scale-[1.03]"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-surface-container to-surface-container-low" />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+            <div className="absolute inset-0 flex flex-col justify-end p-6 md:p-10">
+              <p className="font-headline italic text-3xl md:text-5xl text-on-background mb-6 max-w-[18ch] leading-[1.1]">
+                What will you wear today?
+              </p>
+              <div className="flex justify-start">
+                <button
+                  onClick={handleHeroAction}
+                  className="px-7 py-3.5 text-on-primary-container font-label text-[0.7rem] font-bold tracking-[0.2em] uppercase active:scale-95 transition-all"
+                  style={{
+                    background: 'linear-gradient(45deg, #e5c276 0%, #c4a35a 100%)',
+                    boxShadow: '0 12px 32px rgba(25,18,16,0.6)',
+                  }}
+                >
+                  LOG TODAY&rsquo;S WEAR
+                </button>
               </div>
-            )
-          })}
-        </div>
-      </section>
-
-      {/* Wear Streak Widget */}
-      {user && <WearStreakWidget />}
-
-      {/* Collection Stats Bento */}
-      <section className="grid grid-cols-2 gap-4">
-        <div className="bg-surface-container p-5 rounded-xl space-y-1">
-          <span className="text-[10px] uppercase tracking-[0.1em] font-label text-primary font-bold">OWNED</span>
-          <p className="font-headline text-3xl">{stats.owned}</p>
-        </div>
-        <button onClick={() => navigate('/wishlist')} className="bg-surface-container p-5 rounded-xl space-y-1 text-left active:scale-[0.97] transition-transform">
-          <span className="text-[10px] uppercase tracking-[0.1em] font-label text-secondary">WISHLIST</span>
-          <p className="font-headline text-3xl">{stats.wishlist}</p>
-        </button>
-        <div className="bg-surface-container p-5 rounded-xl space-y-1">
-          <span className="text-[10px] uppercase tracking-[0.1em] font-label text-secondary">REVIEWS</span>
-          <p className="font-headline text-3xl">{stats.reviews}</p>
-        </div>
-        <button onClick={() => navigate('/boards')} className="bg-surface-container p-5 rounded-xl space-y-1 text-left active:scale-[0.97] transition-transform">
-          <span className="text-[10px] uppercase tracking-[0.1em] font-label text-secondary">BOARDS</span>
-          <p className="font-headline text-3xl">{stats.boards}</p>
-        </button>
-      </section>
-
-      {/* Getting Started checklist for new users */}
-      {user && <GettingStartedCard />}
-
-      {/* Active challenges */}
-      <ChallengesWidget />
-
-      {/* Quick Actions — just the daily essentials */}
-      <section className="space-y-3">
-        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary">QUICK ACTIONS</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <button onClick={() => navigate('/daily')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="wb_sunny" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Daily Pick</p>
-              <p className="text-[10px] text-secondary/50">Today's suggestion</p>
             </div>
-          </button>
-          <button onClick={() => navigate('/weather')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="cloud" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Weather Match</p>
-              <p className="text-[10px] text-secondary/50">Based on conditions</p>
-            </div>
-          </button>
-          <button onClick={() => navigate('/quick-rate')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="star_rate" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Quick Rate</p>
-              <p className="text-[10px] text-secondary/50">Rate your collection</p>
-            </div>
-          </button>
-          <button onClick={() => navigate('/wear-predictions')} className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform">
-            <Icon name="smart_toy" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Today's Picks</p>
-              <p className="text-[10px] text-secondary/50">AI suggestions</p>
-            </div>
-          </button>
-        </div>
-      </section>
-
-      {/* Community Buzz — quick peek at recent activity */}
-      <CommunityBuzzWidget />
-
-      {/* Trending Now — real Supabase data */}
-      <section className="space-y-4">
-        <div className="flex justify-between items-end">
-          <div>
-            <span className="text-[10px] uppercase tracking-[0.1em] font-label text-secondary">COMMUNITY</span>
-            <h3 className="font-headline text-xl">Top Rated</h3>
           </div>
-        </div>
+        </section>
 
-        {trendingError ? (
-          <InlineError message="Couldn't load trending fragrances" onRetry={retryTrending} />
-        ) : loading ? (
-          <div className="grid grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="aspect-[3/4] rounded-xl bg-surface-container animate-pulse" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4">
-            {trending.map((frag) => (
-              <div
-                key={frag.id}
-                className="space-y-2 group cursor-pointer"
-                role="link"
-                tabIndex={0}
-                onClick={() => navigate(`/fragrance/${frag.id}`)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/fragrance/${frag.id}`) } }}
-              >
-                <div className="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low shadow-sm">
-                  {frag.image_url ? (
-                    <img
-                      src={frag.image_url}
-                      alt={frag.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-secondary/50">
-                      <Icon name="water_drop" size={48} />
-                    </div>
-                  )}
-                </div>
-                <div className="px-1">
-                  <span className="text-[9px] uppercase tracking-[0.1em] font-label text-secondary">
-                    {frag.brand}
-                  </span>
-                  <h4 className="text-sm font-semibold truncate">{frag.name}</h4>
-                  {frag.rating && (
-                    <div className="flex items-center gap-1 mt-1">
-                      <Icon name="star" filled className="text-[12px] text-primary" />
-                      <span className="text-[10px] text-on-surface-variant">
-                        {Number(frag.rating).toFixed(1)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Log Wear Sheet (opened from hero CTA — no specific fragrance pre-selected) */}
-      <LogWearSheet isOpen={logSheetOpen} onClose={() => setLogSheetOpen(false)} />
-
-      {/* Welcome onboarding for new users */}
-      {user && <WelcomeOverlay userId={user.id} />}
-    </main>
-    </PullToRefresh>
-  )
-}
-
-/* ── Community Buzz Widget ── */
-
-interface BuzzItem {
-  id: string
-  type: 'review' | 'wear'
-  user_name: string
-  fragrance_name: string
-  fragrance_brand: string
-  created_at: string
-  rating?: number
-}
-
-function CommunityBuzzWidget() {
-  const navigate = useNavigate()
-  const [buzz, setBuzz] = useState<BuzzItem[]>([])
-  const [loaded, setLoaded] = useState(false)
-
-  useEffect(() => {
-    let cancelled = false
-    async function fetch() {
-      const items: BuzzItem[] = []
-
-      // Latest reviews with text
-      try {
-        const { data } = await supabase
-          .from('reviews')
-          .select('id, overall_rating, created_at, user_id, fragrance:fragrances(name, brand)')
-          .not('review_text', 'is', null)
-          .order('created_at', { ascending: false })
-          .limit(5)
-
-        type Row = { id: string; overall_rating: number; created_at: string; user_id: string; fragrance: { name: string; brand: string } | null }
-        const rows = (data ?? []) as unknown as Row[]
-        const userIds = [...new Set(rows.map(r => r.user_id))]
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, display_name')
-          .in('id', userIds)
-        type P = { id: string; display_name: string }
-        const pMap = new Map<string, string>()
-        for (const p of (profiles ?? []) as P[]) pMap.set(p.id, p.display_name)
-
-        for (const r of rows) {
-          if (!r.fragrance) continue
-          items.push({
-            id: `r-${r.id}`,
-            type: 'review',
-            user_name: pMap.get(r.user_id) ?? 'Someone',
-            fragrance_name: r.fragrance.name,
-            fragrance_brand: r.fragrance.brand,
-            created_at: r.created_at,
-            rating: r.overall_rating,
-          })
-        }
-      } catch { /* ok */ }
-
-      if (!cancelled) {
-        setBuzz(items.slice(0, 4))
-        setLoaded(true)
-      }
-    }
-    fetch()
-    return () => { cancelled = true }
-  }, [])
-
-  if (!loaded || buzz.length === 0) return null
-
-  const timeAgo = (d: string) => {
-    const mins = Math.floor((Date.now() - new Date(d).getTime()) / 60000)
-    if (mins < 60) return `${mins}m`
-    const hrs = Math.floor(mins / 60)
-    if (hrs < 24) return `${hrs}h`
-    return `${Math.floor(hrs / 24)}d`
-  }
-
-  return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary">COMMUNITY BUZZ</h3>
-        <button
-          onClick={() => navigate('/community')}
-          className="text-[10px] text-primary font-bold uppercase tracking-wider active:scale-95 transition-transform"
-        >
-          See All
-        </button>
-      </div>
-      <div className="space-y-2">
-        {buzz.map((item) => (
+        {/* ══════════ III. THE LEDGER ══════════ */}
+        <section className="relative flex flex-col md:flex-row gap-10 md:gap-16 items-start">
           <button
-            key={item.id}
-            onClick={() => navigate('/community')}
-            className="w-full text-left bg-surface-container rounded-xl px-4 py-3 flex items-center gap-3 active:scale-[0.98] transition-transform"
+            onClick={() => navigate('/wear-history')}
+            className="text-left active:scale-[0.98] transition-transform"
           >
-            <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
-              <Icon name="rate_review" className="text-amber-400" size={16} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] text-on-surface leading-tight truncate">
-                <span className="font-medium">{item.user_name}</span>
-                {' reviewed '}
-                <span className="font-medium">{item.fragrance_name}</span>
-              </p>
-              <p className="text-[10px] text-secondary/40 mt-0.5">
-                {item.fragrance_brand}
-                {item.rating ? ` · ${item.rating}/5` : ''}
-                {' · '}{timeAgo(item.created_at)}
-              </p>
-            </div>
-            <Icon name="chevron_right" className="text-secondary/20 flex-shrink-0" size={16} />
+            <p className="font-headline italic text-3xl md:text-4xl text-on-background mb-2 leading-tight">
+              {streakHeadline(stats.streak)}
+            </p>
+            <p className="font-label text-[0.65rem] uppercase tracking-[0.2em] text-secondary/50">
+              STREAK
+            </p>
           </button>
-        ))}
-      </div>
-    </section>
+          <div style={verticalHairline} className="self-stretch hidden md:block" />
+          <button
+            onClick={() => navigate('/wear-history')}
+            className="text-left active:scale-[0.98] transition-transform"
+          >
+            <p className="font-headline italic text-3xl md:text-4xl text-on-background mb-2 leading-tight">
+              {wearsHeadline(stats.monthWears)}
+            </p>
+            <p className="font-label text-[0.65rem] uppercase tracking-[0.2em] text-secondary/50">
+              THIS MONTH
+            </p>
+          </button>
+        </section>
+
+        {/* ══════════ IV. THE ASCENT ══════════ */}
+        <section>
+          <h3 className="font-headline italic text-2xl text-on-background mb-10">
+            The four milestones.
+          </h3>
+          <div className="relative flex justify-between items-center max-w-2xl mx-auto py-6">
+            <div
+              className="absolute inset-x-0"
+              style={{
+                height: 1,
+                background:
+                  'linear-gradient(to right, transparent 0%, rgba(229,194,118,0.3) 20%, rgba(229,194,118,0.3) 80%, transparent 100%)',
+              }}
+            />
+            {milestones.map((m) => {
+              const achieved = stats.streak >= m.days
+              return (
+                <div key={m.days} className="relative flex flex-col items-center gap-4">
+                  <div
+                    className={`w-3 h-3 rounded-full ${achieved ? 'bg-primary' : 'bg-primary/30'}`}
+                    style={
+                      achieved
+                        ? { boxShadow: '0 0 12px rgba(229,194,118,0.55)' }
+                        : undefined
+                    }
+                  />
+                  <span
+                    className={`font-headline italic text-base ${
+                      achieved ? 'text-primary' : 'text-secondary/40'
+                    }`}
+                  >
+                    {m.roman}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+
+        {/* ══════════ V. THE HOUSE ══════════ */}
+        <section>
+          <div style={hairline} className="mb-10" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            <div className="p-6 bg-surface-container-low transition-colors hover:bg-surface-container rounded-sm">
+              <p className="font-label text-[0.65rem] uppercase tracking-[0.2em] text-secondary/50 mb-3">
+                OWNED
+              </p>
+              <p className="font-headline italic text-3xl text-on-background">
+                {numberToWord(stats.owned)}.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/wishlist')}
+              className="p-6 bg-surface-container-low transition-colors hover:bg-surface-container rounded-sm text-left active:scale-[0.98]"
+            >
+              <p className="font-label text-[0.65rem] uppercase tracking-[0.2em] text-secondary/50 mb-3">
+                WISHLIST
+              </p>
+              <p className="font-headline italic text-3xl text-on-background">
+                {numberToWord(stats.wishlist)}.
+              </p>
+            </button>
+            <div className="p-6 bg-surface-container-low transition-colors hover:bg-surface-container rounded-sm">
+              <p className="font-label text-[0.65rem] uppercase tracking-[0.2em] text-secondary/50 mb-3">
+                APPRECIATIONS
+              </p>
+              <p className="font-headline italic text-3xl text-on-background">
+                {numberToWord(stats.reviews)}.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/boards')}
+              className="p-6 bg-surface-container-low transition-colors hover:bg-surface-container rounded-sm text-left active:scale-[0.98]"
+            >
+              <p className="font-label text-[0.65rem] uppercase tracking-[0.2em] text-secondary/50 mb-3">
+                BOARDS
+              </p>
+              <p className="font-headline italic text-3xl text-on-background">
+                {numberToWord(stats.boards)}.
+              </p>
+            </button>
+          </div>
+        </section>
+
+        {/* ══════════ VI. THE DAILY BRIEF ══════════ */}
+        <section className="max-w-2xl">
+          <div style={hairline} className="mb-10" />
+          <p className="font-headline italic text-2xl md:text-3xl text-on-background leading-relaxed">
+            {dailyBriefProse}{' '}
+            <button
+              onClick={() => navigate(collectionStarted ? '/search' : '/onboarding')}
+              className="text-primary not-italic hover:underline underline-offset-4 decoration-primary/40 transition-colors"
+            >
+              begin.
+            </button>
+          </p>
+        </section>
+
+        {/* ══════════ VII. THE CONCIERGE ══════════ */}
+        <section>
+          <div style={hairline} className="mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 md:gap-x-24">
+            {concierge.map((entry) => (
+              <button
+                key={entry.index}
+                onClick={() => navigate(entry.to)}
+                className="group flex items-center justify-between py-5 md:py-6 text-left active:scale-[0.99] transition-transform"
+              >
+                <div className="flex items-center gap-6 md:gap-8">
+                  <span className="font-headline italic text-primary text-lg w-6">
+                    {entry.index}
+                  </span>
+                  <span className="font-headline italic text-xl md:text-2xl text-on-background">
+                    {entry.label}
+                  </span>
+                </div>
+                <span className="text-primary text-xl md:text-2xl transform transition-transform group-hover:translate-x-2 group-active:translate-x-1">
+                  &rarr;
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* ══════════ VIII. THE DISPATCHES ══════════ */}
+        <section>
+          <div className="flex justify-between items-baseline mb-10">
+            <h3 className="font-label text-[0.65rem] uppercase tracking-[0.3em] text-secondary/60">
+              THE DISPATCHES
+            </h3>
+            <button
+              onClick={() => navigate('/community')}
+              className="font-label text-[0.65rem] uppercase tracking-[0.2em] text-primary hover:opacity-80 active:scale-95 transition"
+            >
+              the full wire &rarr;
+            </button>
+          </div>
+
+          {!buzzLoaded ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-8 rounded-sm bg-surface-container-low animate-pulse max-w-2xl" />
+              ))}
+            </div>
+          ) : buzz.length === 0 ? (
+            <p className="font-headline italic text-xl text-secondary/50 max-w-2xl leading-relaxed">
+              The wire is quiet this morning. Check back after the first dispatches are filed.
+            </p>
+          ) : (
+            <div className="space-y-6">
+              {buzz.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => navigate('/community')}
+                  className="block text-left w-full max-w-3xl active:scale-[0.995] transition-transform"
+                >
+                  <p className="font-body text-lg md:text-xl text-on-background/90 leading-relaxed">
+                    <span className="italic">{item.user_name}</span>
+                    {' filed an appreciation of '}
+                    <span className="italic text-primary/90">{item.fragrance_name}</span>
+                    <span className="text-secondary/60">
+                      {' ('}{item.fragrance_brand}{')'}
+                    </span>
+                    {' \u2014 '}
+                    <span className="italic text-secondary/60">{timeAgoProse(item.created_at)}</span>.
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ══════════ IX. THE FOLIO ══════════ */}
+        <section>
+          <div className="flex justify-between items-baseline mb-10">
+            <h3 className="font-headline italic text-3xl text-on-background">The Folio.</h3>
+            <button
+              onClick={() => navigate('/search')}
+              className="font-label text-[0.65rem] uppercase tracking-[0.2em] text-primary hover:opacity-80 active:scale-95 transition"
+            >
+              the full archive &rarr;
+            </button>
+          </div>
+
+          {trendingError ? (
+            <InlineError message="Couldn&rsquo;t load the folio" onRetry={retryTrending} />
+          ) : loading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="aspect-[3/4] rounded-sm bg-surface-container-low animate-pulse"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
+              {trending.map((frag) => (
+                <button
+                  key={frag.id}
+                  onClick={() => navigate(`/fragrance/${frag.id}`)}
+                  className="flex flex-col gap-3 text-left group"
+                >
+                  <div className="aspect-[3/4] overflow-hidden rounded-sm bg-surface-container-low">
+                    {frag.image_url ? (
+                      <img
+                        src={frag.image_url}
+                        alt={frag.name}
+                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-secondary/30 font-headline italic text-4xl">
+                        &middot;
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-label text-[0.6rem] uppercase tracking-[0.15em] text-primary/70">
+                      {frag.brand}
+                    </p>
+                    <p className="font-headline italic text-lg text-on-background leading-tight truncate">
+                      {frag.name}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Log Wear Sheet (opened from hero CTA — no specific fragrance pre-selected) */}
+        <LogWearSheet isOpen={logSheetOpen} onClose={() => setLogSheetOpen(false)} />
+
+        {/* Welcome onboarding for new users */}
+        {user && <WelcomeOverlay userId={user.id} />}
+      </main>
+    </PullToRefresh>
   )
 }
