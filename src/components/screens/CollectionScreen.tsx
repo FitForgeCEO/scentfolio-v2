@@ -11,31 +11,61 @@ import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useToast } from '@/contexts/ToastContext'
 import { PullToRefresh } from '../ui/PullToRefresh'
 import { RecommendationCarousel } from '../ui/RecommendationCarousel'
-import { CollectionStatsBar } from '../ui/CollectionStatsBar'
 import { useAllUserTags, useFragrancesByTag } from '@/hooks/useUserTags'
-import { tagColour } from '../ui/TagInput'
 import type { Fragrance } from '@/types/database'
 
+// ── Noir helpers (shared voice with HomeScreen) ──
+const WORDS_20 = [
+  'none', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
+  'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen',
+  'seventeen', 'eighteen', 'nineteen', 'twenty',
+]
+function numberToWord(n: number): string {
+  if (n < 0) return String(n)
+  if (n <= 20) return WORDS_20[n]
+  return String(n)
+}
+function capitalise(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s
+}
+
+// ── Catalogue raisonné types ──
 const STATUS_TABS = ['ALL', 'OWN', 'WISHLIST', 'SAMPLED', 'SOLD'] as const
 type StatusFilter = (typeof STATUS_TABS)[number]
 
+// Roman index + italic serif label for each tab
+const TAB_ROMAN: Record<StatusFilter, string> = {
+  ALL: 'i',
+  OWN: 'ii',
+  WISHLIST: 'iii',
+  SAMPLED: 'iv',
+  SOLD: 'v',
+}
+const TAB_LABEL: Record<StatusFilter, string> = {
+  ALL: 'everything',
+  OWN: 'owned',
+  WISHLIST: 'in waiting',
+  SAMPLED: 'sampled',
+  SOLD: 'released',
+}
+
 const SORT_OPTIONS = [
-  { value: 'recent', label: 'Recently Added' },
-  { value: 'name-asc', label: 'Name A–Z' },
-  { value: 'name-desc', label: 'Name Z–A' },
-  { value: 'brand-asc', label: 'Brand A–Z' },
-  { value: 'rating-desc', label: 'Highest Rated' },
-  { value: 'price-asc', label: 'Price Low–High' },
-  { value: 'price-desc', label: 'Price High–Low' },
+  { value: 'recent', label: 'recently added' },
+  { value: 'name-asc', label: 'by name, a to z' },
+  { value: 'name-desc', label: 'by name, z to a' },
+  { value: 'brand-asc', label: 'by house, a to z' },
+  { value: 'rating-desc', label: 'most appreciated' },
+  { value: 'price-asc', label: 'ascending price' },
+  { value: 'price-desc', label: 'descending price' },
 ] as const
 type SortOption = (typeof SORT_OPTIONS)[number]['value']
 
 const GROUP_OPTIONS = [
-  { value: 'none', label: 'No Grouping', icon: 'list' },
-  { value: 'brand', label: 'Brand', icon: 'business' },
-  { value: 'family', label: 'Note Family', icon: 'spa' },
-  { value: 'concentration', label: 'Concentration', icon: 'opacity' },
-  { value: 'season', label: 'Best Season', icon: 'thermostat' },
+  { value: 'none', label: 'no grouping' },
+  { value: 'brand', label: 'by house' },
+  { value: 'family', label: 'by note family' },
+  { value: 'concentration', label: 'by concentration' },
+  { value: 'season', label: 'by season' },
 ] as const
 type GroupOption = (typeof GROUP_OPTIONS)[number]['value']
 
@@ -53,6 +83,41 @@ const STATUS_MAP: Record<string, string> = {
   sampled: 'SAMPLED',
   sold: 'SOLD',
 }
+
+// Noir style constants
+const hairline = {
+  height: '1px',
+  background:
+    'linear-gradient(to right, rgba(229,194,118,0.4) 0%, rgba(229,194,118,0.1) 40%, transparent 100%)',
+  width: '100%',
+} as const
+
+const hairlineFull = {
+  height: '1px',
+  background:
+    'linear-gradient(to right, transparent, rgba(229,194,118,0.4) 20%, rgba(229,194,118,0.4) 80%, transparent)',
+  width: '100%',
+} as const
+
+const verticalHairline = {
+  width: '1px',
+  height: '1rem',
+  background:
+    'linear-gradient(to bottom, transparent, rgba(229,194,118,0.5), transparent)',
+} as const
+
+const ambientGlow = (top: string, left: string) => ({
+  position: 'absolute' as const,
+  top,
+  left,
+  width: '300px',
+  height: '300px',
+  borderRadius: '50%',
+  background:
+    'radial-gradient(circle, rgba(229,194,118,0.07) 0%, transparent 70%)',
+  filter: 'blur(80px)',
+  pointerEvents: 'none' as const,
+})
 
 export function CollectionScreen() {
   const [activeTab, setActiveTab] = useState<StatusFilter>('ALL')
@@ -75,7 +140,7 @@ export function CollectionScreen() {
   const [filterTag, setFilterTag] = useState<string | null>(null)
   const { fragranceIds: tagFilterIds } = useFragrancesByTag(filterTag)
 
-  // Batch selection state
+  // Batch selection
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [batchProcessing, setBatchProcessing] = useState(false)
@@ -87,10 +152,6 @@ export function CollectionScreen() {
       else next.add(collectionId)
       return next
     })
-  }
-
-  const selectAll = () => {
-    setSelected(new Set(filtered.map((f) => f.id)))
   }
 
   const clearSelection = () => {
@@ -108,9 +169,9 @@ export function CollectionScreen() {
       .in('id', ids)
       .eq('user_id', user.id)
     if (delError) {
-      toast.showToast('Failed to delete', 'error')
+      toast.showToast('Could not release the bottles.', 'error')
     } else {
-      toast.showToast(`Removed ${ids.length} fragrance${ids.length > 1 ? 's' : ''}`, 'success')
+      toast.showToast(`${capitalise(numberToWord(ids.length))} ${ids.length === 1 ? 'bottle' : 'bottles'} released.`, 'success')
       retry()
     }
     setBatchProcessing(false)
@@ -127,16 +188,16 @@ export function CollectionScreen() {
       .in('id', ids)
       .eq('user_id', user.id)
     if (updError) {
-      toast.showToast('Failed to update', 'error')
+      toast.showToast('Could not refile the bottles.', 'error')
     } else {
-      toast.showToast(`Moved ${ids.length} to ${newStatus}`, 'success')
+      toast.showToast(`${capitalise(numberToWord(ids.length))} ${ids.length === 1 ? 'bottle' : 'bottles'} refiled.`, 'success')
       retry()
     }
     setBatchProcessing(false)
     clearSelection()
   }
 
-  // Quick-add overlay state
+  // Quick-add overlay
   const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [addQuery, setAddQuery] = useState('')
   const [addResults, setAddResults] = useState<Fragrance[]>([])
@@ -145,13 +206,11 @@ export function CollectionScreen() {
   const addTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const quickAddTrapRef = useFocusTrap(quickAddOpen, () => { setQuickAddOpen(false); setAddQuery(''); setAddResults([]) })
-
-  // Which status to add as — based on active tab
   const addStatus = activeTab === 'ALL' || activeTab === 'SOLD' ? 'own' : activeTab.toLowerCase()
 
-  // Debounced search for quick-add
   useEffect(() => {
     if (addQuery.length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAddResults([])
       setAddSearching(false)
       return
@@ -177,16 +236,13 @@ export function CollectionScreen() {
   const handleQuickAdd = async (frag: Fragrance) => {
     if (!user) return
     setAddingSaving(frag.id)
-    // Check if already in collection
     const { data: existing } = await supabase
       .from('user_collections')
       .select('id')
       .eq('user_id', user.id)
       .eq('fragrance_id', frag.id)
       .maybeSingle()
-
     if (existing) {
-      // Already exists — update status
       await supabase
         .from('user_collections')
         .update({ status: addStatus })
@@ -202,12 +258,16 @@ export function CollectionScreen() {
     setQuickAddOpen(false)
     setAddQuery('')
     setAddResults([])
-    retry() // refresh collection
+    retry()
   }
 
-  const activeFilterCount = (filters.brands.length > 0 ? 1 : 0) + (filters.concentrations.length > 0 ? 1 : 0) + (filters.noteFamilies.length > 0 ? 1 : 0) + (filters.minRating > 0 ? 1 : 0) + (filters.seasons.length > 0 ? 1 : 0)
+  const activeFilterCount =
+    (filters.brands.length > 0 ? 1 : 0) +
+    (filters.concentrations.length > 0 ? 1 : 0) +
+    (filters.noteFamilies.length > 0 ? 1 : 0) +
+    (filters.minRating > 0 ? 1 : 0) +
+    (filters.seasons.length > 0 ? 1 : 0)
 
-  // Derive available filter options from collection
   const allBrands = [...new Set(collection.map((c) => c.fragrance.brand))].sort()
   const allConcentrations = [...new Set(collection.map((c) => c.fragrance.concentration).filter(Boolean))] as string[]
   const allFamilies = [...new Set(collection.map((c) => c.fragrance.note_family).filter(Boolean))] as string[]
@@ -230,7 +290,6 @@ export function CollectionScreen() {
         const sr = item.fragrance.season_ranking
         if (!sr || !sr.some((s) => filters.seasons.includes(s.name) && s.score > 0.5)) return false
       }
-      // Tag filter
       if (filterTag && tagFilterIds.length > 0 && !tagFilterIds.includes(item.fragrance.id)) return false
       return true
     })
@@ -253,19 +312,20 @@ export function CollectionScreen() {
       }
     })
 
+  const selectAll = () => setSelected(new Set(filtered.map((f) => f.id)))
+
   const statusCounts = collection.reduce(
     (acc, item) => {
       const key = STATUS_MAP[item.status] || item.status.toUpperCase()
       acc[key] = (acc[key] || 0) + 1
       return acc
     },
-    {} as Record<string, number>
+    {} as Record<string, number>,
   )
 
   // Group items
   const groupedItems = useMemo(() => {
     if (groupBy === 'none') return null
-
     const groups: Record<string, typeof filtered> = {}
     for (const item of filtered) {
       let key: string
@@ -274,10 +334,10 @@ export function CollectionScreen() {
           key = item.fragrance.brand
           break
         case 'family':
-          key = item.fragrance.note_family || 'Unknown'
+          key = item.fragrance.note_family || 'Unclassified'
           break
         case 'concentration':
-          key = item.fragrance.concentration || 'Unknown'
+          key = item.fragrance.concentration || 'Unclassified'
           break
         case 'season': {
           const sr = item.fragrance.season_ranking
@@ -295,11 +355,9 @@ export function CollectionScreen() {
       if (!groups[key]) groups[key] = []
       groups[key].push(item)
     }
-
-    // Sort group keys alphabetically, with "Unknown"/"Unclassified" last
     return Object.entries(groups).sort((a, b) => {
-      if (a[0] === 'Unknown' || a[0] === 'Unclassified') return 1
-      if (b[0] === 'Unknown' || b[0] === 'Unclassified') return -1
+      if (a[0] === 'Unclassified') return 1
+      if (b[0] === 'Unclassified') return -1
       return a[0].localeCompare(b[0])
     })
   }, [filtered, groupBy])
@@ -313,59 +371,81 @@ export function CollectionScreen() {
     })
   }
 
-  const cycleViewMode = () => {
-    setViewMode((prev) => {
-      if (prev === 'grid') return 'list'
-      if (prev === 'list') return 'compact'
-      return 'grid'
-    })
+  // Collection summary prose for Frontispiece
+  const wishCount = statusCounts['WISHLIST'] || 0
+  const sampledCount = statusCounts['SAMPLED'] || 0
+
+  // Colophon derived stats
+  const uniqueHouses = new Set(collection.map((c) => c.fragrance.brand)).size
+  const uniqueFamilies = new Set(
+    collection.map((c) => c.fragrance.note_family).filter(Boolean),
+  ).size
+  const lastEntry = collection.length > 0
+    ? [...collection].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+    : null
+
+  const dateProse = (iso?: string) => {
+    if (!iso) return ''
+    const d = new Date(iso)
+    const day = d.getDate()
+    const ordinal = (n: number) => {
+      if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`
+      switch (n % 10) {
+        case 1: return `${n}st`
+        case 2: return `${n}nd`
+        case 3: return `${n}rd`
+        default: return `${n}th`
+      }
+    }
+    const month = d.toLocaleString('en-GB', { month: 'long' })
+    return `the ${ordinal(day)} of ${month}`
   }
 
-  const viewModeIcon = viewMode === 'grid' ? 'view_list' : viewMode === 'list' ? 'density_small' : 'grid_view'
-  const viewModeLabel = viewMode === 'grid' ? 'list' : viewMode === 'list' ? 'compact' : 'grid'
-
-  // Shared item renderer for flat + grouped views
+  // Shared renderer for all three view modes
   const renderItemList = (items: typeof filtered) => {
     if (viewMode === 'grid') {
       return (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
           {items.map((item) => {
             const isSelected = selected.has(item.id)
             return (
               <div
                 key={item.id}
-                className={`flex flex-col group cursor-pointer ${isSelected ? 'ring-2 ring-primary rounded-xl' : ''}`}
+                className={`group cursor-pointer ${isSelected ? 'ring-1 ring-primary/60' : ''}`}
                 role="link"
                 tabIndex={0}
-                onClick={() => { if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) } }}
+                onClick={() => {
+                  if (selectMode) toggleSelect(item.id)
+                  else navigate(`/fragrance/${item.fragrance.id}`)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    if (selectMode) toggleSelect(item.id)
+                    else navigate(`/fragrance/${item.fragrance.id}`)
+                  }
+                }}
               >
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-3">
+                <div className="relative aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-low mb-4">
                   <FragranceImage
                     src={item.fragrance.image_url}
                     alt={item.fragrance.name}
                     noteFamily={item.fragrance.note_family}
                     size="md"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-700"
                   />
                   {selectMode && (
-                    <div className={`absolute top-2 left-2 w-6 h-6 rounded-full flex items-center justify-center transition-all ${isSelected ? 'bg-primary' : 'bg-black/40 ring-2 ring-white/40'}`}>
-                      {isSelected && <Icon name="check" className="text-on-primary" size={14} />}
+                    <div className={`absolute top-3 left-3 w-5 h-5 rounded-full flex items-center justify-center transition-all ${isSelected ? 'bg-primary' : 'bg-black/50 ring-1 ring-primary/40'}`}>
+                      {isSelected && <Icon name="check" className="text-on-primary" size={12} />}
                     </div>
                   )}
-                  <div className="absolute top-2 right-2 px-2 py-0.5 backdrop-blur-md rounded text-[8px] font-bold tracking-widest" style={{ background: item.status === 'wishlist' ? 'rgba(229, 194, 118, 0.2)' : 'rgba(25, 18, 16, 0.6)', color: '#e5c276' }}>
-                    {STATUS_MAP[item.status] || item.status.toUpperCase()}
-                  </div>
-                  <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-background/80 to-transparent" />
                 </div>
-                <span className="font-label text-[9px] tracking-[0.2em] text-secondary opacity-60 uppercase mb-0.5">{item.fragrance.brand}</span>
-                <h3 className="font-body text-sm font-medium text-on-surface line-clamp-1 mb-1">{item.fragrance.name}</h3>
-                {(item.personal_rating || item.fragrance.rating) && (
-                  <div className="flex items-center gap-1">
-                    <Icon name="star" filled className="text-[12px] text-primary" />
-                    <span className="font-body text-[10px] text-primary font-semibold">{(item.personal_rating || Number(item.fragrance.rating))?.toFixed(1)}</span>
-                  </div>
-                )}
+                <p className="font-label text-primary/70 text-[0.6rem] tracking-[0.15em] uppercase mb-1">
+                  {item.fragrance.brand}
+                </p>
+                <h3 className="font-headline italic text-lg text-on-background leading-tight truncate">
+                  {item.fragrance.name}
+                </h3>
               </div>
             )
           })}
@@ -375,80 +455,92 @@ export function CollectionScreen() {
 
     if (viewMode === 'compact') {
       return (
-        <div className="space-y-px">
-          {items.map((item) => {
+        <ul className="divide-y divide-transparent">
+          {items.map((item, idx) => {
             const isSelected = selected.has(item.id)
             return (
-              <div
+              <li
                 key={item.id}
-                className={`flex items-center gap-3 px-3 py-2 cursor-pointer active:bg-surface-container/60 transition-colors ${isSelected ? 'bg-primary/10' : 'hover:bg-surface-container/30'}`}
+                className={`relative ${idx > 0 ? 'pt-4' : ''} pb-4 cursor-pointer group`}
                 role="link"
                 tabIndex={0}
-                onClick={() => { if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) }}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) } }}
+                onClick={() => {
+                  if (selectMode) toggleSelect(item.id)
+                  else navigate(`/fragrance/${item.fragrance.id}`)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    if (selectMode) toggleSelect(item.id)
+                    else navigate(`/fragrance/${item.fragrance.id}`)
+                  }
+                }}
               >
-                {selectMode && (
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-primary' : 'ring-1.5 ring-outline-variant/30'}`}>
-                    {isSelected && <Icon name="check" className="text-on-primary" size={12} />}
+                {idx > 0 && <div className="absolute top-0 left-0 right-0" style={hairline} />}
+                <div className="flex items-baseline justify-between gap-6">
+                  <div className="flex items-baseline gap-4 min-w-0">
+                    <span className="font-label text-primary/50 text-[0.55rem] tracking-[0.2em] uppercase w-12 flex-shrink-0">
+                      {isSelected ? '●' : String(idx + 1).padStart(2, '0')}
+                    </span>
+                    <p className="font-headline italic text-base text-on-background truncate">
+                      {item.fragrance.name}
+                    </p>
                   </div>
-                )}
-                <div className="w-8 h-8 rounded-md overflow-hidden bg-surface-container flex-shrink-0">
-                  <FragranceImage src={item.fragrance.image_url} alt="" noteFamily={item.fragrance.note_family} size="sm" className="w-full h-full object-cover" />
+                  <p className="font-label text-secondary/50 text-[0.6rem] tracking-[0.15em] uppercase flex-shrink-0">
+                    {item.fragrance.brand}
+                  </p>
                 </div>
-                <p className="text-xs text-on-surface font-medium truncate flex-1">{item.fragrance.name}</p>
-                <span className="text-[9px] text-secondary/40 flex-shrink-0 truncate max-w-[60px]">{item.fragrance.brand}</span>
-                {(item.personal_rating || item.fragrance.rating) && (
-                  <div className="flex items-center gap-0.5 flex-shrink-0">
-                    <Icon name="star" filled className="text-primary" size={10} />
-                    <span className="text-[10px] text-primary font-semibold">{(item.personal_rating || Number(item.fragrance.rating))?.toFixed(1)}</span>
-                  </div>
-                )}
-              </div>
+              </li>
             )
           })}
-        </div>
+        </ul>
       )
     }
 
-    // List view (default)
+    // Ledger (list) view — two-column editorial rows
     return (
-      <div className="space-y-2">
-        {items.map((item) => {
+      <div>
+        {items.map((item, idx) => {
           const isSelected = selected.has(item.id)
           return (
             <div
               key={item.id}
-              className={`flex items-center gap-4 bg-surface-container rounded-xl p-3 cursor-pointer active:scale-[0.98] transition-transform ${isSelected ? 'ring-2 ring-primary' : ''}`}
+              className={`relative cursor-pointer group grid grid-cols-[96px_1fr] md:grid-cols-[140px_1fr] gap-6 md:gap-10 py-6 ${isSelected ? 'opacity-70' : ''}`}
               role="link"
               tabIndex={0}
-              onClick={() => { if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) }}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (selectMode) toggleSelect(item.id); else navigate(`/fragrance/${item.fragrance.id}`) } }}
+              onClick={() => {
+                if (selectMode) toggleSelect(item.id)
+                else navigate(`/fragrance/${item.fragrance.id}`)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  if (selectMode) toggleSelect(item.id)
+                  else navigate(`/fragrance/${item.fragrance.id}`)
+                }
+              }}
             >
-              {selectMode && (
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-primary' : 'bg-surface-container-low ring-2 ring-outline-variant/30'}`}>
-                  {isSelected && <Icon name="check" className="text-on-primary" size={14} />}
-                </div>
-              )}
-              <div className="w-12 h-12 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
-                {item.fragrance.image_url ? (
-                  <img src={item.fragrance.image_url} alt={item.fragrance.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center"><Icon name="water_drop" className="text-secondary/20" size={20} /></div>
-                )}
+              {idx > 0 && <div className="absolute top-0 left-0 right-0" style={hairline} />}
+              <div className="aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-low">
+                <FragranceImage
+                  src={item.fragrance.image_url}
+                  alt={item.fragrance.name}
+                  noteFamily={item.fragrance.note_family}
+                  size="sm"
+                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                />
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[9px] uppercase tracking-[0.1em] text-secondary/50">{item.fragrance.brand}</p>
-                <p className="text-sm text-on-surface font-medium truncate">{item.fragrance.name}</p>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-[8px] uppercase tracking-widest px-2 py-0.5 rounded" style={{ background: item.status === 'wishlist' ? 'rgba(229, 194, 118, 0.2)' : 'rgba(25, 18, 16, 0.6)', color: '#e5c276' }}>
-                  {STATUS_MAP[item.status] || item.status.toUpperCase()}
-                </span>
-                {(item.personal_rating || item.fragrance.rating) && (
-                  <div className="flex items-center gap-0.5">
-                    <Icon name="star" filled className="text-primary" size={10} />
-                    <span className="text-[10px] text-primary font-semibold">{(item.personal_rating || Number(item.fragrance.rating))?.toFixed(1)}</span>
-                  </div>
+              <div className="min-w-0 flex flex-col justify-center">
+                <p className="font-label text-primary/70 text-[0.6rem] tracking-[0.2em] uppercase mb-2">
+                  {item.fragrance.brand}
+                </p>
+                <h3 className="font-headline italic text-2xl md:text-3xl text-on-background leading-tight mb-2 truncate">
+                  {item.fragrance.name}
+                </h3>
+                {item.fragrance.note_family && (
+                  <p className="font-headline italic text-sm text-secondary/60">
+                    filed under {item.fragrance.note_family.toLowerCase()}
+                  </p>
                 )}
               </div>
             </div>
@@ -460,439 +552,523 @@ export function CollectionScreen() {
 
   return (
     <PullToRefresh onRefresh={async () => { retry() }}>
-    <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
-      {/* Header */}
-      <header className="mb-8">
-        <div className="flex justify-between items-end mb-2">
-          <div>
-            <h2 className="font-headline text-4xl text-on-surface leading-tight">My Collection</h2>
-            <p className="font-body text-sm text-secondary opacity-70 mt-1">
-              {selectMode ? `${selected.size} selected` : `${collection.length} fragrance${collection.length !== 1 ? 's' : ''}`}
-            </p>
-          </div>
-          {collection.length > 0 && (
-            <button
-              onClick={() => {
-                if (selectMode) clearSelection()
-                else setSelectMode(true)
-              }}
-              className="text-[10px] uppercase tracking-widest font-bold text-primary active:scale-95 transition-transform"
-            >
-              {selectMode ? 'CANCEL' : 'SELECT'}
-            </button>
-          )}
-        </div>
+    <main className="relative pt-16 pb-32 px-6 md:px-12 max-w-7xl mx-auto min-h-screen">
+      {/* Ambient gold lifts */}
+      <div aria-hidden style={ambientGlow('4rem', '-4rem')} />
+      <div aria-hidden style={ambientGlow('40rem', 'calc(100% - 10rem)')} />
+      <div aria-hidden style={ambientGlow('80rem', '-6rem')} />
+
+      {/* I. THE FRONTISPIECE */}
+      <header className="relative mb-16">
+        <p className="font-label text-primary/60 text-[0.65rem] tracking-[0.3em] uppercase mb-4">
+          THE CELLAR · A PRIVATE ARCHIVE
+        </p>
+        <h1 className="font-headline italic text-5xl md:text-6xl font-light tracking-tight leading-[1.05] text-on-background mb-6">
+          The keeper&rsquo;s shelves.
+        </h1>
+        {collection.length > 0 ? (
+          <p className="font-headline italic text-base md:text-lg text-secondary/70 max-w-2xl">
+            <span className="italic">{capitalise(numberToWord(collection.length))}</span>{' '}
+            {collection.length === 1 ? 'bottle' : 'bottles'} catalogued,{' '}
+            <span className="italic">{numberToWord(wishCount)}</span> in waiting,{' '}
+            <span className="italic">{numberToWord(sampledCount)}</span> sampled and filed.
+          </p>
+        ) : (
+          <p className="font-headline italic text-base md:text-lg text-secondary/70 max-w-2xl">
+            The shelves are empty. A keeper&rsquo;s archive begins with a single bottle.
+          </p>
+        )}
+        <div className="mt-10" style={hairline} />
+        {/* SELECT toggle — understated */}
+        {collection.length > 0 && (
+          <button
+            onClick={() => { if (selectMode) clearSelection(); else setSelectMode(true) }}
+            className="absolute top-0 right-0 font-headline italic text-sm text-primary/70 hover:text-primary transition-colors"
+          >
+            {selectMode ? 'cancel' : 'select'}
+          </button>
+        )}
       </header>
 
-      {/* Search */}
-      <section className="mb-6">
-        <div className="relative flex items-center bg-surface-container rounded-xl px-4 py-3.5 focus-within:ring-1 ring-primary/30 transition-all">
-          <Icon name="search" className="text-secondary opacity-50 mr-3" />
-          <input
-            className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-secondary/40 w-full text-sm"
-            placeholder="Search your collection..."
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
-            <button onClick={() => setSearch('')} className="text-secondary/60 active:scale-90 transition-transform">
-              <Icon name="close" size={18} />
-            </button>
-          )}
-        </div>
-      </section>
-
-      {/* Collection Tools */}
-      <section className="mb-4">
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-6 px-6 scrollbar-hide">
-          <button onClick={() => navigate('/prices')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
-            <Icon name="payments" className="text-primary" size={14} />
-            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Prices</span>
-          </button>
-          <button onClick={() => navigate('/duplicates')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
-            <Icon name="find_replace" className="text-primary" size={14} />
-            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Duplicates</span>
-          </button>
-          <button onClick={() => navigate('/import')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
-            <Icon name="upload_file" className="text-primary" size={14} />
-            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Import</span>
-          </button>
-          <button onClick={() => navigate('/compare')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
-            <Icon name="compare_arrows" className="text-primary" size={14} />
-            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Compare</span>
-          </button>
-          <button onClick={() => navigate('/budget')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
-            <Icon name="account_balance_wallet" className="text-primary" size={14} />
-            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Budget</span>
-          </button>
-          <button onClick={() => navigate('/rotation')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
-            <Icon name="autorenew" className="text-primary" size={14} />
-            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Rotation</span>
-          </button>
-          <button onClick={() => navigate('/combos')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
-            <Icon name="layers" className="text-primary" size={14} />
-            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Combos</span>
-          </button>
-          <button onClick={() => navigate('/lists')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
-            <Icon name="bookmarks" className="text-primary" size={14} />
-            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Lists</span>
-          </button>
-          <button onClick={() => navigate('/smart-collections')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
-            <Icon name="auto_fix_high" className="text-primary" size={14} />
-            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Smart</span>
-          </button>
-          <button onClick={() => navigate('/value')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
-            <Icon name="trending_up" className="text-primary" size={14} />
-            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Value</span>
-          </button>
-          <button onClick={() => navigate('/tags')} className="flex items-center gap-1.5 bg-surface-container px-3 py-2 rounded-lg flex-shrink-0 active:scale-95 transition-transform">
-            <Icon name="label" className="text-primary" size={14} />
-            <span className="text-[10px] font-medium text-on-surface whitespace-nowrap">Tags</span>
-          </button>
-        </div>
-      </section>
-
-      {/* Status Tabs */}
-      <nav className="sticky top-16 z-[var(--z-sticky)] -mx-6 bg-background/95 backdrop-blur-sm py-4 mb-2 overflow-x-auto no-scrollbar">
-        <div className="flex gap-2 px-6">
-          {STATUS_TABS.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`whitespace-nowrap px-6 py-2 rounded-full font-label text-[10px] font-bold tracking-widest uppercase transition-all ${
-                activeTab === tab
-                  ? 'bg-primary text-on-primary-container'
-                  : 'bg-surface-container text-secondary hover:bg-surface-container-highest'
-              }`}
-            >
-              {tab}
-              {tab !== 'ALL' && statusCounts[tab] ? (
-                <span className="ml-1 opacity-60">({statusCounts[tab]})</span>
-              ) : null}
-            </button>
-          ))}
-        </div>
+      {/* II. THE INDEX */}
+      <nav className="mb-14" aria-label="Status index">
+        <ul className="flex flex-wrap gap-x-12 gap-y-6 items-baseline">
+          {STATUS_TABS.map((tab) => {
+            const isActive = activeTab === tab
+            const count = tab === 'ALL' ? collection.length : statusCounts[tab] || 0
+            return (
+              <li key={tab} className="relative">
+                <button
+                  onClick={() => setActiveTab(tab)}
+                  className={`font-headline italic text-2xl transition-colors ${
+                    isActive ? 'text-primary' : 'text-secondary/40 hover:text-on-background'
+                  }`}
+                >
+                  {TAB_ROMAN[tab]}. {TAB_LABEL[tab]}
+                  {tab !== 'ALL' && count > 0 && (
+                    <span className="ml-2 font-label text-[0.6rem] not-italic tracking-[0.2em] text-secondary/40 align-top">
+                      {count}
+                    </span>
+                  )}
+                </button>
+                {isActive && (
+                  <div
+                    className="absolute left-1/4 right-1/4 -bottom-2 h-px"
+                    style={{ background: '#e5c276' }}
+                  />
+                )}
+              </li>
+            )
+          })}
+        </ul>
       </nav>
 
-      {/* Stats Bar */}
-      <CollectionStatsBar items={collection} />
+      {/* III. THE SEARCH */}
+      <section className="mb-16">
+        <div className="relative group">
+          <div className="flex items-center gap-4 py-4">
+            <Icon name="search" size={20} className="text-primary/60 flex-shrink-0" />
+            <input
+              className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none font-headline italic text-xl text-on-background placeholder:text-secondary/40 placeholder:italic"
+              placeholder="Request a title, a house, a note…"
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search the shelves"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="font-headline italic text-sm text-secondary/50 hover:text-primary transition-colors"
+              >
+                clear
+              </button>
+            )}
+          </div>
+          <div
+            className="absolute bottom-0 left-0 right-0 opacity-40 group-focus-within:opacity-100 transition-opacity"
+            style={hairline}
+          />
+        </div>
+      </section>
 
-      {/* Tag filter pills */}
+      {/* Tag filter row — understated italic chips when tags exist */}
       {allUserTags.length > 0 && (
-        <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-6 px-6 scrollbar-hide mb-3">
-          <button
-            onClick={() => navigate('/tags')}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-surface-container text-secondary/50 text-[10px] font-bold flex-shrink-0 active:scale-95 transition-transform"
-          >
-            <Icon name="settings" size={12} />
-          </button>
+        <div className="mb-10 flex flex-wrap items-baseline gap-x-5 gap-y-2">
+          <span className="font-label text-primary/50 text-[0.6rem] tracking-[0.2em] uppercase">
+            tagged
+          </span>
           {filterTag && (
             <button
               onClick={() => setFilterTag(null)}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-error/10 text-error text-[10px] font-bold flex-shrink-0 active:scale-95 transition-transform"
+              className="font-headline italic text-sm text-primary hover:text-primary/80 transition-colors"
             >
-              <Icon name="close" size={12} /> Clear
+              clear tag
             </button>
           )}
-          {allUserTags.slice(0, 15).map((tag) => (
-            <button
-              key={tag}
-              onClick={() => setFilterTag(filterTag === tag ? null : tag)}
-              className={`px-2.5 py-1.5 rounded-full text-[10px] font-medium flex-shrink-0 active:scale-95 transition-all ${
-                filterTag === tag ? tagColour(tag) + ' ring-1 ring-primary/30' : 'bg-surface-container text-secondary/60'
-              }`}
-            >
-              {tag}
-            </button>
-          ))}
+          {allUserTags.slice(0, 12).map((tag) => {
+            const active = filterTag === tag
+            return (
+              <button
+                key={tag}
+                onClick={() => setFilterTag(active ? null : tag)}
+                className={`font-headline italic text-sm transition-colors ${
+                  active ? 'text-primary' : 'text-secondary/50 hover:text-on-background'
+                }`}
+              >
+                {tag}
+              </button>
+            )
+          })}
         </div>
       )}
 
-      {/* Sort + Filter Control */}
-      <div className="mb-6 flex items-center justify-between relative">
-        <button
-          onClick={() => setSortMenuOpen(!sortMenuOpen)}
-          className="flex items-center gap-1.5 font-label text-[10px] tracking-[0.15em] text-secondary/60 uppercase active:opacity-70 transition-opacity"
-        >
-          Sorted by: <span className="text-primary font-bold">{SORT_OPTIONS.find((o) => o.value === sortBy)?.label}</span>
-          <Icon name="expand_more" size={16} className="text-primary" />
-        </button>
-        <div className="flex items-center gap-2">
-          {/* Group-by toggle */}
+      {/* IV. THE PROVENANCE */}
+      <section className="mb-10 relative">
+        <p className="font-headline text-base md:text-lg text-on-background/70">
+          Arranged by{' '}
           <button
-            onClick={() => setGroupMenuOpen(!groupMenuOpen)}
-            className={`p-1.5 rounded-lg active:scale-90 transition-transform ${groupBy !== 'none' ? 'bg-primary/15' : 'bg-surface-container'}`}
-            aria-label="Group by"
+            onClick={() => { setSortMenuOpen(!sortMenuOpen); setGroupMenuOpen(false) }}
+            className="italic text-on-background hover:text-primary transition-colors relative"
           >
-            <Icon name="workspaces" size={16} className={groupBy !== 'none' ? 'text-primary' : 'text-secondary'} />
+            {SORT_OPTIONS.find((o) => o.value === sortBy)?.label}
+            <span
+              className="absolute left-1/4 right-1/4 -bottom-0.5 h-px"
+              style={{ background: '#e5c276' }}
+            />
           </button>
-          {/* View mode cycle */}
+          {', grouped by '}
           <button
-            onClick={cycleViewMode}
-            className="p-1.5 rounded-lg bg-surface-container active:scale-90 transition-transform"
-            aria-label={`Switch to ${viewModeLabel} view`}
+            onClick={() => { setGroupMenuOpen(!groupMenuOpen); setSortMenuOpen(false) }}
+            className="italic text-on-background hover:text-primary transition-colors relative"
           >
-            <Icon name={viewModeIcon} size={16} className="text-secondary" />
+            {GROUP_OPTIONS.find((o) => o.value === groupBy)?.label}
+            <span
+              className="absolute left-1/4 right-1/4 -bottom-0.5 h-px"
+              style={{ background: '#e5c276' }}
+            />
           </button>
-          <button
-            onClick={() => setFilterOpen(true)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all active:scale-95 ${activeFilterCount > 0 ? 'bg-primary text-on-primary-container' : 'bg-surface-container text-secondary'}`}
-          >
-            <Icon name="tune" size={14} />
-            FILTER{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-          </button>
-        </div>
+          .
+        </p>
+
         {sortMenuOpen && (
           <>
-            <div className="fixed inset-0 z-[var(--z-sticky)]" onClick={() => setSortMenuOpen(false)} />
-            <div className="absolute top-8 left-0 z-[var(--z-dropdown)] bg-surface-container-highest rounded-xl py-2 min-w-[180px] shadow-xl border border-outline-variant/10">
+            <div className="fixed inset-0 z-10" onClick={() => setSortMenuOpen(false)} />
+            <ul className="absolute left-0 top-10 z-20 bg-surface-container-low/95 backdrop-blur-sm rounded-sm py-4 px-6 space-y-2 min-w-[16rem]">
               {SORT_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => { setSortBy(option.value); setSortMenuOpen(false) }}
-                  className={`w-full text-left px-4 py-2.5 text-xs font-medium transition-colors ${
-                    sortBy === option.value
-                      ? 'text-primary bg-primary/10'
-                      : 'text-on-surface hover:bg-surface-container'
-                  }`}
-                >
-                  {option.label}
-                  {sortBy === option.value && (
-                    <Icon name="check" className="float-right text-primary text-sm" />
-                  )}
-                </button>
+                <li key={option.value}>
+                  <button
+                    onClick={() => { setSortBy(option.value); setSortMenuOpen(false) }}
+                    className={`font-headline italic text-base transition-colors ${
+                      sortBy === option.value ? 'text-primary' : 'text-secondary/60 hover:text-on-background'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
           </>
         )}
+
         {groupMenuOpen && (
           <>
-            <div className="fixed inset-0 z-[var(--z-sticky)]" onClick={() => setGroupMenuOpen(false)} />
-            <div className="absolute top-8 right-0 z-[var(--z-dropdown)] bg-surface-container-highest rounded-xl py-2 min-w-[180px] shadow-xl border border-outline-variant/10">
+            <div className="fixed inset-0 z-10" onClick={() => setGroupMenuOpen(false)} />
+            <ul className="absolute left-0 top-10 z-20 bg-surface-container-low/95 backdrop-blur-sm rounded-sm py-4 px-6 space-y-2 min-w-[16rem]">
               {GROUP_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => { setGroupBy(option.value); setGroupMenuOpen(false); setCollapsedGroups(new Set()) }}
-                  className={`w-full text-left px-4 py-2.5 text-xs font-medium transition-colors flex items-center gap-2 ${
-                    groupBy === option.value
-                      ? 'text-primary bg-primary/10'
-                      : 'text-on-surface hover:bg-surface-container'
-                  }`}
-                >
-                  <Icon name={option.icon} size={16} className={groupBy === option.value ? 'text-primary' : 'text-secondary/50'} />
-                  {option.label}
-                  {groupBy === option.value && (
-                    <Icon name="check" className="ml-auto text-primary text-sm" />
-                  )}
-                </button>
+                <li key={option.value}>
+                  <button
+                    onClick={() => { setGroupBy(option.value); setGroupMenuOpen(false); setCollapsedGroups(new Set()) }}
+                    className={`font-headline italic text-base transition-colors ${
+                      groupBy === option.value ? 'text-primary' : 'text-secondary/60 hover:text-on-background'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
           </>
         )}
-      </div>
+      </section>
 
-      {/* Content */}
+      {/* V. THE READING ROOM + VI. THE FILTERS */}
+      <section className="mb-16 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="flex items-center gap-5">
+          {(['grid', 'list', 'compact'] as const).map((mode, i) => (
+            <span key={mode} className="flex items-center gap-5">
+              {i > 0 && <span aria-hidden style={verticalHairline} />}
+              <button
+                onClick={() => setViewMode(mode)}
+                className={`font-headline italic text-base transition-colors ${
+                  viewMode === mode ? 'text-primary' : 'text-secondary/40 hover:text-on-background'
+                }`}
+              >
+                {mode === 'grid' ? 'portraits' : mode === 'list' ? 'ledger' : 'compact'}
+              </button>
+            </span>
+          ))}
+        </div>
+        <button
+          onClick={() => setFilterOpen(true)}
+          className="font-headline text-sm md:text-base text-on-background/70 text-left hover:text-primary transition-colors"
+        >
+          Refine by{' '}
+          <span className="italic relative">
+            house
+            <span
+              className="absolute left-1/4 right-1/4 -bottom-0.5 h-px"
+              style={{ background: '#e5c276' }}
+            />
+          </span>
+          ,{' '}
+          <span className="italic relative">
+            family
+            <span
+              className="absolute left-1/4 right-1/4 -bottom-0.5 h-px"
+              style={{ background: '#e5c276' }}
+            />
+          </span>
+          ,{' '}
+          <span className="italic relative">
+            season
+            <span
+              className="absolute left-1/4 right-1/4 -bottom-0.5 h-px"
+              style={{ background: '#e5c276' }}
+            />
+          </span>
+          ,{' '}
+          <span className="italic relative">
+            appreciation
+            <span
+              className="absolute left-1/4 right-1/4 -bottom-0.5 h-px"
+              style={{ background: '#e5c276' }}
+            />
+          </span>
+          .
+          {activeFilterCount > 0 && (
+            <span className="ml-3 font-label not-italic text-[0.6rem] tracking-[0.2em] uppercase text-primary">
+              ({numberToWord(activeFilterCount)} active)
+            </span>
+          )}
+        </button>
+      </section>
+
+      <div className="mb-16" style={hairline} />
+
+      {/* VII. THE SHELVES */}
       {error ? (
-        <InlineError message="Couldn't load your collection" onRetry={retry} />
+        <InlineError message="The archive could not be retrieved." onRetry={retry} />
       ) : loading ? (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex flex-col">
-              <div className="aspect-[3/4] rounded-xl bg-surface-container animate-pulse mb-3" />
-              <div className="h-3 w-16 bg-surface-container rounded animate-pulse mb-1" />
-              <div className="h-4 w-24 bg-surface-container rounded animate-pulse" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6 mb-16">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i}>
+              <div className="aspect-[3/4] rounded-sm bg-surface-container-low animate-pulse mb-4" />
+              <div className="h-2 w-20 bg-surface-container-low rounded animate-pulse mb-2" />
+              <div className="h-4 w-32 bg-surface-container-low rounded animate-pulse" />
             </div>
           ))}
         </div>
       ) : collection.length === 0 ? (
-        /* Empty State — no auth or no collection items yet */
-        <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center mb-6">
-            <Icon name="water_drop" className="text-primary/40 text-4xl" />
-          </div>
-          <h3 className="font-headline text-xl text-on-surface mb-2 text-center">Start your collection</h3>
-          <p className="text-sm text-secondary/60 text-center mb-8 max-w-[280px]">
-            Browse 2,700+ fragrances, mark what you own, and track what you want to try next.
+        /* VIII. THE EMPTY SHELVES — no collection at all */
+        <section className="max-w-2xl mb-20">
+          <p className="font-headline italic text-xl md:text-2xl text-secondary/70 leading-relaxed mb-8">
+            Nothing has been filed yet. You may begin the archive whenever you wish.
           </p>
           <button
             onClick={() => navigate('/explore')}
-            className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg"
+            className="inline-block px-8 py-3 rounded-sm font-label text-[0.7rem] font-bold tracking-[0.2em] uppercase text-on-primary-container"
+            style={{
+              background: 'linear-gradient(45deg, #e5c276 0%, #c4a35a 100%)',
+            }}
           >
-            EXPLORE FRAGRANCES
+            FILE YOUR FIRST ENTRY
           </button>
-        </div>
+        </section>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5">
-            <Icon name={search ? 'search_off' : 'filter_list'} className="text-3xl text-primary/40" />
-          </div>
-          <h4 className="font-headline text-xl text-on-surface mb-2">
-            {search ? 'No matches' : 'Nothing here yet'}
-          </h4>
-          <p className="text-sm text-secondary/60 text-center max-w-[260px]">
+        /* VIII. THE EMPTY SHELVES — filter returned nothing */
+        <section className="max-w-2xl mb-20">
+          <p className="font-headline italic text-xl md:text-2xl text-secondary/70 leading-relaxed mb-8">
             {search
-              ? `No fragrances matching "${search}". Try a different search term.`
-              : `You don't have any fragrances marked as ${activeTab.toLowerCase()}. Tap + to add one.`}
+              ? <>Nothing has been filed under <span className="italic text-on-background">&ldquo;{search}&rdquo;</span> yet.</>
+              : <>Nothing has been filed under <span className="italic text-on-background">{TAB_LABEL[activeTab]}</span> yet.</>}
+            <br />
+            You may begin the archive whenever you wish.
           </p>
-        </div>
+          <button
+            onClick={() => setQuickAddOpen(true)}
+            className="inline-block px-8 py-3 rounded-sm font-label text-[0.7rem] font-bold tracking-[0.2em] uppercase text-on-primary-container"
+            style={{
+              background: 'linear-gradient(45deg, #e5c276 0%, #c4a35a 100%)',
+            }}
+          >
+            FILE AN ENTRY
+          </button>
+        </section>
       ) : (
         <>
-        {groupedItems ? (
-          /* ── Grouped rendering ── */
-          <div className="space-y-6 mb-16">
-            {groupedItems.map(([groupName, items]) => {
-              const isCollapsed = collapsedGroups.has(groupName)
-              return (
-                <section key={groupName}>
-                  <button
-                    onClick={() => toggleGroupCollapse(groupName)}
-                    className="w-full flex items-center justify-between mb-3 active:opacity-70 transition-opacity"
-                  >
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-headline font-bold text-on-surface">{groupName}</h4>
-                      <span className="text-[10px] text-secondary/40 font-bold">{items.length}</span>
+          {groupedItems ? (
+            /* Grouped rendering — editorial departments */
+            <div className="space-y-20 mb-20">
+              {groupedItems.map(([groupName, items]) => {
+                const isCollapsed = collapsedGroups.has(groupName)
+                return (
+                  <section key={groupName}>
+                    <div className="flex items-baseline justify-between mb-6">
+                      <h2 className="font-headline italic text-2xl md:text-3xl text-on-background">
+                        {groupName}
+                        <span className="ml-3 font-label not-italic text-[0.6rem] tracking-[0.2em] uppercase text-secondary/40">
+                          {numberToWord(items.length)} {items.length === 1 ? 'bottle' : 'bottles'}
+                        </span>
+                      </h2>
+                      <button
+                        onClick={() => toggleGroupCollapse(groupName)}
+                        className="font-headline italic text-base text-primary/70 hover:text-primary transition-colors"
+                      >
+                        {isCollapsed ? 'open' : 'collapse'}
+                      </button>
                     </div>
-                    <Icon name={isCollapsed ? 'expand_more' : 'expand_less'} size={18} className="text-secondary/40" />
-                  </button>
-                  {!isCollapsed && renderItemList(items)}
-                </section>
-              )
-            })}
-          </div>
-        ) : (
-          /* ── Flat rendering ── */
-          <div className="mb-16">{renderItemList(filtered)}</div>
-        )}
+                    <div className="mb-8" style={hairline} />
+                    {!isCollapsed && renderItemList(items)}
+                  </section>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="mb-20">{renderItemList(filtered)}</div>
+          )}
 
-        {/* Batch Action Bar */}
-        {selectMode && selected.size > 0 && (
-          <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[var(--z-fab)] bg-surface-container-highest rounded-2xl px-4 py-3 flex items-center gap-2 shadow-xl animate-slide-up">
-            <button onClick={selectAll} className="text-[9px] uppercase tracking-widest text-primary font-bold px-2 py-1.5 rounded-lg active:scale-95">ALL</button>
-            <div className="w-px h-6 bg-outline-variant/30" />
-            <button onClick={() => handleBatchStatus('own')} disabled={batchProcessing} className="flex items-center gap-1 px-3 py-2 rounded-xl bg-primary/10 text-primary text-[10px] font-bold active:scale-95 disabled:opacity-50">
-              <Icon name="inventory_2" size={14} /> OWN
-            </button>
-            <button onClick={() => handleBatchStatus('wishlist')} disabled={batchProcessing} className="flex items-center gap-1 px-3 py-2 rounded-xl bg-primary/10 text-primary text-[10px] font-bold active:scale-95 disabled:opacity-50">
-              <Icon name="favorite" size={14} /> WISH
-            </button>
-            <button onClick={handleBatchDelete} disabled={batchProcessing} className="flex items-center gap-1 px-3 py-2 rounded-xl bg-error/10 text-error text-[10px] font-bold active:scale-95 disabled:opacity-50">
-              <Icon name="delete" size={14} /> DEL
-            </button>
-          </div>
-        )}
+          {/* Batch Action Bar — discreet editorial */}
+          {selectMode && selected.size > 0 && (
+            <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[var(--z-fab)] bg-surface-container-low/95 backdrop-blur-sm rounded-sm px-8 py-4 flex items-baseline gap-6 shadow-2xl">
+              <span className="font-headline italic text-sm text-secondary/60">
+                {numberToWord(selected.size)} selected
+              </span>
+              <button
+                onClick={selectAll}
+                className="font-headline italic text-sm text-primary/80 hover:text-primary transition-colors"
+              >
+                all
+              </button>
+              <span aria-hidden style={verticalHairline} />
+              <button
+                onClick={() => handleBatchStatus('own')}
+                disabled={batchProcessing}
+                className="font-headline italic text-sm text-on-background/80 hover:text-primary transition-colors disabled:opacity-40"
+              >
+                file as owned
+              </button>
+              <button
+                onClick={() => handleBatchStatus('wishlist')}
+                disabled={batchProcessing}
+                className="font-headline italic text-sm text-on-background/80 hover:text-primary transition-colors disabled:opacity-40"
+              >
+                in waiting
+              </button>
+              <span aria-hidden style={verticalHairline} />
+              <button
+                onClick={handleBatchDelete}
+                disabled={batchProcessing}
+                className="font-headline italic text-sm text-error/80 hover:text-error transition-colors disabled:opacity-40"
+              >
+                release
+              </button>
+            </div>
+          )}
         </>
       )}
-      {/* FAB — Add Fragrance */}
-      {user && (
-        <button
-          onClick={() => setQuickAddOpen(true)}
-          className="fixed bottom-24 right-6 z-[var(--z-fab)] w-14 h-14 rounded-full gold-gradient shadow-xl flex items-center justify-center active:scale-90 transition-all ambient-glow"
-          aria-label="Add fragrance"
-        >
-          <Icon name="add" className="text-on-primary text-2xl" />
-        </button>
+
+      {/* IX. THE KINDRED WORKS */}
+      {collection.length >= 4 && (
+        <section className="mt-24 mb-24">
+          <p className="font-label text-primary/60 text-[0.65rem] tracking-[0.3em] uppercase mb-4">
+            KINDRED WORKS
+          </p>
+          <h3 className="font-headline italic text-2xl md:text-3xl text-on-background mb-2">
+            You may also wish to consider&hellip;
+          </h3>
+          <p className="font-headline italic text-sm md:text-base text-secondary/60 mb-10">
+            Titles our editors suspect you will favour.
+          </p>
+          <div className="mb-8" style={hairline} />
+          <RecommendationCarousel />
+        </section>
       )}
 
-      {/* Quick-Add Overlay */}
+      {/* X. THE COLOPHON */}
+      {collection.length > 0 && (
+        <footer className="pt-20 pb-12">
+          <div className="mb-16" style={hairlineFull} />
+          <div className="text-center max-w-2xl mx-auto">
+            <p className="font-headline italic text-base md:text-lg text-secondary/60 leading-relaxed">
+              {capitalise(numberToWord(collection.length))}{' '}
+              {collection.length === 1 ? 'bottle' : 'bottles'},{' '}
+              {numberToWord(uniqueHouses)}{' '}
+              {uniqueHouses === 1 ? 'house' : 'houses'},{' '}
+              {numberToWord(uniqueFamilies)}{' '}
+              {uniqueFamilies === 1 ? 'note family' : 'note families'}.
+              {lastEntry && (
+                <>
+                  <br />
+                  Last entry filed on{' '}
+                  <span className="text-primary/70">{dateProse(lastEntry.created_at)}</span>.
+                </>
+              )}
+            </p>
+          </div>
+        </footer>
+      )}
+
+      {/* Quick-Add (file an entry) overlay */}
       {quickAddOpen && (
-        <div ref={quickAddTrapRef} className="fixed inset-0 z-[var(--z-sheet)] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Add fragrance">
-          <div className="absolute inset-0 bg-black/40" onClick={() => { setQuickAddOpen(false); setAddQuery(''); setAddResults([]) }} />
-          <section className="relative w-full max-h-[70vh] bg-surface-container-low rounded-t-[2.5rem] sheet-shadow flex flex-col overflow-hidden animate-slide-up">
-            {/* Handle */}
+        <div ref={quickAddTrapRef} className="fixed inset-0 z-[var(--z-sheet)] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="File a bottle">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setQuickAddOpen(false); setAddQuery(''); setAddResults([]) }} />
+          <section className="relative w-full max-h-[75vh] bg-surface-container-low rounded-t-sm flex flex-col overflow-hidden" style={{ boxShadow: '0 -20px 60px rgba(0,0,0,0.6)' }}>
             <div className="flex justify-center py-4">
-              <div className="w-12 h-1 bg-surface-container-highest rounded-full" />
+              <div className="w-12 h-px bg-primary/30" />
             </div>
-            {/* Header */}
-            <header className="px-8 pb-4 flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-headline font-bold text-on-surface">Add Fragrance</h2>
-                <p className="text-[10px] uppercase tracking-[0.15em] text-primary font-bold mt-1">
-                  Adding to: {addStatus.toUpperCase()}
-                </p>
+            <header className="px-8 pb-6">
+              <p className="font-label text-primary/60 text-[0.6rem] tracking-[0.3em] uppercase mb-2">
+                FILE AN ENTRY &middot; {addStatus.toUpperCase()}
+              </p>
+              <div className="flex items-start justify-between gap-6">
+                <h2 className="font-headline italic text-3xl md:text-4xl text-on-background leading-tight">
+                  A bottle to be filed.
+                </h2>
+                <button
+                  onClick={() => { setQuickAddOpen(false); setAddQuery(''); setAddResults([]) }}
+                  className="font-headline italic text-base text-secondary/60 hover:text-primary transition-colors flex-shrink-0"
+                >
+                  close
+                </button>
               </div>
-              <button
-                onClick={() => { setQuickAddOpen(false); setAddQuery(''); setAddResults([]) }}
-                className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform"
-              >
-                <Icon name="close" size={20} />
-              </button>
+              <div className="mt-6" style={hairline} />
             </header>
-            {/* Search */}
             <div className="px-8 pb-4">
-              <div className="flex items-center bg-surface-container rounded-2xl px-4 py-3 focus-within:ring-1 ring-primary/30 transition-all">
-                <Icon name="search" className="text-secondary/50 mr-3" size={18} />
-                <input
-                  className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-secondary/40 w-full text-sm"
-                  placeholder="Search fragrances..."
-                  type="text"
-                  value={addQuery}
-                  onChange={(e) => setAddQuery(e.target.value)}
-                  autoFocus
-                />
-                {addQuery && (
-                  <button onClick={() => setAddQuery('')} className="text-secondary/60">
-                    <Icon name="close" size={16} />
-                  </button>
-                )}
+              <div className="relative group">
+                <div className="flex items-center gap-4 py-3">
+                  <Icon name="search" size={18} className="text-primary/60" />
+                  <input
+                    className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none font-headline italic text-lg text-on-background placeholder:text-secondary/40"
+                    placeholder="Request a title, a house…"
+                    type="text"
+                    value={addQuery}
+                    onChange={(e) => setAddQuery(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 opacity-60 group-focus-within:opacity-100 transition-opacity" style={hairline} />
               </div>
             </div>
-            {/* Results */}
-            <div className="flex-1 overflow-y-auto px-8 pb-8">
+            <div className="flex-1 overflow-y-auto px-8 pb-12">
               {addSearching ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <div className="py-16 text-center">
+                  <p className="font-headline italic text-sm text-secondary/50">searching the catalogue&hellip;</p>
                 </div>
               ) : addQuery.length >= 2 && addResults.length === 0 ? (
-                <div className="py-12 text-center">
-                  <p className="text-sm text-secondary/50">No fragrances found</p>
+                <div className="py-16 text-center">
+                  <p className="font-headline italic text-sm text-secondary/50">
+                    No titles found under &ldquo;{addQuery}&rdquo;.
+                  </p>
                 </div>
               ) : (
-                <div className="divide-y divide-outline-variant/10">
-                  {addResults.map((f) => {
+                <ul>
+                  {addResults.map((f, i) => {
                     const alreadyInCollection = collection.some((c) => c.fragrance.id === f.id)
                     return (
-                      <button
-                        key={f.id}
-                        onClick={() => !alreadyInCollection && handleQuickAdd(f)}
-                        disabled={addingSaving === f.id || alreadyInCollection}
-                        className="w-full flex items-center gap-3 py-3 text-left disabled:opacity-50 active:bg-surface-container-highest transition-colors"
-                      >
-                        <div className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
-                          {f.image_url ? (
-                            <img src={f.image_url} alt={f.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Icon name="water_drop" className="text-secondary/30" size={16} />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[9px] uppercase tracking-[0.15em] text-primary/70 font-bold">{f.brand}</p>
-                          <p className="text-sm text-on-surface truncate">{f.name}</p>
-                        </div>
-                        {alreadyInCollection ? (
-                          <span className="text-[9px] font-bold tracking-wider text-primary/50">IN COLLECTION</span>
-                        ) : addingSaving === f.id ? (
-                          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Icon name="add" className="text-primary" size={18} />
+                      <li key={f.id} className="relative">
+                        {i > 0 && <div className="absolute top-0 left-0 right-0" style={hairline} />}
+                        <button
+                          onClick={() => !alreadyInCollection && handleQuickAdd(f)}
+                          disabled={addingSaving === f.id || alreadyInCollection}
+                          className="w-full flex items-baseline gap-5 py-5 text-left disabled:opacity-40 group"
+                        >
+                          <div className="w-12 h-16 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container">
+                            {f.image_url ? (
+                              <img src={f.image_url} alt={f.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
+                            ) : (
+                              <div className="w-full h-full" />
+                            )}
                           </div>
-                        )}
-                      </button>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-label text-primary/70 text-[0.6rem] tracking-[0.2em] uppercase mb-1">{f.brand}</p>
+                            <p className="font-headline italic text-lg text-on-background truncate">{f.name}</p>
+                          </div>
+                          <span className="font-headline italic text-sm text-primary/60 flex-shrink-0">
+                            {alreadyInCollection ? 'already filed' : addingSaving === f.id ? 'filing…' : 'file'}
+                          </span>
+                        </button>
+                      </li>
                     )
                   })}
-                </div>
+                </ul>
               )}
             </div>
           </section>
         </div>
       )}
-      {/* Filter Sheet */}
-      {/* Recommendations based on collection */}
-      <RecommendationCarousel />
 
+      {/* Filter Sheet */}
       {filterOpen && (
         <FilterSheet
           isOpen={filterOpen}
@@ -903,6 +1079,21 @@ export function CollectionScreen() {
           concentrations={allConcentrations}
           families={allFamilies}
         />
+      )}
+
+      {/* FAB — File an entry */}
+      {user && collection.length > 0 && (
+        <button
+          onClick={() => setQuickAddOpen(true)}
+          className="fixed bottom-24 right-6 z-[var(--z-fab)] px-6 py-3 rounded-sm font-label text-[0.65rem] font-bold tracking-[0.2em] uppercase text-on-primary-container"
+          style={{
+            background: 'linear-gradient(45deg, #e5c276 0%, #c4a35a 100%)',
+            boxShadow: '0 10px 40px rgba(229,194,118,0.25)',
+          }}
+          aria-label="File a bottle"
+        >
+          FILE AN ENTRY
+        </button>
       )}
     </main>
     </PullToRefresh>
@@ -921,47 +1112,74 @@ function FilterSheet({ isOpen, onClose, filters, onApply, brands, concentrations
 
   const clearAll = () => setDraft({ brands: [], concentrations: [], noteFamilies: [], minRating: 0, seasons: [] })
 
+  const sectionLabel = 'font-label text-primary/60 text-[0.6rem] tracking-[0.3em] uppercase mb-4'
+  const chipBase = 'font-headline italic text-sm transition-colors'
+  const chipActive = 'text-primary'
+  const chipIdle = 'text-secondary/50 hover:text-on-background'
+
   return (
-    <div ref={trapRef} className="fixed inset-0 z-[var(--z-sheet)] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Filter collection">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <section className="relative w-full max-h-[80vh] bg-surface-container-low rounded-t-[2.5rem] sheet-shadow flex flex-col overflow-hidden animate-slide-up">
-        <div className="flex justify-center py-4"><div className="w-12 h-1 bg-surface-container-highest rounded-full" /></div>
-        <header className="px-8 pb-4 flex justify-between items-center">
-          <h2 className="text-2xl font-headline font-bold text-on-surface">Filters</h2>
-          <div className="flex gap-2">
-            <button onClick={clearAll} className="text-[10px] text-primary font-bold uppercase tracking-widest px-3 py-1.5 rounded-full bg-primary/10 active:scale-95 transition-all">CLEAR</button>
-            <button onClick={onClose} className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center active:scale-90 transition-transform">
-              <Icon name="close" size={20} />
-            </button>
+    <div ref={trapRef} className="fixed inset-0 z-[var(--z-sheet)] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Refine the shelves">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <section className="relative w-full max-h-[85vh] bg-surface-container-low rounded-t-sm flex flex-col overflow-hidden" style={{ boxShadow: '0 -20px 60px rgba(0,0,0,0.6)' }}>
+        <div className="flex justify-center py-4">
+          <div className="w-12 h-px bg-primary/30" />
+        </div>
+        <header className="px-8 pb-6">
+          <p className="font-label text-primary/60 text-[0.6rem] tracking-[0.3em] uppercase mb-2">
+            REFINE THE SHELVES
+          </p>
+          <div className="flex items-start justify-between gap-6">
+            <h2 className="font-headline italic text-3xl md:text-4xl text-on-background leading-tight">
+              By house, by family, by season.
+            </h2>
+            <div className="flex items-baseline gap-5 flex-shrink-0">
+              <button
+                onClick={clearAll}
+                className="font-headline italic text-base text-primary/70 hover:text-primary transition-colors"
+              >
+                clear
+              </button>
+              <button
+                onClick={onClose}
+                className="font-headline italic text-base text-secondary/60 hover:text-on-background transition-colors"
+              >
+                close
+              </button>
+            </div>
           </div>
+          <div className="mt-6" style={{
+            height: '1px',
+            background:
+              'linear-gradient(to right, rgba(229,194,118,0.4) 0%, rgba(229,194,118,0.1) 40%, transparent 100%)',
+            width: '100%',
+          }} />
         </header>
-        <div className="flex-1 overflow-y-auto px-8 pb-8 space-y-6">
-          {/* Min Rating */}
+
+        <div className="flex-1 overflow-y-auto px-8 pb-8 space-y-10">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold mb-3">MINIMUM RATING</p>
-            <div className="flex gap-2">
+            <p className={sectionLabel}>MINIMUM APPRECIATION</p>
+            <div className="flex flex-wrap gap-x-6 gap-y-2">
               {[0, 3, 3.5, 4, 4.5].map((r) => (
                 <button
                   key={r}
                   onClick={() => setDraft({ ...draft, minRating: r })}
-                  className={`flex items-center gap-1 px-3 py-2 rounded-full text-xs font-medium transition-all ${draft.minRating === r ? 'bg-primary text-on-primary-container' : 'bg-surface-container text-on-surface'}`}
+                  className={`${chipBase} ${draft.minRating === r ? chipActive : chipIdle}`}
                 >
-                  {r === 0 ? 'Any' : <><Icon name="star" filled className="text-[10px]" /> {r}+</>}
+                  {r === 0 ? 'any' : `${r} and above`}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Brands */}
           {brands.length > 0 && (
             <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold mb-3">BRAND</p>
-              <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto">
+              <p className={sectionLabel}>HOUSE</p>
+              <div className="flex flex-wrap gap-x-6 gap-y-2 max-h-40 overflow-y-auto pr-4">
                 {brands.map((b) => (
                   <button
                     key={b}
                     onClick={() => setDraft({ ...draft, brands: toggleArray(draft.brands, b) })}
-                    className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${draft.brands.includes(b) ? 'bg-primary text-on-primary-container' : 'bg-surface-container text-on-surface'}`}
+                    className={`${chipBase} ${draft.brands.includes(b) ? chipActive : chipIdle}`}
                   >
                     {b}
                   </button>
@@ -970,66 +1188,70 @@ function FilterSheet({ isOpen, onClose, filters, onApply, brands, concentrations
             </div>
           )}
 
-          {/* Concentration */}
           {concentrations.length > 0 && (
             <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold mb-3">CONCENTRATION</p>
-              <div className="flex flex-wrap gap-2">
+              <p className={sectionLabel}>CONCENTRATION</p>
+              <div className="flex flex-wrap gap-x-6 gap-y-2">
                 {concentrations.map((c) => (
                   <button
                     key={c}
                     onClick={() => setDraft({ ...draft, concentrations: toggleArray(draft.concentrations, c) })}
-                    className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${draft.concentrations.includes(c) ? 'bg-primary text-on-primary-container' : 'bg-surface-container text-on-surface'}`}
+                    className={`${chipBase} ${draft.concentrations.includes(c) ? chipActive : chipIdle}`}
                   >
-                    {c}
+                    {c.toLowerCase()}
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Note Family */}
           {families.length > 0 && (
             <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold mb-3">NOTE FAMILY</p>
-              <div className="flex flex-wrap gap-2">
+              <p className={sectionLabel}>NOTE FAMILY</p>
+              <div className="flex flex-wrap gap-x-6 gap-y-2">
                 {families.map((f) => (
                   <button
                     key={f}
                     onClick={() => setDraft({ ...draft, noteFamilies: toggleArray(draft.noteFamilies, f) })}
-                    className={`px-3 py-1.5 rounded-full text-[11px] font-medium transition-all ${draft.noteFamilies.includes(f) ? 'bg-primary text-on-primary-container' : 'bg-surface-container text-on-surface'}`}
+                    className={`${chipBase} ${draft.noteFamilies.includes(f) ? chipActive : chipIdle}`}
                   >
-                    {f}
+                    {f.toLowerCase()}
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Season */}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold mb-3">BEST SEASON</p>
-            <div className="flex gap-2">
+            <p className={sectionLabel}>SEASON</p>
+            <div className="flex flex-wrap gap-x-6 gap-y-2">
               {['SPRING', 'SUMMER', 'FALL', 'WINTER'].map((s) => (
                 <button
                   key={s}
                   onClick={() => setDraft({ ...draft, seasons: toggleArray(draft.seasons, s) })}
-                  className={`flex-1 py-2 rounded-xl text-[10px] font-bold tracking-widest uppercase transition-all ${draft.seasons.includes(s) ? 'bg-primary text-on-primary-container' : 'bg-surface-container text-on-surface'}`}
+                  className={`${chipBase} ${draft.seasons.includes(s) ? chipActive : chipIdle}`}
                 >
-                  {s.slice(0, 3)}
+                  {s.toLowerCase()}
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Apply */}
-        <div className="px-8 py-4 border-t border-outline-variant/10">
+        <div className="px-8 py-6 relative">
+          <div className="absolute top-0 left-0 right-0" style={{
+            height: '1px',
+            background:
+              'linear-gradient(to right, rgba(229,194,118,0.4) 0%, rgba(229,194,118,0.1) 40%, transparent 100%)',
+          }} />
           <button
             onClick={() => onApply(draft)}
-            className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-2xl ambient-glow active:scale-[0.98] transition-all"
+            className="w-full py-4 rounded-sm font-label text-[0.7rem] font-bold tracking-[0.2em] uppercase text-on-primary-container"
+            style={{
+              background: 'linear-gradient(45deg, #e5c276 0%, #c4a35a 100%)',
+            }}
           >
-            APPLY FILTERS
+            REFINE THE SHELVES
           </button>
         </div>
       </section>
