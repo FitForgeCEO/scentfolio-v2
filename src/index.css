@@ -9,15 +9,12 @@
   /* Core Palette */
   --color-background: #191210;
   --color-surface: #191210;
-  --color-surface-dim: #191210;
-  --color-surface-bright: #413734;
   --color-surface-container-lowest: #140c0b;
   --color-surface-container-low: #221a18;
   --color-surface-container: #261e1b;
   --color-surface-container-high: #312826;
   --color-surface-container-highest: #3c3330;
   --color-surface-variant: #3c3330;
-  --color-surface-tint: #e5c276;
 
   --color-primary: #e5c276;
   --color-primary-container: #c4a35a;
@@ -57,10 +54,6 @@
 
   --color-outline: #999080;
   --color-outline-variant: #4d4639;
-
-  --color-inverse-surface: #f0dfdb;
-  --color-inverse-on-surface: #382e2c;
-  --color-inverse-primary: #755b18;
 
   /* Typography */
   --font-headline: "Noto Serif", "Playfair Display", Georgia, serif;
@@ -183,16 +176,6 @@
   box-shadow: 0 -12px 48px rgba(25, 18, 16, 0.8);
 }
 
-/* Bottom sheet slide-up animation */
-@keyframes slide-up {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
-}
-
 @keyframes slide-down {
   from { transform: translateY(-20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
@@ -308,15 +291,12 @@
 [data-theme="light"] {
   --color-background: #fef9f3;
   --color-surface: #fef9f3;
-  --color-surface-dim: #f0e8df;
-  --color-surface-bright: #fef9f3;
   --color-surface-container-lowest: #ffffff;
   --color-surface-container-low: #f8f1e9;
   --color-surface-container: #f2ebe2;
   --color-surface-container-high: #ece4db;
   --color-surface-container-highest: #e6ddd4;
   --color-surface-variant: #e6ddd4;
-  --color-surface-tint: #8b6914;
 
   --color-primary: #8b6914;
   --color-primary-container: #ffdfa0;
@@ -356,10 +336,6 @@
 
   --color-outline: #7f7667;
   --color-outline-variant: #d0c5b4;
-
-  --color-inverse-surface: #33302c;
-  --color-inverse-on-surface: #f8efe8;
-  --color-inverse-primary: #e5c276;
 }
 
 [data-theme="light"] .gold-gradient {
