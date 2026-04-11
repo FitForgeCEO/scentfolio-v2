@@ -1,7 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import type React from 'react'
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Icon } from '../ui/Icon'
+import { useState, useEffect, useCallback, useMemo, type CSSProperties } from 'react'
 import { useFragranceDetail, useFragranceReviews, useFragranceTags } from '@/hooks/useFragrances'
 import { useSimilarFragrances } from '@/hooks/useSimilarFragrances'
 import { useAuth } from '@/contexts/AuthContext'
@@ -11,133 +9,18 @@ import { ReviewSheet } from './ReviewSheet'
 import { EditReviewSheet } from './EditReviewSheet'
 import { hapticMedium } from '@/lib/haptics'
 import { FragranceImage } from '../ui/FragranceImage'
-import { FragranceNotesPyramid } from '../fragrance/FragranceNotesPyramid'
 import { AccordsRadar } from '../fragrance/AccordsRadar'
 import { awardXP } from '@/lib/xp'
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 import { useToast } from '@/contexts/ToastContext'
-import { TagInput } from '../ui/TagInput'
-import { useUserFragranceTags, useAllUserTags } from '@/hooks/useUserTags'
+import { useUserFragranceTags } from '@/hooks/useUserTags'
 import { ShareCardSheet } from '../ui/ShareCard'
-import { EnhancedReviewCard } from '../ui/EnhancedReviewCard'
 import { useReviewOwners, useDeleteReview } from '@/hooks/useReviewEnhancements'
 import type { ReviewSortOption } from '@/hooks/useReviewEnhancements'
 import type { Review } from '@/types/database'
 import { addRecentlyViewed } from '@/lib/recentlyViewed'
 
-/* ── Season & Occasion icon maps ── */
-const SEASON_ICONS: Record<string, React.ReactNode> = {
-  SPRING: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-      <circle cx="12" cy="12" r="4" fill="currentColor" opacity="0.15"/>
-    </svg>
-  ),
-  SUMMER: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="5" fill="currentColor" opacity="0.2"/>
-      <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-      <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-    </svg>
-  ),
-  FALL: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.5 10-10 10Z" fill="currentColor" opacity="0.12"/>
-      <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.5 10-10 10Z"/>
-      <path d="M11 20V8"/>
-    </svg>
-  ),
-  AUTUMN: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.5 10-10 10Z" fill="currentColor" opacity="0.12"/>
-      <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.5 10-10 10Z"/>
-      <path d="M11 20V8"/>
-    </svg>
-  ),
-  WINTER: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/>
-      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/><line x1="19.07" y1="4.93" x2="4.93" y2="19.07"/>
-      <circle cx="12" cy="12" r="2" fill="currentColor" opacity="0.2"/>
-    </svg>
-  ),
-}
-
-const OCCASION_ICONS: Record<string, React.ReactNode> = {
-  CASUAL: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20.38 3.46L16 2 12 5.5 8 2l-4.38 1.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23Z"/>
-    </svg>
-  ),
-  OFFICE: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-    </svg>
-  ),
-  'DATE NIGHT': (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" fill="currentColor" opacity="0.12"/>
-      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-    </svg>
-  ),
-  'NIGHT OUT': (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" fill="currentColor" opacity="0.12"/>
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
-    </svg>
-  ),
-  'SPECIAL EVENT': (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor" opacity="0.12"/>
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-    </svg>
-  ),
-  DAILY: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-    </svg>
-  ),
-  SPORT: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6.5 6.5L17.5 17.5M6.5 17.5L17.5 6.5"/>
-      <circle cx="12" cy="12" r="10"/>
-    </svg>
-  ),
-  BUSINESS: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-    </svg>
-  ),
-  LEISURE: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-    </svg>
-  ),
-  EVENING: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" fill="currentColor" opacity="0.12"/>
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
-    </svg>
-  ),
-}
-
-function getSeasonIcon(name: string): React.ReactNode {
-  return SEASON_ICONS[name] || null
-}
-
-function getOccasionIcon(name: string): React.ReactNode {
-  // Try exact, then partial
-  if (OCCASION_ICONS[name]) return OCCASION_ICONS[name]
-  for (const [key, icon] of Object.entries(OCCASION_ICONS)) {
-    if (name.includes(key) || key.includes(name)) return icon
-  }
-  return null
-}
+/* ── Noir helpers ── */
 
 function accordToPercent(level: string): number {
   switch (level) {
@@ -146,6 +29,86 @@ function accordToPercent(level: string): number {
     case 'Moderate': return 50
     default: return 30
   }
+}
+
+// 0 → "0 / V", 1 → "I / V", ... 5 → "V / V"
+function toRomanOutOfFive(n: number | null | undefined): string {
+  if (n == null || isNaN(n)) return ''
+  const rounded = Math.max(0, Math.min(5, Math.round(n)))
+  const romans = ['0', 'I', 'II', 'III', 'IV', 'V']
+  return `${romans[rounded]} / V`
+}
+
+// Year → Roman (for attribution: MMXXVI, MMXXV, MMXXIV)
+function yearToRoman(dateStr: string): string {
+  const year = new Date(dateStr).getFullYear()
+  if (!isFinite(year)) return ''
+  let n = year
+  const map: [number, string][] = [
+    [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
+    [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
+    [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
+  ]
+  let out = ''
+  for (const [v, r] of map) {
+    while (n >= v) { out += r; n -= v }
+  }
+  return out
+}
+
+// 1–5 → italic serif word for longevity
+function longevityWord(n: number | null): string {
+  if (n == null) return ''
+  if (n >= 4.5) return 'eternal.'
+  if (n >= 3.5) return 'long.'
+  if (n >= 2.5) return 'moderate.'
+  if (n >= 1.5) return 'brief.'
+  return 'fleeting.'
+}
+
+// 1–5 → italic serif word for sillage
+function sillageWord(n: number | null): string {
+  if (n == null) return ''
+  if (n >= 4.5) return 'an arrival.'
+  if (n >= 3.5) return 'a presence.'
+  if (n >= 2.5) return 'close.'
+  if (n >= 1.5) return 'intimate.'
+  return 'a whisper.'
+}
+
+// Format notes array as italic serif prose: "bergamot, green mandarin & pink pepper."
+function notesProse(notes: string[] | null | undefined): string {
+  if (!notes || notes.length === 0) return ''
+  const lower = notes.map((n) => n.toLowerCase())
+  if (lower.length === 1) return `${lower[0]}.`
+  if (lower.length === 2) return `${lower[0]} & ${lower[1]}.`
+  return `${lower.slice(0, -1).join(', ')} & ${lower[lower.length - 1]}.`
+}
+
+// Format tags as italic serif prose: "autumnal, smoky, melancholic and nocturnal."
+function tagsProse(tags: string[]): string {
+  if (tags.length === 0) return ''
+  const lower = tags.map((t) => t.toLowerCase())
+  if (lower.length === 1) return `${lower[0]}.`
+  if (lower.length === 2) return `${lower[0]} and ${lower[1]}.`
+  return `${lower.slice(0, -1).join(', ')} and ${lower[lower.length - 1]}.`
+}
+
+// First letter of brand, used as the italic serif plate sigil
+function brandSigil(brand: string): string {
+  if (!brand) return 'S'
+  return brand.trim().charAt(0).toUpperCase()
+}
+
+// Season ranking → prose with opacity spans
+// active: score > 0.66, neutral: 0.33–0.66, negative: < 0.33
+type Ranked = { name: string; opacity: 'high' | 'mid' | 'low' }
+function rankedList(items: { name: string; score: number }[] | null): Ranked[] {
+  if (!items) return []
+  return items.map((i) => ({
+    name: i.name.toLowerCase(),
+    opacity: i.score > 0.66 ? 'high' : i.score > 0.33 ? 'mid' : 'low',
+  }))
 }
 
 export function FragranceDetailScreen() {
@@ -158,15 +121,12 @@ export function FragranceDetailScreen() {
   const { data: tags } = useFragranceTags(id)
   const { data: similarFragrances, loading: similarLoading } = useSimilarFragrances(frag ?? null)
   const { tags: userTags, setTags: setUserTags } = useUserFragranceTags(id)
-  const { tags: allUserTags } = useAllUserTags()
 
-  // Verified owner badges — check which reviewers own this fragrance
   const reviewerIds = useMemo(() => reviews.map((r) => r.user_id), [reviews])
   const ownerIds = useReviewOwners(id, reviewerIds)
   const { deleteReview } = useDeleteReview(refetchReviews)
 
   const { showToast } = useToast()
-  // Collection status
   const [collectionStatus, setCollectionStatus] = useState<string | null>(null)
   const [addMenuOpen, setAddMenuOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -175,7 +135,9 @@ export function FragranceDetailScreen() {
   const [editingReview, setEditingReview] = useState<Review | null>(null)
   const [shareCardOpen, setShareCardOpen] = useState(false)
 
-  // Track recently viewed + analytics
+  // Personal tag input draft
+  const [tagDraft, setTagDraft] = useState('')
+
   useEffect(() => {
     if (frag) {
       addRecentlyViewed({ id: frag.id, name: frag.name, brand: frag.brand, image_url: frag.image_url })
@@ -201,7 +163,6 @@ export function FragranceDetailScreen() {
     if (!id) return
     setAddMenuOpen(false)
 
-    // Optimistic update
     const previousStatus = collectionStatus
     setCollectionStatus(status)
     setSaving(true)
@@ -223,17 +184,16 @@ export function FragranceDetailScreen() {
       }
       hapticMedium()
       trackEvent(AnalyticsEvents.ADD_TO_COLLECTION, { fragrance_id: id, status, was_update: !!previousStatus })
-      showToast(
-        previousStatus
-          ? `Moved to ${status}`
-          : `Added to ${status}`,
-        'success',
-        status === 'wishlist' ? 'favorite' : 'check_circle'
-      )
+      const voiced =
+        status === 'own' ? 'filed on your own shelf.'
+        : status === 'wishlist' ? 'moved to your wishlist.'
+        : status === 'sampled' ? 'marked as sampled.'
+        : status === 'sold' ? 'released from the shelf.'
+        : 'shelf updated.'
+      showToast(voiced, 'success')
     } catch {
-      // Rollback on failure
       setCollectionStatus(previousStatus)
-      showToast('Failed to update collection', 'error')
+      showToast('could not update the shelf.', 'error')
     }
     setSaving(false)
   }, [user, id, collectionStatus, navigate, showToast])
@@ -254,23 +214,49 @@ export function FragranceDetailScreen() {
         .slice(0, 6)
     : (frag.accords || []).slice(0, 6).map((a, i) => ({ name: a.toUpperCase(), value: 90 - i * 12 }))
 
-  // Season/occasion from rankings
-  const seasons = (frag.season_ranking || []).map((s) => ({
-    name: s.name.toUpperCase(),
-    active: s.score > 0.5,
-  }))
+  // Top 3 accords as italic serif prose
+  const topAccordsProse = accords.length
+    ? `${accords.slice(0, 3).map((a) => a.name.toLowerCase()).join(', ')} — in that order.`
+    : ''
 
-  const occasions = (frag.occasion_ranking || []).map((o) => ({
-    name: o.name.replace(/_/g, ' ').toUpperCase(),
-    active: o.score > 0.5,
-  }))
+  const seasons = rankedList(frag.season_ranking || null)
+  const occasions = rankedList((frag.occasion_ranking || null)?.map((o) => ({
+    name: o.name.replace(/_/g, ' '),
+    score: o.score,
+  })) || null)
 
-  const longevityFilled = frag.longevity ? Math.round(frag.longevity * 2) : null
-  const sillageFilled = frag.sillage ? Math.round(frag.sillage * 2) : null
+  const longevityPct = frag.longevity ? Math.max(0, Math.min(100, Math.round((frag.longevity / 5) * 100))) : 0
+  const sillagePct = frag.sillage ? Math.max(0, Math.min(100, Math.round((frag.sillage / 5) * 100))) : 0
+
+  const kicker = 'text-[10px] font-bold tracking-[0.25em] text-primary/60 uppercase font-label'
+  const hairline: CSSProperties = {
+    background: 'linear-gradient(to right, rgba(229,194,118,0.4) 0%, rgba(229,194,118,0.1) 40%, transparent 100%)',
+  }
+
+  const ambientGlow = (position: string): CSSProperties => ({
+    position: 'absolute',
+    width: 300,
+    height: 300,
+    pointerEvents: 'none',
+    opacity: 0.07,
+    background: 'radial-gradient(circle, #e5c276 0%, transparent 70%)',
+    filter: 'blur(80px)',
+    ...(position === 'tl' ? { top: -50, left: -50 }
+      : position === 'tr' ? { top: -50, right: -50 }
+      : position === 'bl' ? { bottom: -50, left: -50 }
+      : { bottom: -50, right: -50 }),
+  })
 
   return (
-    <main className="pb-24">
-      {/* Hero Section */}
+    <main className="pb-24 relative overflow-hidden bg-background">
+      {/* Ambient gold lifts — no lines, only light */}
+      <div style={ambientGlow('tl')} />
+      <div style={ambientGlow('tr')} />
+
+      {/* ═══════════════════════════════════════════════════════
+          DEPARTMENT 1 — THE PLATE
+          The catalogue plate: brand sigil, editorial framing, no noise.
+          ═══════════════════════════════════════════════════════ */}
       <section className="relative w-full aspect-[4/5] overflow-hidden">
         <FragranceImage
           src={frag.image_url}
@@ -279,116 +265,529 @@ export function FragranceDetailScreen() {
           size="lg"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/30 to-transparent" />
-        <div className="absolute bottom-8 left-6 right-6 flex justify-between items-end">
-          <div className="space-y-1">
-            <p className="text-[10px] font-bold tracking-[0.2em] text-primary/80 uppercase">{frag.brand}</p>
-            <h2 className="text-4xl font-headline italic leading-tight text-on-surface">{frag.name}</h2>
-            {frag.concentration && (
-              <div className="mt-3 inline-block bg-surface-container-highest/60 backdrop-blur-md px-3 py-1 rounded-full">
-                <span className="text-[9px] font-bold tracking-widest text-secondary uppercase">
-                  {frag.concentration}
-                </span>
-              </div>
-            )}
-          </div>
-          {frag.rating && (
-            <div className="flex items-center gap-1.5 bg-primary/20 backdrop-blur-md px-3 py-1.5 rounded-full mb-1">
-              <Icon name="star" filled className="text-primary text-sm" />
-              <span className="text-sm font-bold text-primary">{Number(frag.rating).toFixed(1)}</span>
-            </div>
-          )}
+        {/* Vignette lift, no border */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-transparent" />
+
+        {/* Plate sigil — the house initial, italic serif, oversized */}
+        <div className="absolute top-6 left-6 pointer-events-none">
+          <span
+            className="font-headline italic text-primary/25 leading-none select-none"
+            style={{ fontSize: '140px' }}
+          >
+            {brandSigil(frag.brand)}
+          </span>
         </div>
+
+        {/* Back arrow, bare-bones */}
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Return"
+          className="absolute top-6 right-6 w-10 h-10 rounded-full bg-surface/50 backdrop-blur-xl flex items-center justify-center active:scale-90 transition-transform"
+        >
+          <Icon name="arrow_back" className="text-on-background" />
+        </button>
       </section>
 
-      {/* Action Bar */}
-      <section className="bg-surface-container px-6 py-5 flex justify-between items-center relative">
-        {/* ADD button with dropdown */}
-        <div className="relative flex flex-col items-center gap-2">
+      {/* ═══════════════════════════════════════════════════════
+          DEPARTMENT 2 — THE CAPTION
+          The caption panel: house, title italic, year in roman, concentration.
+          ═══════════════════════════════════════════════════════ */}
+      <section className="px-8 pt-8 pb-6 relative">
+        <p className={kicker}>The House</p>
+        <p className="mt-2 text-xs font-semibold tracking-[0.15em] uppercase text-on-background/80">
+          {frag.brand}
+        </p>
+
+        <h1 className="mt-4 font-headline italic text-5xl leading-[1.05] text-on-background tracking-tight">
+          {frag.name}
+        </h1>
+
+        <div className="mt-4 flex items-baseline gap-3 text-secondary/70 text-xs italic font-headline">
+          {frag.year_released != null && (
+            <span className="tracking-widest">{yearToRoman(String(frag.year_released))}</span>
+          )}
+          {frag.year_released != null && frag.concentration && (
+            <span className="text-primary/40">·</span>
+          )}
+          {frag.concentration && (
+            <span className="tracking-[0.2em] uppercase text-[10px] font-label not-italic font-bold text-primary/70">
+              {frag.concentration}
+            </span>
+          )}
+        </div>
+
+        {/* Gradient hairline rule — no 1px line */}
+        <div className="mt-8 h-px" style={hairline} />
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════
+          DEPARTMENT 3 — THE DOSSIER
+          The action row — archive · log · review · share.
+          Add-to-shelf expands in place as a sub-row (not floating).
+          ═══════════════════════════════════════════════════════ */}
+      <section className="px-8 py-4 relative">
+        <p className={kicker}>The Dossier</p>
+
+        <div className="mt-4 grid grid-cols-4 gap-3">
+          {/* ARCHIVE — add to shelf */}
           <button
             onClick={() => {
               if (!user) { navigate('/profile'); return }
               setAddMenuOpen(!addMenuOpen)
             }}
             disabled={saving}
-            aria-label={collectionStatus ? `Collection status: ${collectionStatus}` : 'Add to collection'}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-highest active:scale-90 transition-transform"
+            aria-label={collectionStatus ? `Shelf: ${collectionStatus}` : 'File on a shelf'}
+            className="flex flex-col items-center gap-2 group bg-transparent border-none active:scale-95 transition-transform"
           >
-            <Icon
-              name={collectionStatus ? 'check' : 'add'}
-              className={collectionStatus ? 'text-primary' : 'text-secondary'}
-            />
+            <div className="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-highest/60 backdrop-blur-sm">
+              <Icon
+                name={collectionStatus ? 'check' : 'archive'}
+                className={collectionStatus ? 'text-primary' : 'text-on-background/70'}
+              />
+            </div>
+            <span className={`text-[9px] tracking-[0.2em] uppercase font-label font-bold ${collectionStatus ? 'text-primary' : 'text-on-background/50'}`}>
+              {collectionStatus ? collectionStatus : 'Archive'}
+            </span>
           </button>
-          <span className={`text-[9px] tracking-widest uppercase font-bold ${collectionStatus ? 'text-primary' : 'text-secondary/60'}`}>
-            {collectionStatus ? collectionStatus.toUpperCase() : 'ADD'}
-          </span>
 
-          {/* Dropdown */}
-          {addMenuOpen && (
-            <>
-              <div className="fixed inset-0 z-[var(--z-sticky)]" onClick={() => setAddMenuOpen(false)} />
-              <div className="absolute top-12 left-1/2 -translate-x-1/2 z-[var(--z-dropdown)] bg-surface-container-highest rounded-xl py-2 min-w-[140px] shadow-xl border border-outline-variant/10">
-                {['own', 'wishlist', 'sampled', 'sold'].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => handleAddToCollection(status)}
-                    className={`w-full text-left px-4 py-2.5 text-xs font-medium transition-colors ${
-                      collectionStatus === status
-                        ? 'text-primary bg-primary/10'
-                        : 'text-on-surface hover:bg-surface-container'
-                    }`}
-                  >
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                    {collectionStatus === status && (
-                      <Icon name="check" className="float-right text-primary text-sm" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
+          {/* LOG */}
+          <button
+            onClick={() => setLogSheetOpen(true)}
+            className="flex flex-col items-center gap-2 group bg-transparent border-none active:scale-95 transition-transform"
+            aria-label="Log a wear"
+          >
+            <div className="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-highest/60 backdrop-blur-sm">
+              <Icon name="edit_calendar" className="text-on-background/70" />
+            </div>
+            <span className="text-[9px] tracking-[0.2em] uppercase font-label font-bold text-on-background/50">Log</span>
+          </button>
+
+          {/* REVIEW */}
+          <button
+            onClick={() => {
+              if (!user) { navigate('/profile'); return }
+              setReviewSheetOpen(true)
+            }}
+            className="flex flex-col items-center gap-2 group bg-transparent border-none active:scale-95 transition-transform"
+            aria-label="Write an appreciation"
+          >
+            <div className="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-highest/60 backdrop-blur-sm">
+              <Icon name="edit_note" className="text-on-background/70" />
+            </div>
+            <span className="text-[9px] tracking-[0.2em] uppercase font-label font-bold text-on-background/50">Appraise</span>
+          </button>
+
+          {/* SHARE */}
+          <button
+            onClick={() => setShareCardOpen(true)}
+            className="flex flex-col items-center gap-2 group bg-transparent border-none active:scale-95 transition-transform"
+            aria-label="Share card"
+          >
+            <div className="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-highest/60 backdrop-blur-sm">
+              <Icon name="ios_share" className="text-on-background/70" />
+            </div>
+            <span className="text-[9px] tracking-[0.2em] uppercase font-label font-bold text-on-background/50">Share</span>
+          </button>
         </div>
 
-        {/* LOG button */}
-        <button
-          className="flex flex-col items-center gap-2 group bg-transparent border-none"
-          onClick={() => setLogSheetOpen(true)}
-        >
-          <div className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-highest group-active:scale-90 transition-transform">
-            <Icon name="calendar_today" className="text-secondary" />
+        {/* Sub-row — add-to-shelf expanded in place */}
+        {addMenuOpen && (
+          <div className="mt-5 grid grid-cols-4 gap-2 animate-fade-in">
+            {(['own', 'wishlist', 'sampled', 'sold'] as const).map((status) => (
+              <button
+                key={status}
+                onClick={() => handleAddToCollection(status)}
+                className={`py-2.5 rounded-full text-[10px] font-label tracking-[0.15em] uppercase font-bold transition-all ${
+                  collectionStatus === status
+                    ? 'bg-primary text-on-primary'
+                    : 'bg-surface-container-highest/60 text-on-background/70 active:scale-95'
+                }`}
+              >
+                {status}
+              </button>
+            ))}
           </div>
-          <span className="text-[9px] tracking-widest uppercase font-bold text-secondary/60">LOG</span>
-        </button>
+        )}
 
-        {/* REVIEW button */}
-        <button
-          className="flex flex-col items-center gap-2 group bg-transparent border-none"
-          onClick={() => {
-            if (!user) { navigate('/profile'); return }
-            setReviewSheetOpen(true)
-          }}
-        >
-          <div className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-highest group-active:scale-90 transition-transform">
-            <Icon name="rate_review" className="text-secondary" />
-          </div>
-          <span className="text-[9px] tracking-widest uppercase font-bold text-secondary/60">REVIEW</span>
-        </button>
-
-        <button
-          className="flex flex-col items-center gap-2 group"
-          onClick={() => setShareCardOpen(true)}
-        >
-          <div className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-highest group-active:scale-90 transition-transform">
-            <Icon name="share" className="text-secondary" />
-          </div>
-          <span className="text-[9px] tracking-widest uppercase font-bold text-secondary/60">SHARE</span>
-        </button>
+        <div className="mt-8 h-px" style={hairline} />
       </section>
 
-      {/* Log Wear Bottom Sheet */}
-      <LogWearSheet isOpen={logSheetOpen} onClose={() => setLogSheetOpen(false)} fragrance={frag} />
+      {/* ═══════════════════════════════════════════════════════
+          DEPARTMENT 4 — THE COMPOSITION
+          The accord radar, with italic serif gloss on what dominates.
+          ═══════════════════════════════════════════════════════ */}
+      {accords.length > 0 && (
+        <section className="px-8 py-8 relative">
+          <p className={kicker}>The Composition</p>
+          <h2 className="mt-3 font-headline italic text-2xl text-on-background leading-tight">
+            The signature reads as…
+          </h2>
+          <p className="mt-2 font-headline italic text-base text-primary/80 leading-relaxed">
+            {topAccordsProse}
+          </p>
 
-      {/* Review Sheet */}
+          <div className="mt-6">
+            <AccordsRadar accords={accords} />
+          </div>
+
+          <div className="mt-8 h-px" style={hairline} />
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          DEPARTMENT 5 — THE THREE MOVEMENTS
+          Top / Heart / Base as italic prose, no boxes, no cards.
+          ═══════════════════════════════════════════════════════ */}
+      {(frag.notes_top?.length || frag.notes_heart?.length || frag.notes_base?.length) && (
+        <section className="px-8 py-8 relative">
+          <p className={kicker}>The Three Movements</p>
+          <h2 className="mt-3 font-headline italic text-2xl text-on-background leading-tight">
+            Read from the top.
+          </h2>
+
+          <div className="mt-6 space-y-6">
+            {frag.notes_top && frag.notes_top.length > 0 && (
+              <div>
+                <p className="text-[9px] tracking-[0.3em] uppercase font-label font-bold text-primary/60">I. The Overture</p>
+                <p className="mt-2 font-headline italic text-lg text-on-background/90 leading-relaxed">
+                  {notesProse(frag.notes_top)}
+                </p>
+              </div>
+            )}
+            {frag.notes_heart && frag.notes_heart.length > 0 && (
+              <div>
+                <p className="text-[9px] tracking-[0.3em] uppercase font-label font-bold text-primary/60">II. The Heart</p>
+                <p className="mt-2 font-headline italic text-lg text-on-background/90 leading-relaxed">
+                  {notesProse(frag.notes_heart)}
+                </p>
+              </div>
+            )}
+            {frag.notes_base && frag.notes_base.length > 0 && (
+              <div>
+                <p className="text-[9px] tracking-[0.3em] uppercase font-label font-bold text-primary/60">III. The Drydown</p>
+                <p className="mt-2 font-headline italic text-lg text-on-background/90 leading-relaxed">
+                  {notesProse(frag.notes_base)}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-8 h-px" style={hairline} />
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          DEPARTMENT 6 — THE READINGS
+          Longevity & sillage: italic serif words, no 10-bar ladders.
+          ═══════════════════════════════════════════════════════ */}
+      {(frag.longevity != null || frag.sillage != null) && (
+        <section className="px-8 py-8 relative">
+          <p className={kicker}>The Readings</p>
+
+          <div className="mt-5 grid grid-cols-2 gap-8">
+            {frag.longevity != null && (
+              <div>
+                <p className="text-[10px] tracking-[0.25em] uppercase font-label font-bold text-on-background/50">Longevity</p>
+                <p className="mt-2 font-headline italic text-2xl text-on-background leading-tight">
+                  {longevityWord(frag.longevity)}
+                </p>
+                {/* Filled wedge — single gradient bar, no segments */}
+                <div className="mt-4 h-[2px] w-full bg-surface-container-highest/50 relative overflow-hidden rounded-full">
+                  <div
+                    className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary/80 to-primary"
+                    style={{ width: `${longevityPct}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            {frag.sillage != null && (
+              <div>
+                <p className="text-[10px] tracking-[0.25em] uppercase font-label font-bold text-on-background/50">Sillage</p>
+                <p className="mt-2 font-headline italic text-2xl text-on-background leading-tight">
+                  {sillageWord(frag.sillage)}
+                </p>
+                <div className="mt-4 h-[2px] w-full bg-surface-container-highest/50 relative overflow-hidden rounded-full">
+                  <div
+                    className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary/80 to-primary"
+                    style={{ width: `${sillagePct}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-10 h-px" style={hairline} />
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          DEPARTMENT 7 — A NOTE ON OCCASION
+          Season & occasion as italic prose with opacity spans.
+          ═══════════════════════════════════════════════════════ */}
+      {(seasons.length > 0 || occasions.length > 0) && (
+        <section className="px-8 py-8 relative">
+          <p className={kicker}>A Note on Occasion</p>
+          <h2 className="mt-3 font-headline italic text-2xl text-on-background leading-tight">
+            When to wear it.
+          </h2>
+
+          {seasons.length > 0 && (
+            <p className="mt-5 font-headline italic text-lg leading-relaxed">
+              <span className="text-primary/60 not-italic text-[10px] font-label font-bold tracking-[0.25em] uppercase mr-2">Season</span>
+              {seasons.map((s, i) => (
+                <span
+                  key={s.name}
+                  className={
+                    s.opacity === 'high' ? 'text-on-background'
+                    : s.opacity === 'mid' ? 'text-on-background/55'
+                    : 'text-on-background/25'
+                  }
+                >
+                  {s.name}{i < seasons.length - 1 ? ', ' : '.'}
+                </span>
+              ))}
+            </p>
+          )}
+
+          {occasions.length > 0 && (
+            <p className="mt-4 font-headline italic text-lg leading-relaxed">
+              <span className="text-primary/60 not-italic text-[10px] font-label font-bold tracking-[0.25em] uppercase mr-2">Occasion</span>
+              {occasions.map((o, i) => (
+                <span
+                  key={o.name}
+                  className={
+                    o.opacity === 'high' ? 'text-on-background'
+                    : o.opacity === 'mid' ? 'text-on-background/55'
+                    : 'text-on-background/25'
+                  }
+                >
+                  {o.name}{i < occasions.length - 1 ? ', ' : '.'}
+                </span>
+              ))}
+            </p>
+          )}
+
+          <div className="mt-8 h-px" style={hairline} />
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          DEPARTMENT 8 — FILED BY THE HOUSE
+          Aesthetic tags as italic serif prose, not pill chips.
+          ═══════════════════════════════════════════════════════ */}
+      {tags.length > 0 && (
+        <section className="px-8 py-8 relative">
+          <p className={kicker}>Filed by the House</p>
+          <p className="mt-4 font-headline italic text-xl text-on-background/90 leading-relaxed">
+            {tagsProse(tags)}
+          </p>
+          <div className="mt-8 h-px" style={hairline} />
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          DEPARTMENT 9 — FILED BY THE KEEPER
+          User's personal tags — inline italic serif input, no chips.
+          ═══════════════════════════════════════════════════════ */}
+      {user && collectionStatus && (
+        <section className="px-8 py-8 relative">
+          <p className={kicker}>Filed by the Keeper</p>
+          <p className="mt-3 text-xs italic text-on-background/50 font-headline">
+            your private annotations, for this bottle alone.
+          </p>
+
+          {userTags.length > 0 && (
+            <p className="mt-4 font-headline italic text-lg leading-relaxed text-on-background/85">
+              {userTags.map((t, i) => (
+                <span key={t}>
+                  {t.toLowerCase()}
+                  {i < userTags.length - 1 ? ', ' : '.'}
+                  {' '}
+                  <button
+                    onClick={() => setUserTags(userTags.filter((x) => x !== t))}
+                    className="align-baseline not-italic text-[10px] tracking-widest uppercase text-primary/50 hover:text-primary/80 transition-colors"
+                    aria-label={`Remove ${t}`}
+                  >
+                    ×
+                  </button>
+                  {i < userTags.length - 1 && ' '}
+                </span>
+              ))}
+            </p>
+          )}
+
+          <form
+            className="mt-5 flex items-baseline gap-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              const next = tagDraft.trim().toLowerCase()
+              if (next && !userTags.includes(next) && userTags.length < 15) {
+                setUserTags([...userTags, next])
+              }
+              setTagDraft('')
+            }}
+          >
+            <span className="text-primary/50 font-headline italic text-lg">+</span>
+            <input
+              value={tagDraft}
+              onChange={(e) => setTagDraft(e.target.value)}
+              placeholder="a word of your own…"
+              className="flex-1 bg-transparent border-0 border-b border-primary/20 py-1 font-headline italic text-lg text-on-background placeholder:text-on-background/30 focus:outline-none focus:border-primary/60 transition-colors"
+              maxLength={30}
+            />
+          </form>
+
+          <div className="mt-8 h-px" style={hairline} />
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          DEPARTMENT 10 — KINDRED WORKS
+          Similar fragrances — horizontal catalogue rail with
+          italic serif reason line. No percentage badge.
+          ═══════════════════════════════════════════════════════ */}
+      {!similarLoading && similarFragrances.length > 0 && (
+        <section className="px-8 py-8 relative">
+          <p className={kicker}>Kindred Works</p>
+          <h2 className="mt-3 font-headline italic text-2xl text-on-background leading-tight">
+            Also in the drawer…
+          </h2>
+
+          <div className="mt-6 -mx-8 px-8 flex gap-5 overflow-x-auto no-scrollbar pb-3">
+            {similarFragrances.map((sr) => (
+              <button
+                key={sr.fragrance.id}
+                onClick={() => navigate(`/fragrance/${sr.fragrance.id}`)}
+                className="flex-shrink-0 w-[140px] text-left active:scale-95 transition-transform group"
+              >
+                <div className="relative aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-low mb-3">
+                  <FragranceImage
+                    src={sr.fragrance.image_url}
+                    alt={sr.fragrance.name}
+                    noteFamily={sr.fragrance.note_family}
+                    size="md"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+                </div>
+                <p className="text-[9px] uppercase tracking-[0.2em] font-label font-bold text-primary/60">{sr.fragrance.brand}</p>
+                <p className="mt-1 font-headline italic text-base text-on-background leading-tight">{sr.fragrance.name}</p>
+                {sr.reasons.length > 0 && (
+                  <p className="mt-1.5 font-headline italic text-[11px] text-on-background/50 leading-snug">
+                    {sr.reasons[0].toLowerCase()}.
+                  </p>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-8 h-px" style={hairline} />
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          DEPARTMENT 11 — THE RECEPTION
+          Reviews as editorial blockquotes. IV/V roman rating.
+          Sort row in italic serif words. Edit/delete as italic words.
+          ═══════════════════════════════════════════════════════ */}
+      {reviews.length > 0 && (
+        <section className="px-8 py-8 relative">
+          <p className={kicker}>The Reception</p>
+          <h2 className="mt-3 font-headline italic text-2xl text-on-background leading-tight">
+            {reviews.length === 1 ? 'one appreciation.' : `${reviews.length} appreciations.`}
+          </h2>
+
+          {/* Sort row — italic serif words, not pills */}
+          <div className="mt-5 flex items-baseline gap-4 text-xs font-headline italic">
+            <span className="text-primary/50 not-italic text-[10px] font-label font-bold tracking-[0.25em] uppercase">Order</span>
+            {([
+              { key: 'newest', label: 'newest' },
+              { key: 'oldest', label: 'oldest' },
+              { key: 'highest', label: 'highest' },
+              { key: 'lowest', label: 'lowest' },
+            ] as { key: ReviewSortOption; label: string }[]).map((opt) => (
+              <button
+                key={opt.key}
+                onClick={() => setReviewSort(opt.key)}
+                className={`transition-colors ${
+                  reviewSort === opt.key
+                    ? 'text-primary'
+                    : 'text-on-background/40 hover:text-on-background/70'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-8 space-y-10">
+            {reviews.map((review) => {
+              const isOwner = ownerIds.has(review.user_id)
+              const canEdit = user?.id === review.user_id
+              const ratingRoman = review.overall_rating != null ? toRomanOutOfFive(review.overall_rating) : ''
+              const yearRoman = review.created_at ? yearToRoman(review.created_at) : ''
+              const byline = (review as unknown as { user_name?: string }).user_name || 'a keeper'
+              return (
+                <blockquote key={review.id} className="relative">
+                  {/* Oversized opening quote mark, italic serif */}
+                  <span
+                    aria-hidden="true"
+                    className="absolute -top-6 -left-3 font-headline italic text-primary/20 select-none pointer-events-none"
+                    style={{ fontSize: '72px', lineHeight: 1 }}
+                  >
+                    "
+                  </span>
+
+                  {review.content && (
+                    <p className="relative font-headline italic text-lg text-on-background/90 leading-relaxed">
+                      {review.content}
+                    </p>
+                  )}
+
+                  <footer className="mt-4 flex items-baseline gap-3 text-[11px] font-headline italic text-on-background/50">
+                    <span className="not-italic text-[10px] font-label font-bold tracking-[0.2em] uppercase text-primary/60">
+                      — {byline}
+                    </span>
+                    {isOwner && (
+                      <span className="not-italic text-[9px] tracking-widest uppercase text-primary/50">
+                        · keeper of this bottle
+                      </span>
+                    )}
+                    {yearRoman && <span className="tracking-widest">· {yearRoman}</span>}
+                    {ratingRoman && (
+                      <span className="ml-auto tracking-widest text-primary/70">{ratingRoman}</span>
+                    )}
+                  </footer>
+
+                  {canEdit && (
+                    <div className="mt-3 flex items-baseline gap-4 text-[11px] font-headline italic">
+                      <button
+                        onClick={() => setEditingReview(review)}
+                        className="text-primary/60 hover:text-primary transition-colors"
+                      >
+                        revise
+                      </button>
+                      <button
+                        onClick={() => {
+                          deleteReview(review.id)
+                          showToast('appreciation withdrawn.', 'success')
+                        }}
+                        className="text-on-background/40 hover:text-on-background/70 transition-colors"
+                      >
+                        withdraw
+                      </button>
+                    </div>
+                  )}
+                </blockquote>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ── Floating sheets — preserved exactly ── */}
+      <LogWearSheet isOpen={logSheetOpen} onClose={() => setLogSheetOpen(false)} fragrance={frag} />
       <ReviewSheet
         isOpen={reviewSheetOpen}
         onClose={() => setReviewSheetOpen(false)}
@@ -396,8 +795,6 @@ export function FragranceDetailScreen() {
         isOwner={collectionStatus === 'own'}
         onSubmitted={refetchReviews}
       />
-
-      {/* Edit Review Sheet */}
       {editingReview && (
         <EditReviewSheet
           isOpen={!!editingReview}
@@ -406,215 +803,9 @@ export function FragranceDetailScreen() {
           onUpdated={refetchReviews}
         />
       )}
-
       {shareCardOpen && (
         <ShareCardSheet fragrance={frag} onClose={() => setShareCardOpen(false)} />
       )}
-
-      <div className="px-6 mt-10 space-y-12">
-        {/* Accords — Radar Chart */}
-        {accords.length > 0 && (
-          <section>
-            <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase mb-6">ACCORDS</h3>
-            <AccordsRadar accords={accords} />
-          </section>
-        )}
-
-        {/* Notes Pyramid */}
-        <FragranceNotesPyramid
-          notesTop={frag.notes_top ?? undefined}
-          notesHeart={frag.notes_heart ?? undefined}
-          notesBase={frag.notes_base ?? undefined}
-        />
-
-        {/* Performance */}
-        {(longevityFilled || sillageFilled) && (
-          <section>
-            <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase mb-6">PERFORMANCE</h3>
-            <div className="grid grid-cols-2 gap-8">
-              {longevityFilled && (
-                <div className="space-y-3">
-                  <p className="text-[10px] font-bold tracking-widest text-secondary/60">LONGEVITY</p>
-                  <div className="flex gap-1">
-                    {Array.from({ length: 10 }).map((_, i) => (
-                      <div key={i} className={`h-1 flex-1 ${i < longevityFilled ? 'bg-primary' : 'bg-surface-container-highest'}`} />
-                    ))}
-                  </div>
-                  <p className="text-xs text-on-surface-variant italic">{frag.longevity}/5</p>
-                </div>
-              )}
-              {sillageFilled && (
-                <div className="space-y-3">
-                  <p className="text-[10px] font-bold tracking-widest text-secondary/60">SILLAGE</p>
-                  <div className="flex gap-1">
-                    {Array.from({ length: 10 }).map((_, i) => (
-                      <div key={i} className={`h-1 flex-1 ${i < sillageFilled ? 'bg-primary' : 'bg-surface-container-highest'}`} />
-                    ))}
-                  </div>
-                  <p className="text-xs text-on-surface-variant italic">{frag.sillage}/5</p>
-                </div>
-              )}
-            </div>
-          </section>
-        )}
-
-        {/* Season / Occasion */}
-        {(seasons.length > 0 || occasions.length > 0) && (
-          <section className="space-y-8">
-            {seasons.length > 0 && (
-              <div>
-                <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase mb-4">SEASON</h3>
-                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-                  {seasons.map((s) => (
-                    <div
-                      key={s.name}
-                      className={`flex items-center gap-2 px-4 py-3 rounded-xl bg-surface-container border text-[10px] font-bold tracking-widest shrink-0 transition-all ${
-                        s.active ? 'border-primary text-primary' : 'border-outline-variant/30 text-secondary/60'
-                      }`}
-                    >
-                      {getSeasonIcon(s.name)}
-                      {s.name}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {occasions.length > 0 && (
-              <div>
-                <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase mb-4">OCCASION</h3>
-                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-                  {occasions.map((o) => (
-                    <div
-                      key={o.name}
-                      className={`flex items-center gap-2 px-4 py-3 rounded-xl bg-surface-container border text-[10px] font-bold tracking-widest shrink-0 transition-all ${
-                        o.active ? 'border-primary text-primary' : 'border-outline-variant/30 text-secondary/60'
-                      }`}
-                    >
-                      {getOccasionIcon(o.name)}
-                      {o.name}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Aesthetic Tags */}
-        {tags.length > 0 && (
-          <section>
-            <div className="mb-6">
-              <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase">AESTHETIC TAGS</h3>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <span key={tag} className="px-4 py-2 rounded-full bg-surface-container-highest text-xs text-on-surface-variant">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* My Tags — user's personal tags */}
-        {user && collectionStatus && (
-          <section>
-            <div className="mb-4">
-              <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase">MY TAGS</h3>
-            </div>
-            <TagInput
-              tags={userTags}
-              onChange={setUserTags}
-              suggestions={allUserTags}
-              placeholder="Add personal tag..."
-              maxTags={15}
-            />
-          </section>
-        )}
-
-        {/* Similar Fragrances — powered by similarity engine */}
-        {!similarLoading && similarFragrances.length > 0 && (
-          <section>
-            <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase mb-6">SIMILAR FRAGRANCES</h3>
-            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-              {similarFragrances.map((sr) => (
-                <button
-                  key={sr.fragrance.id}
-                  onClick={() => navigate(`/fragrance/${sr.fragrance.id}`)}
-                  className="flex-shrink-0 w-[120px] text-left active:scale-95 transition-transform"
-                >
-                  <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-2">
-                    <FragranceImage
-                      src={sr.fragrance.image_url}
-                      alt={sr.fragrance.name}
-                      noteFamily={sr.fragrance.note_family}
-                      size="md"
-                      className="w-full h-full object-cover"
-                    />
-                    {/* Match score badge */}
-                    <div className="absolute top-1.5 right-1.5 bg-black/60 backdrop-blur-sm rounded-full px-2 py-0.5">
-                      <span className="text-[9px] text-primary font-bold">{sr.score}%</span>
-                    </div>
-                  </div>
-                  <p className="text-[9px] uppercase tracking-[0.1em] font-label text-secondary/60">{sr.fragrance.brand}</p>
-                  <p className="text-xs font-medium text-on-surface truncate">{sr.fragrance.name}</p>
-                  {sr.reasons.length > 0 && (
-                    <p className="text-[9px] text-secondary/50 truncate mt-0.5">{sr.reasons[0]}</p>
-                  )}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Reviews */}
-        {reviews.length > 0 && (
-          <section>
-            <div className="mb-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase">
-                  REVIEWS ({reviews.length})
-                </h3>
-              </div>
-              {/* Sort controls */}
-              <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar">
-                {([
-                  { key: 'newest', label: 'Newest' },
-                  { key: 'oldest', label: 'Oldest' },
-                  { key: 'highest', label: 'Highest' },
-                  { key: 'lowest', label: 'Lowest' },
-                ] as { key: ReviewSortOption; label: string }[]).map((opt) => (
-                  <button
-                    key={opt.key}
-                    onClick={() => setReviewSort(opt.key)}
-                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider whitespace-nowrap transition-colors ${
-                      reviewSort === opt.key
-                        ? 'bg-primary text-on-primary'
-                        : 'bg-surface-container-highest text-secondary/60'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-4">
-              {reviews.map((review) => (
-                <EnhancedReviewCard
-                  key={review.id}
-                  review={review}
-                  isVerifiedOwner={ownerIds.has(review.user_id)}
-                  onEdit={user?.id === review.user_id ? () => setEditingReview(review) : undefined}
-                  onDelete={user?.id === review.user_id ? () => {
-                    deleteReview(review.id)
-                    showToast('Review deleted', 'success')
-                  } : undefined}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
     </main>
   )
 }
