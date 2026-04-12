@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui/Icon'
+import { FragranceImage } from '../ui/FragranceImage'
 import { InlineError } from '../ui/InlineError'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
@@ -9,16 +10,70 @@ import { awardXP } from '@/lib/xp'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { Fragrance, UserCollection } from '@/types/database'
 
+/* ── Voice helpers ────────────────────────────────────── */
+
+const WORDS_20 = [
+  'none', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
+  'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen',
+  'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty',
+] as const
+function numberToWord(n: number): string {
+  return n <= 20 ? WORDS_20[n] : String(n)
+}
+function capitalise(s: string): string {
+  return s ? s[0].toUpperCase() + s.slice(1) : s
+}
+
+/* ── Noir style constants ─────────────────────────────── */
+
+const hairline: React.CSSProperties = {
+  height: '1px',
+  background:
+    'linear-gradient(to right, rgba(229,194,118,0.4) 0%, rgba(229,194,118,0.1) 40%, transparent 100%)',
+  width: '100%',
+}
+
+const verticalHairline: React.CSSProperties = {
+  width: '1px',
+  height: '1rem',
+  background:
+    'linear-gradient(to bottom, transparent, rgba(229,194,118,0.5), transparent)',
+}
+
+const ambientGlow = (
+  top: string,
+  left: string,
+): React.CSSProperties => ({
+  position: 'absolute',
+  top,
+  left,
+  width: '300px',
+  height: '300px',
+  borderRadius: '50%',
+  background:
+    'radial-gradient(circle, rgba(229,194,118,0.07) 0%, transparent 70%)',
+  filter: 'blur(80px)',
+  pointerEvents: 'none',
+})
+
+/* ── Types ────────────────────────────────────────────── */
+
 type WishlistItem = UserCollection & { fragrance: Fragrance }
+
+/* ── Component ────────────────────────────────────────── */
 
 export function WishlistScreen() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { showToast } = useToast()
+
   const [items, setItems] = useState<WishlistItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
   const [addSheetOpen, setAddSheetOpen] = useState(false)
+
+  /* ── Data fetching ───────────────────────────────────── */
 
   const fetchWishlist = useCallback(() => {
     if (!user) { setLoading(false); return }
@@ -37,10 +92,12 @@ export function WishlistScreen() {
       })
   }, [user])
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchWishlist() }, [fetchWishlist])
 
+  /* ── Actions ─────────────────────────────────────────── */
+
   const handleMarkOwned = async (item: WishlistItem) => {
-    // Optimistic
     setItems((prev) => prev.filter((i) => i.id !== item.id))
     const { error: err } = await supabase
       .from('user_collections')
@@ -48,9 +105,9 @@ export function WishlistScreen() {
       .eq('id', item.id)
     if (err) {
       setItems((prev) => [item, ...prev])
-      showToast('Failed to update', 'error')
+      showToast('The reclassification could not be completed.', 'error')
     } else {
-      showToast(`${item.fragrance.name} moved to collection!`, 'success', 'check_circle')
+      showToast(`${item.fragrance.name} has been acquired.`, 'success', 'check_circle')
     }
   }
 
@@ -62,9 +119,9 @@ export function WishlistScreen() {
       .eq('id', item.id)
     if (err) {
       setItems((prev) => [item, ...prev])
-      showToast('Failed to remove', 'error')
+      showToast('The release could not be completed.', 'error')
     } else {
-      showToast('Removed from wishlist', 'info')
+      showToast('Released from the register.', 'info')
     }
   }
 
@@ -76,91 +133,232 @@ export function WishlistScreen() {
       .eq('id', item.id)
     if (err) {
       setItems((prev) => [item, ...prev])
-      showToast('Failed to update', 'error')
+      showToast('The reclassification could not be completed.', 'error')
     } else {
-      showToast(`${item.fragrance.name} marked as sampled`, 'success', 'science')
+      showToast(`${item.fragrance.name} has been filed as sampled.`, 'success', 'science')
     }
   }
 
+  /* ── Filtered list ───────────────────────────────────── */
+
+  const filtered = items.filter((item) => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return (
+      item.fragrance.name.toLowerCase().includes(q) ||
+      item.fragrance.brand.toLowerCase().includes(q) ||
+      (item.fragrance.note_family ?? '').toLowerCase().includes(q)
+    )
+  })
+
+  /* ── Not-signed-in gate ──────────────────────────────── */
+
   if (!user) {
     return (
-      <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center">
-        <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5">
-          <Icon name="favorite" className="text-3xl text-primary/40" />
-        </div>
-        <h3 className="font-headline text-xl text-on-surface mb-2">Sign in to track your wishlist</h3>
-        <p className="text-sm text-secondary/60 text-center mb-6">Keep a list of fragrances you want to try next.</p>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg">
+      <main className="relative pt-16 pb-32 px-6 md:px-12 max-w-7xl mx-auto min-h-screen flex flex-col items-center justify-center">
+        <div aria-hidden style={ambientGlow('4rem', '-4rem')} />
+        <div aria-hidden style={ambientGlow('40rem', 'calc(100% - 10rem)')} />
+        <p className="font-label text-primary/60 text-[0.65rem] tracking-[0.3em] uppercase mb-6">
+          THE WAITING ROOM
+        </p>
+        <p className="font-headline italic text-2xl md:text-3xl text-on-background/70 text-center max-w-md mb-10 leading-relaxed">
+          The register requires a keeper. Sign in to begin.
+        </p>
+        <button
+          onClick={() => navigate('/profile')}
+          className="py-4 px-10 rounded-sm font-label text-[0.7rem] font-bold tracking-[0.2em] uppercase text-on-primary-container"
+          style={{ background: 'linear-gradient(45deg, #e5c276 0%, #c4a35a 100%)' }}
+        >
           SIGN IN
         </button>
       </main>
     )
   }
 
+  /* ── Main render ─────────────────────────────────────── */
+
   return (
-    <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
-      <header className="mb-6">
-        <h2 className="font-headline text-3xl text-on-surface leading-tight mb-1">Want to Try</h2>
-        <p className="font-body text-sm text-secondary opacity-70">
-          {items.length} fragrance{items.length !== 1 ? 's' : ''} on your radar
+    <main className="relative pt-16 pb-32 px-6 md:px-12 max-w-7xl mx-auto min-h-screen">
+      {/* Ambient gold lifts */}
+      <div aria-hidden style={ambientGlow('4rem', '-4rem')} />
+      <div aria-hidden style={ambientGlow('40rem', 'calc(100% - 10rem)')} />
+      <div aria-hidden style={ambientGlow('80rem', '-6rem')} />
+
+      {/* I. THE FRONTISPIECE */}
+      <header className="relative mb-16">
+        <p className="font-label text-primary/60 text-[0.65rem] tracking-[0.3em] uppercase mb-4">
+          THE WAITING ROOM · BOTTLES UNDER CONSIDERATION
         </p>
+        <h1 className="font-headline italic text-5xl md:text-6xl font-light tracking-tight leading-[1.05] text-on-background mb-6">
+          Bottles in waiting.
+        </h1>
+        {items.length > 0 ? (
+          <p className="font-headline italic text-base md:text-lg text-secondary/70 max-w-2xl">
+            <span className="italic">{capitalise(numberToWord(items.length))}</span>{' '}
+            {items.length === 1 ? 'bottle' : 'bottles'} held in consideration,
+            awaiting {items.length === 1 ? 'its' : 'their'} place on the shelves.
+          </p>
+        ) : (
+          <p className="font-headline italic text-base md:text-lg text-secondary/70 max-w-2xl">
+            The register is empty. A keeper&rsquo;s desire begins with a single bottle.
+          </p>
+        )}
+        <div className="mt-10" style={hairline} />
       </header>
 
+      {/* II. THE SEARCH */}
+      <section className="mb-16">
+        <div className="relative group">
+          <div className="flex items-center gap-4 py-4">
+            <Icon name="search" size={20} className="text-primary/60 flex-shrink-0" />
+            <input
+              className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none font-headline italic text-xl text-on-background placeholder:text-secondary/40 placeholder:italic"
+              placeholder="Request a title, a house, a note…"
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search the register"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="font-headline italic text-sm text-secondary/50 hover:text-primary transition-colors"
+              >
+                clear
+              </button>
+            )}
+          </div>
+          <div
+            className="absolute bottom-0 left-0 right-0 opacity-40 group-focus-within:opacity-100 transition-opacity"
+            style={hairline}
+          />
+        </div>
+      </section>
+
+      {/* III. THE REGISTER / IV. THE EMPTY REGISTER */}
       {error ? (
-        <InlineError message="Couldn't load wishlist" onRetry={fetchWishlist} />
+        <InlineError message="The register could not be retrieved." onRetry={fetchWishlist} />
       ) : loading ? (
-        <div className="space-y-4">
+        <div className="space-y-10">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-surface-container animate-pulse">
-              <div className="w-16 h-16 rounded-lg bg-surface-container-highest" />
-              <div className="flex-1 space-y-2">
-                <div className="h-3 w-20 bg-surface-container-highest rounded" />
-                <div className="h-4 w-32 bg-surface-container-highest rounded" />
+            <div key={i} className="grid grid-cols-[80px_1fr] md:grid-cols-[120px_1fr] gap-6 items-start">
+              <div className="aspect-[3/4] rounded-sm bg-surface-container-highest animate-pulse" />
+              <div className="space-y-3 pt-2">
+                <div className="h-2 w-20 bg-surface-container-highest rounded animate-pulse" />
+                <div className="h-4 w-40 bg-surface-container-highest rounded animate-pulse" />
+                <div className="h-2 w-28 bg-surface-container-highest rounded animate-pulse" />
               </div>
             </div>
           ))}
         </div>
-      ) : items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16">
-          <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center mb-6">
-            <Icon name="favorite_border" className="text-primary/40 text-4xl" />
-          </div>
-          <h3 className="font-headline text-xl text-on-surface mb-2 text-center">Your wishlist is empty</h3>
-          <p className="text-sm text-secondary/60 text-center mb-8 max-w-[280px]">
-            Found something you want to try? Browse the library and tap the heart to save it here.
+      ) : items.length === 0 && !search ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <p className="font-headline italic text-xl text-secondary/60 text-center max-w-md mb-10">
+            The register is empty. A keeper&rsquo;s desire begins with a single bottle.
           </p>
-          <button onClick={() => navigate('/explore')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg">
-            EXPLORE FRAGRANCES
+          <button
+            onClick={() => navigate('/explore')}
+            className="py-4 px-10 rounded-sm font-label text-[0.7rem] font-bold tracking-[0.2em] uppercase text-on-primary-container"
+            style={{ background: 'linear-gradient(45deg, #e5c276 0%, #c4a35a 100%)' }}
+          >
+            BROWSE THE ARCHIVES
           </button>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <p className="font-headline italic text-xl text-secondary/60 text-center max-w-md">
+            Nothing under consideration matches &ldquo;{search}&rdquo;.
+          </p>
+        </div>
       ) : (
-        <div className="space-y-3">
-          {items.map((item) => (
-            <WishlistCard
-              key={item.id}
-              item={item}
-              onTap={() => navigate(`/fragrance/${item.fragrance.id}`)}
-              onMarkOwned={() => handleMarkOwned(item)}
-              onMarkSampled={() => handleMarkSampled(item)}
-              onRemove={() => handleRemove(item)}
-            />
-          ))}
+        <div className="space-y-0">
+          {filtered.map((item) => {
+            const frag = item.fragrance
+            return (
+              <article key={item.id} className="group">
+                <div className="grid grid-cols-[80px_1fr] md:grid-cols-[120px_1fr] gap-6 md:gap-10 py-6 items-start">
+                  {/* 3:4 portrait */}
+                  <button
+                    onClick={() => navigate(`/fragrance/${frag.id}`)}
+                    className="aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-highest"
+                  >
+                    {frag.image_url ? (
+                      <FragranceImage
+                        src={frag.image_url}
+                        alt={frag.name}
+                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-surface-container" />
+                    )}
+                  </button>
+
+                  {/* Entry text */}
+                  <div className="pt-1">
+                    <p className="font-label text-primary/70 text-[0.6rem] tracking-[0.15em] uppercase mb-1">
+                      {frag.brand}
+                    </p>
+                    <button
+                      onClick={() => navigate(`/fragrance/${frag.id}`)}
+                      className="font-headline italic text-lg md:text-xl text-on-background hover:text-primary transition-colors text-left"
+                    >
+                      {frag.name}
+                    </button>
+                    {(frag.concentration || frag.note_family) && (
+                      <p className="font-headline italic text-sm text-secondary/50 mt-1">
+                        {frag.concentration && frag.concentration.toLowerCase()}
+                        {frag.concentration && frag.note_family && (
+                          <span className="inline-block mx-2 align-middle" style={verticalHairline} />
+                        )}
+                        {frag.note_family && frag.note_family.toLowerCase()}
+                      </p>
+                    )}
+
+                    {/* Action words */}
+                    <div className="flex items-center gap-4 mt-4">
+                      <button
+                        onClick={() => handleMarkOwned(item)}
+                        className="font-headline italic text-sm text-secondary/50 hover:text-on-background transition-colors"
+                      >
+                        acquired
+                      </button>
+                      <span aria-hidden style={verticalHairline} />
+                      <button
+                        onClick={() => handleMarkSampled(item)}
+                        className="font-headline italic text-sm text-secondary/50 hover:text-on-background transition-colors"
+                      >
+                        sampled
+                      </button>
+                      <span aria-hidden style={verticalHairline} />
+                      <button
+                        onClick={() => handleRemove(item)}
+                        className="font-headline italic text-sm text-secondary/50 hover:text-on-background transition-colors"
+                      >
+                        release
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div style={hairline} />
+              </article>
+            )
+          })}
         </div>
       )}
 
-      {/* FAB — Quick Add */}
-      {user && (
-        <button
-          onClick={() => setAddSheetOpen(true)}
-          className="fixed bottom-24 right-6 z-[var(--z-fab)] w-14 h-14 rounded-full gold-gradient shadow-xl flex items-center justify-center active:scale-90 transition-all ambient-glow"
-          aria-label="Add to wishlist"
-        >
-          <Icon name="add" className="text-on-primary text-2xl" />
-        </button>
-      )}
+      {/* VI. THE FAB */}
+      <button
+        onClick={() => setAddSheetOpen(true)}
+        className="fixed bottom-24 right-6 z-[var(--z-fab)] py-4 px-6 rounded-sm font-label text-[0.6rem] font-bold tracking-[0.2em] uppercase text-on-primary-container shadow-xl"
+        style={{ background: 'linear-gradient(45deg, #e5c276 0%, #c4a35a 100%)' }}
+        aria-label="File a desire"
+      >
+        FILE A DESIRE
+      </button>
 
+      {/* V. THE FILING DESK */}
       {addSheetOpen && (
-        <AddToWishlistSheet
+        <FilingDeskSheet
           userId={user.id}
           existingIds={items.map((i) => i.fragrance.id)}
           onClose={() => setAddSheetOpen(false)}
@@ -171,91 +369,9 @@ export function WishlistScreen() {
   )
 }
 
-function WishlistCard({
-  item,
-  onTap,
-  onMarkOwned,
-  onMarkSampled,
-  onRemove,
-}: {
-  item: WishlistItem
-  onTap: () => void
-  onMarkOwned: () => void
-  onMarkSampled: () => void
-  onRemove: () => void
-}) {
-  const [expanded, setExpanded] = useState(false)
-  const frag = item.fragrance
+/* ── Filing Desk (bottom sheet) ───────────────────────── */
 
-  return (
-    <div className="bg-surface-container rounded-xl overflow-hidden">
-      <button onClick={onTap} className="w-full flex items-center gap-4 p-4 text-left active:bg-surface-container-high transition-colors">
-        <div className="w-16 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
-          {frag.image_url ? (
-            <img src={frag.image_url} alt={frag.name} className="w-full h-full object-cover" loading="lazy" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Icon name="water_drop" className="text-secondary/30" />
-            </div>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[9px] uppercase tracking-[0.15em] text-primary/70 font-bold">{frag.brand}</p>
-          <p className="text-sm text-on-surface font-medium truncate">{frag.name}</p>
-          {frag.concentration && (
-            <p className="text-[10px] text-secondary/50 mt-0.5">{frag.concentration}</p>
-          )}
-          <div className="flex items-center gap-3 mt-2">
-            {frag.rating && (
-              <span className="flex items-center gap-1">
-                <Icon name="star" filled className="text-[11px] text-primary" />
-                <span className="text-[10px] text-primary font-semibold">{Number(frag.rating).toFixed(1)}</span>
-              </span>
-            )}
-            {frag.note_family && (
-              <span className="text-[10px] text-secondary/50 bg-surface-container-highest px-2 py-0.5 rounded-full">{frag.note_family}</span>
-            )}
-          </div>
-        </div>
-        <button
-          onClick={(e) => { e.stopPropagation(); setExpanded(!expanded) }}
-          aria-label="More actions"
-          className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform"
-        >
-          <Icon name={expanded ? 'expand_less' : 'more_vert'} size={18} className="text-secondary/60" />
-        </button>
-      </button>
-
-      {/* Expandable Actions */}
-      {expanded && (
-        <div className="flex gap-2 px-4 pb-4 animate-slide-down">
-          <button
-            onClick={onMarkOwned}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-primary/10 active:scale-95 transition-transform"
-          >
-            <Icon name="check_circle" className="text-primary" size={16} />
-            <span className="text-[10px] font-bold tracking-wider text-primary uppercase">GOT IT</span>
-          </button>
-          <button
-            onClick={onMarkSampled}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-tertiary/10 active:scale-95 transition-transform"
-          >
-            <Icon name="science" className="text-tertiary" size={16} />
-            <span className="text-[10px] font-bold tracking-wider text-tertiary uppercase">SAMPLED</span>
-          </button>
-          <button
-            onClick={onRemove}
-            className="flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-lg bg-error/10 active:scale-95 transition-transform"
-          >
-            <Icon name="delete_outline" className="text-error/70" size={16} />
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function AddToWishlistSheet({
+function FilingDeskSheet({
   userId,
   existingIds,
   onClose,
@@ -276,7 +392,12 @@ function AddToWishlistSheet({
 
   useEffect(() => {
     clearTimeout(debounceRef.current)
-    if (query.length < 2) { setResults([]); return }
+    if (query.length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setResults([])
+      setSearching(false)
+      return
+    }
     setSearching(true)
     debounceRef.current = setTimeout(() => {
       supabase
@@ -300,79 +421,153 @@ function AddToWishlistSheet({
       .from('user_collections')
       .insert({ user_id: userId, fragrance_id: frag.id, status: 'wishlist' })
     if (error) {
-      showToast('Failed to add', 'error')
+      showToast('The filing could not be completed.', 'error')
       setSaving(null)
     } else {
       await awardXP(userId, 'ADD_TO_COLLECTION')
-      showToast(`${frag.name} added to wishlist!`, 'success', 'favorite')
+      showToast('Filed to the register.', 'success', 'favorite')
       onAdded()
     }
   }
 
+  const hairlineStyle: React.CSSProperties = {
+    height: '1px',
+    background:
+      'linear-gradient(to right, rgba(229,194,118,0.4) 0%, rgba(229,194,118,0.1) 40%, transparent 100%)',
+    width: '100%',
+  }
+
   return (
-    <div ref={trapRef} className="fixed inset-0 z-[var(--z-sheet)] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Add to wishlist">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <section className="relative w-full max-h-[75vh] bg-surface-container-low rounded-t-[2.5rem] sheet-shadow flex flex-col overflow-hidden animate-slide-up">
-        <div className="flex justify-center py-4"><div className="w-12 h-1 bg-surface-container-highest rounded-full" /></div>
-        <header className="px-8 pb-4 flex justify-between items-center">
-          <h2 className="text-2xl font-headline font-bold text-on-surface">Add to Wishlist</h2>
-          <button onClick={onClose} className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform">
-            <Icon name="close" size={20} />
-          </button>
+    <div
+      ref={trapRef}
+      className="fixed inset-0 z-[var(--z-sheet)] flex flex-col justify-end"
+      role="dialog"
+      aria-modal="true"
+      aria-label="File a desire"
+    >
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <section
+        className="relative w-full max-h-[75vh] bg-surface-container-low rounded-t-sm flex flex-col overflow-hidden"
+        style={{ boxShadow: '0 -20px 60px rgba(0,0,0,0.6)' }}
+      >
+        {/* Grab bar */}
+        <div className="flex justify-center py-4">
+          <div className="w-12 h-px bg-primary/30" />
+        </div>
+
+        {/* Header */}
+        <header className="px-8 pb-6">
+          <div className="flex items-start justify-between gap-6">
+            <div>
+              <p className="font-label text-primary/60 text-[0.6rem] tracking-[0.3em] uppercase mb-2">
+                FILE A DESIRE
+              </p>
+              <h2 className="font-headline italic text-2xl md:text-3xl text-on-background leading-tight">
+                A bottle to be considered.
+              </h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="font-headline italic text-base text-secondary/60 hover:text-on-background transition-colors flex-shrink-0 pt-1"
+            >
+              close
+            </button>
+          </div>
+          <div className="mt-6" style={hairlineStyle} />
         </header>
-        <div className="px-8 pb-4">
-          <div className="flex items-center bg-surface-container rounded-2xl px-4 py-3 focus-within:ring-1 ring-primary/30 transition-all">
-            <Icon name="search" className="text-secondary/50 mr-3" size={18} />
-            <input
-              className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-secondary/40 w-full text-sm"
-              placeholder="Search fragrances..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              autoFocus
+
+        {/* Search field */}
+        <div className="px-8 pb-6">
+          <div className="relative group">
+            <div className="flex items-center gap-4 py-3">
+              <Icon name="search" size={18} className="text-primary/60 flex-shrink-0" />
+              <input
+                className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none font-headline italic text-lg text-on-background placeholder:text-secondary/40 placeholder:italic"
+                placeholder="Request a title, a house, a note…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                autoFocus
+              />
+              {query && (
+                <button
+                  onClick={() => setQuery('')}
+                  className="font-headline italic text-sm text-secondary/50 hover:text-primary transition-colors"
+                >
+                  clear
+                </button>
+              )}
+            </div>
+            <div
+              className="absolute bottom-0 left-0 right-0 opacity-40 group-focus-within:opacity-100 transition-opacity"
+              style={hairlineStyle}
             />
           </div>
         </div>
+
+        {/* Results */}
         <div className="flex-1 overflow-y-auto px-8 pb-8">
           {searching ? (
-            <div className="flex justify-center py-12">
-              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="space-y-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="grid grid-cols-[48px_1fr_auto] gap-4 items-center">
+                  <div className="aspect-[3/4] rounded-sm bg-surface-container-highest animate-pulse" />
+                  <div className="space-y-2">
+                    <div className="h-2 w-16 bg-surface-container-highest rounded animate-pulse" />
+                    <div className="h-3 w-28 bg-surface-container-highest rounded animate-pulse" />
+                  </div>
+                  <div className="h-2 w-8 bg-surface-container-highest rounded animate-pulse" />
+                </div>
+              ))}
             </div>
           ) : query.length >= 2 && results.length === 0 ? (
-            <p className="text-center text-sm text-secondary/50 py-12">No fragrances found</p>
+            <p className="font-headline italic text-base text-secondary/40 text-center py-12">
+              No titles matched your request.
+            </p>
           ) : (
-            <div className="divide-y divide-outline-variant/10">
+            <div className="space-y-0">
               {results.map((f) => {
                 const alreadyAdded = existingIds.includes(f.id)
                 return (
-                  <button
-                    key={f.id}
-                    onClick={() => !alreadyAdded && handleAdd(f)}
-                    disabled={saving === f.id || alreadyAdded}
-                    className="w-full flex items-center gap-3 py-3 text-left disabled:opacity-50 active:bg-surface-container-highest transition-colors"
-                  >
-                    <div className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
-                      {f.image_url ? (
-                        <img src={f.image_url} alt={f.name} className="w-full h-full object-cover" />
+                  <div key={f.id}>
+                    <div className="grid grid-cols-[48px_1fr_auto] gap-4 items-center py-4">
+                      <div className="aspect-[3/4] rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                        {f.image_url ? (
+                          <FragranceImage
+                            src={f.image_url}
+                            alt={f.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-surface-container" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-label text-primary/70 text-[0.6rem] tracking-[0.15em] uppercase truncate">
+                          {f.brand}
+                        </p>
+                        <p className="font-headline italic text-base text-on-background truncate">
+                          {f.name}
+                        </p>
+                      </div>
+                      {alreadyAdded ? (
+                        <span className="font-headline italic text-sm text-primary/40">
+                          already filed
+                        </span>
+                      ) : saving === f.id ? (
+                        <span className="font-headline italic text-sm text-secondary/40 animate-pulse">
+                          filing…
+                        </span>
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Icon name="water_drop" className="text-secondary/30" size={16} />
-                        </div>
+                        <button
+                          onClick={() => handleAdd(f)}
+                          className="font-headline italic text-sm text-secondary/50 hover:text-primary transition-colors"
+                        >
+                          file
+                        </button>
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[9px] uppercase tracking-[0.15em] text-primary/70 font-bold">{f.brand}</p>
-                      <p className="text-sm text-on-surface truncate">{f.name}</p>
-                    </div>
-                    {alreadyAdded ? (
-                      <span className="text-[9px] font-bold tracking-wider text-primary/50">ON LIST</span>
-                    ) : saving === f.id ? (
-                      <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Icon name="favorite" className="text-primary" size={18} />
-                      </div>
-                    )}
-                  </button>
+                    <div style={hairlineStyle} />
+                  </div>
                 )
               })}
             </div>
