@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Icon } from './Icon'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { getIconChar } from '@/lib/iconUtils'
 
 const STORAGE_KEY = 'scentfolio_onboarded'
 
@@ -84,14 +84,14 @@ export function WelcomeOverlay({ userId }: WelcomeOverlayProps) {
         {/* Skip */}
         <button
           onClick={handleDismiss}
-          className="absolute top-4 right-4 text-[10px] uppercase tracking-widest text-secondary/50 font-bold active:scale-95"
+          className="absolute top-4 right-4 text-[10px] uppercase tracking-widest text-secondary/50 font-bold hover:opacity-80"
         >
           SKIP
         </button>
 
         {/* Icon */}
         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-          <Icon name={current.icon} filled className="text-primary text-3xl" />
+          <span className="text-primary text-3xl">{getIconChar(current.icon)}</span>
         </div>
 
         {/* Content */}
@@ -113,7 +113,7 @@ export function WelcomeOverlay({ userId }: WelcomeOverlayProps) {
         {/* Button */}
         <button
           onClick={handleNext}
-          className="w-full py-3.5 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-2xl active:scale-[0.98] transition-all text-sm"
+          className="w-full py-3.5 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-sm hover:opacity-80 transition-all text-sm"
         >
           {isLast ? "LET'S GO" : 'NEXT'}
         </button>

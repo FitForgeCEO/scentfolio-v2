@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useDupeSearch, useDupesForFragrance } from '@/hooks/useDupeFinder'
 import type { Fragrance } from '@/types/database'
 
@@ -20,20 +19,20 @@ export function DupeFinderScreen() {
 
       {/* Search */}
       <div className="relative mb-4">
-        <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/40" size={18} />
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/40">⌕</span>
         <input
           type="text"
           placeholder="Search for a fragrance…"
           value={query}
           onChange={(e) => { setQuery(e.target.value); setSelectedFragrance(null) }}
-          className="w-full bg-surface-container rounded-xl pl-10 pr-4 py-3 text-sm text-on-surface placeholder:text-secondary/30 outline-none focus:ring-1 focus:ring-primary/30"
+          className="w-full bg-surface-container rounded-sm pl-10 pr-4 py-3 text-sm text-on-surface placeholder:text-secondary/30 outline-none focus:ring-1 focus:ring-primary/30"
         />
         {query && (
           <button
             onClick={() => { setQuery(''); setSelectedFragrance(null) }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary/40"
           >
-            <Icon name="close" size={16} />
+            <span>✕</span>
           </button>
         )}
       </div>
@@ -45,14 +44,14 @@ export function DupeFinderScreen() {
             <button
               key={f.id}
               onClick={() => { setSelectedFragrance(f); setQuery('') }}
-              className="w-full flex items-center gap-3 bg-surface-container rounded-xl p-3 text-left active:bg-surface-container-highest transition-colors"
+              className="w-full flex items-center gap-3 bg-surface-container rounded-sm p-3 text-left active:bg-surface-container-highest transition-colors"
             >
-              <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-container-highest flex-shrink-0">
+              <div className="w-10 h-10 rounded-sm overflow-hidden bg-surface-container-highest flex-shrink-0">
                 {f.image_url ? (
                   <img src={f.image_url} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Icon name="water_drop" className="text-secondary/20" size={16} />
+                    <span className="text-secondary/20">?</span>
                   </div>
                 )}
               </div>
@@ -67,20 +66,20 @@ export function DupeFinderScreen() {
 
       {searching && (
         <div className="flex justify-center py-8">
-          <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <span className="text-[9px] uppercase tracking-wider text-primary animate-pulse">Loading…</span>
         </div>
       )}
 
       {/* Selected fragrance card */}
       {selectedFragrance && (
         <section className="mb-6">
-          <div className="bg-surface-container rounded-2xl p-4 flex items-center gap-3">
-            <div className="w-14 h-14 rounded-xl overflow-hidden bg-surface-container-highest flex-shrink-0">
+          <div className="bg-surface-container rounded-sm p-4 flex items-center gap-3">
+            <div className="w-14 h-14 rounded-sm overflow-hidden bg-surface-container-highest flex-shrink-0">
               {selectedFragrance.image_url ? (
                 <img src={selectedFragrance.image_url} alt="" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Icon name="water_drop" className="text-secondary/20" />
+                  <span className="text-secondary/20">?</span>
                 </div>
               )}
             </div>
@@ -97,7 +96,7 @@ export function DupeFinderScreen() {
               onClick={() => setSelectedFragrance(null)}
               className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center"
             >
-              <Icon name="close" size={14} className="text-secondary/60" />
+              <span className="text-secondary/60">✕</span>
             </button>
           </div>
         </section>
@@ -106,7 +105,7 @@ export function DupeFinderScreen() {
       {/* Dupes loading */}
       {dupesLoading && (
         <div className="flex flex-col items-center justify-center py-12 gap-3">
-          <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <span className="text-[9px] uppercase tracking-wider text-primary animate-pulse">Loading…</span>
           <p className="text-xs text-secondary/40">Finding similar scents…</p>
         </div>
       )}
@@ -114,7 +113,7 @@ export function DupeFinderScreen() {
       {/* Dupes results */}
       {selectedFragrance && !dupesLoading && dupes.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 gap-3">
-          <Icon name="search_off" className="text-4xl text-primary/20" />
+          <span className="text-4xl text-primary/20">?</span>
           <p className="text-sm text-secondary/50">No dupes found for this fragrance yet</p>
         </div>
       )}
@@ -129,10 +128,10 @@ export function DupeFinderScreen() {
               <button
                 key={dupe.connection.id}
                 onClick={() => navigate(`/fragrance/${dupe.otherFragrance.id}`)}
-                className="w-full flex items-center gap-3 bg-surface-container rounded-2xl p-3 text-left active:scale-[0.98] transition-transform"
+                className="w-full flex items-center gap-3 bg-surface-container rounded-sm p-3 text-left hover:opacity-80 transition-transform"
               >
                 {/* Similarity badge */}
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                <div className={`w-10 h-10 rounded-sm flex items-center justify-center flex-shrink-0 ${
                   dupe.connection.similarity_score >= 70 ? 'bg-green-500/20' :
                   dupe.connection.similarity_score >= 40 ? 'bg-yellow-500/20' : 'bg-primary/10'
                 }`}>
@@ -145,12 +144,12 @@ export function DupeFinderScreen() {
                 </div>
 
                 {/* Image */}
-                <div className="w-11 h-11 rounded-xl overflow-hidden bg-surface-container-highest flex-shrink-0">
+                <div className="w-11 h-11 rounded-sm overflow-hidden bg-surface-container-highest flex-shrink-0">
                   {dupe.otherFragrance.image_url ? (
                     <img src={dupe.otherFragrance.image_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Icon name="water_drop" className="text-secondary/20" size={16} />
+                      <span className="text-secondary/20">?</span>
                     </div>
                   )}
                 </div>
@@ -167,12 +166,12 @@ export function DupeFinderScreen() {
                 {/* Votes */}
                 {dupe.connection.votes > 0 && (
                   <div className="flex items-center gap-1 text-secondary/40">
-                    <Icon name="thumb_up" size={12} />
+                    <span>△</span>
                     <span className="text-[9px]">{dupe.connection.votes}</span>
                   </div>
                 )}
 
-                <Icon name="chevron_right" className="text-secondary/30" size={16} />
+                <span className="text-secondary/30">?</span>
               </button>
             ))}
           </div>
@@ -183,7 +182,7 @@ export function DupeFinderScreen() {
       {!selectedFragrance && !query && (
         <div className="flex flex-col items-center justify-center py-16 gap-4">
           <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-            <Icon name="compare_arrows" className="text-primary/40 text-4xl" />
+            <span className="text-primary/40 text-4xl">?</span>
           </div>
           <p className="text-sm text-secondary/50 text-center max-w-[260px]">
             Search for any fragrance to find similar scents and affordable alternatives.

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLayeringStacks, deleteStack, toggleTriedIt } from '@/hooks/useLayeringStacks'
-import { Icon } from '../ui/Icon'
 import { InlineError } from '../ui/InlineError'
 
 export function SavedStacksScreen() {
@@ -15,10 +14,10 @@ export function SavedStacksScreen() {
     return (
       <main className="pt-24 pb-32 px-6 min-h-screen flex flex-col items-center justify-center text-center space-y-4">
         <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center">
-          <Icon name="lock" className="text-2xl text-secondary/40" />
+          <span className="text-2xl text-secondary/40">⊘</span>
         </div>
         <p className="text-secondary/60 text-sm">Sign in to view saved stacks</p>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest">
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-6 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest">
           SIGN IN
         </button>
       </main>
@@ -28,7 +27,7 @@ export function SavedStacksScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -74,13 +73,13 @@ export function SavedStacksScreen() {
       {stacks.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center pt-16 space-y-4">
           <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center">
-            <Icon name="science" className="text-2xl text-secondary/40" />
+            <span className="text-2xl text-secondary/40">?</span>
           </div>
           <h3 className="font-headline text-lg text-on-surface">No saved stacks</h3>
           <p className="text-secondary/60 text-sm max-w-[260px]">
             Head to the Layering Lab to discover fragrance combinations, then save your favourites here
           </p>
-          <button onClick={() => navigate('/layering-lab')} className="gold-gradient text-on-primary-container px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest">
+          <button onClick={() => navigate('/layering-lab')} className="gold-gradient text-on-primary-container px-6 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest">
             GO TO LAB
           </button>
         </div>
@@ -122,14 +121,14 @@ function StackCard({ stack, onNavigate, onToggleTried, onDelete }: {
   const layeringName = (stack.layering_fragrance as Record<string, string> | null)?.name ?? 'Unknown'
 
   return (
-    <div className="bg-surface-container rounded-xl p-4 space-y-3">
+    <div className="bg-surface-container rounded-sm p-4 space-y-3">
       {/* Header row */}
       <div className="flex items-start gap-3">
-        <button onClick={onNavigate} className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest active:scale-95 transition-transform">
+        <button onClick={onNavigate} className="w-12 h-12 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest hover:opacity-80 transition-transform">
           {stack.fragrance.image_url ? (
             <img src={stack.fragrance.image_url} alt={stack.fragrance.name} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center"><Icon name="water_drop" className="text-secondary/30" size={20} /></div>
+            <div className="w-full h-full flex items-center justify-center"><span className="text-secondary/30">?</span></div>
           )}
         </button>
         <div className="flex-1 min-w-0">
@@ -137,8 +136,8 @@ function StackCard({ stack, onNavigate, onToggleTried, onDelete }: {
           <p className="text-sm text-on-surface font-medium truncate">{stack.fragrance.name}</p>
           <p className="text-xs text-secondary/50 mt-0.5">+ {layeringName}</p>
         </div>
-        <button onClick={() => setShowActions(!showActions)} className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center active:scale-90 transition-transform">
-          <Icon name="more_vert" className="text-secondary/60 text-sm" />
+        <button onClick={() => setShowActions(!showActions)} className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center hover:opacity-80 transition-transform">
+          <span className="text-secondary/60 text-sm">⋮</span>
         </button>
       </div>
 
@@ -159,7 +158,7 @@ function StackCard({ stack, onNavigate, onToggleTried, onDelete }: {
         )}
         {stack.user_rating && (
           <div className="flex items-center gap-0.5">
-            <Icon name="star" filled className="text-[10px] text-primary" />
+            <span className="text-[10px] text-primary">★</span>
             <span className="text-[10px] text-primary font-bold">{stack.user_rating}</span>
           </div>
         )}
@@ -168,10 +167,10 @@ function StackCard({ stack, onNavigate, onToggleTried, onDelete }: {
       {/* Actions */}
       {showActions && (
         <div className="flex gap-2 pt-1">
-          <button onClick={onToggleTried} className="flex-1 py-2 rounded-lg bg-surface-container-highest text-xs font-medium active:scale-95 transition-transform">
+          <button onClick={onToggleTried} className="flex-1 py-2 rounded-sm bg-surface-container-highest text-xs font-medium hover:opacity-80 transition-transform">
             {stack.tried_it ? 'Mark Untried' : 'Mark as Tried'}
           </button>
-          <button onClick={onDelete} className="py-2 px-4 rounded-lg bg-error/10 text-xs font-medium text-error/70 active:scale-95 transition-transform">
+          <button onClick={onDelete} className="py-2 px-4 rounded-sm bg-error/10 text-xs font-medium text-error/70 hover:opacity-80 transition-transform">
             Delete
           </button>
         </div>

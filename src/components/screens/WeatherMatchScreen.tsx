@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
@@ -146,7 +145,7 @@ export function WeatherMatchScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="cloud" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in for weather-matched picks</p>
       </main>
     )
@@ -155,7 +154,7 @@ export function WeatherMatchScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
         <p className="text-xs text-secondary/40 animate-pulse">Checking the weather...</p>
       </main>
     )
@@ -164,7 +163,7 @@ export function WeatherMatchScreen() {
   if (locationError) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="location_off" className="text-4xl text-primary/20" />
+        <span className="text-4xl text-primary/20">?</span>
         <p className="text-sm text-on-surface-variant">{locationError}</p>
         <p className="text-xs text-secondary/40">Enable location access to get weather-matched picks</p>
       </main>
@@ -178,7 +177,7 @@ export function WeatherMatchScreen() {
   return (
     <main className="pt-24 pb-32 px-4 max-w-[430px] mx-auto min-h-screen space-y-6">
       {/* Weather card */}
-      <div className="bg-surface-container rounded-2xl p-5 text-center space-y-2">
+      <div className="bg-surface-container rounded-sm p-5 text-center space-y-2">
         <p className="text-4xl">{WEATHER_ICONS[weather.condition] ?? '🌤️'}</p>
         <div className="flex items-center justify-center gap-3">
           <span className="font-headline text-3xl text-on-surface">{weather.temp}°</span>
@@ -209,7 +208,7 @@ export function WeatherMatchScreen() {
         <p className="text-[10px] uppercase tracking-[0.15em] text-secondary/50 font-bold mb-3">YOUR BEST PICKS</p>
         {matches.length === 0 ? (
           <div className="text-center py-8">
-            <Icon name="search_off" className="text-3xl text-primary/20 mb-2" />
+            <span className="text-3xl text-primary/20 mb-2">?</span>
             <p className="text-xs text-secondary/40">No strong matches in your collection</p>
             <p className="text-[10px] text-secondary/30 mt-1">Try adding fragrances with {profile.accords.slice(0, 2).join(' or ')} notes</p>
           </div>
@@ -219,15 +218,15 @@ export function WeatherMatchScreen() {
               <button
                 key={f.id}
                 onClick={() => navigate(`/fragrance/${f.id}`)}
-                className="w-full flex items-center gap-3 bg-surface-container rounded-xl p-3 active:scale-[0.98] transition-transform text-left"
+                className="w-full flex items-center gap-3 bg-surface-container rounded-sm p-3 hover:opacity-80 transition-transform text-left"
               >
                 {i === 0 && <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full gold-gradient text-on-primary-container text-[8px] font-bold flex items-center justify-center">★</span>}
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0 relative">
+                <div className="w-12 h-12 rounded-sm overflow-hidden bg-surface-container-low flex-shrink-0 relative">
                   {f.image_url ? (
                     <img src={f.image_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Icon name="water_drop" className="text-primary/20" size={18} />
+                      <span className="text-primary/20">?</span>
                     </div>
                   )}
                 </div>

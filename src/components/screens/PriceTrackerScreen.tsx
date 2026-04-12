@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
@@ -91,7 +90,7 @@ export function PriceTrackerScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="payments" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to track prices</p>
       </main>
     )
@@ -100,7 +99,7 @@ export function PriceTrackerScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -109,7 +108,7 @@ export function PriceTrackerScreen() {
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
       <section className="text-center mb-6">
         <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-3">
-          <Icon name="payments" filled className="text-3xl text-primary" />
+          <span className="text-3xl text-primary">?</span>
         </div>
         <h2 className="font-headline text-xl mb-1">Price Tracker</h2>
         <p className="text-[10px] text-secondary/50">Your collection's value at a glance</p>
@@ -117,15 +116,15 @@ export function PriceTrackerScreen() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-2 mb-6">
-        <div className="bg-surface-container rounded-xl p-3 text-center">
+        <div className="bg-surface-container rounded-sm p-3 text-center">
           <p className="font-headline text-lg text-primary">${totalValue.toFixed(0)}</p>
           <p className="text-[8px] uppercase tracking-wider text-secondary/40">Collection Value</p>
         </div>
-        <div className="bg-surface-container rounded-xl p-3 text-center">
+        <div className="bg-surface-container rounded-sm p-3 text-center">
           <p className="font-headline text-lg text-on-surface">${avgPrice.toFixed(0)}</p>
           <p className="text-[8px] uppercase tracking-wider text-secondary/40">Avg Price</p>
         </div>
-        <div className="bg-surface-container rounded-xl p-3 text-center">
+        <div className="bg-surface-container rounded-sm p-3 text-center">
           <p className="font-headline text-lg text-secondary/70">${wishlistTotal.toFixed(0)}</p>
           <p className="text-[8px] uppercase tracking-wider text-secondary/40">Wishlist Cost</p>
         </div>
@@ -137,7 +136,7 @@ export function PriceTrackerScreen() {
           <button
             key={f}
             onClick={() => setFilterStatus(f)}
-            className={`flex-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95 ${
+            className={`flex-1 py-2 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-all hover:opacity-80 ${
               filterStatus === f ? 'bg-primary/15 text-primary' : 'bg-surface-container text-secondary/50'
             }`}
           >
@@ -147,7 +146,7 @@ export function PriceTrackerScreen() {
       </div>
 
       {/* Sort */}
-      <div className="flex gap-1 bg-surface-container rounded-xl p-1 mb-6">
+      <div className="flex gap-1 bg-surface-container rounded-sm p-1 mb-6">
         {([
           { key: 'price_desc' as SortKey, label: 'Price ↓' },
           { key: 'price_asc' as SortKey, label: 'Price ↑' },
@@ -157,7 +156,7 @@ export function PriceTrackerScreen() {
           <button
             key={s.key}
             onClick={() => setSortKey(s.key)}
-            className={`flex-1 py-2 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all ${
+            className={`flex-1 py-2 rounded-sm text-[9px] font-bold uppercase tracking-wider transition-all ${
               sortKey === s.key ? 'bg-primary text-on-primary-container' : 'text-secondary/50'
             }`}
           >
@@ -169,7 +168,7 @@ export function PriceTrackerScreen() {
       {/* Price List */}
       {sorted.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16">
-          <Icon name="sell" className="text-4xl text-secondary/20" />
+          <span className="text-4xl text-secondary/20">?</span>
           <p className="text-sm text-secondary/50">No pricing data available</p>
         </div>
       ) : (
@@ -178,15 +177,15 @@ export function PriceTrackerScreen() {
             <button
               key={item.fragrance.id}
               onClick={() => navigate(`/fragrance/${item.fragrance.id}`)}
-              className="w-full bg-surface-container rounded-xl p-3 flex items-center gap-3 active:scale-[0.98] transition-transform text-left"
+              className="w-full bg-surface-container rounded-sm p-3 flex items-center gap-3 hover:opacity-80 transition-transform text-left"
             >
               {/* Image */}
-              <div className="w-11 h-11 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
+              <div className="w-11 h-11 rounded-sm overflow-hidden bg-surface-container-low flex-shrink-0">
                 {item.fragrance.image_url ? (
                   <img src={item.fragrance.image_url} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Icon name="water_drop" className="text-secondary/20" size={18} />
+                    <span className="text-secondary/20">?</span>
                   </div>
                 )}
               </div>
@@ -203,7 +202,7 @@ export function PriceTrackerScreen() {
                   </span>
                   {item.personalRating && (
                     <span className="text-[8px] text-secondary/40 flex items-center gap-0.5">
-                      <Icon name="star" filled size={8} className="text-primary" />
+                      <span className="text-primary">★</span>
                       {item.personalRating}
                     </span>
                   )}

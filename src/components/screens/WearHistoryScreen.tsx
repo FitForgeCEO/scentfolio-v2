@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useWearHistory } from '@/hooks/useWearHistory'
-import { Icon } from '../ui/Icon'
 import { InlineError } from '../ui/InlineError'
 import type { WearEntry } from '@/hooks/useWearHistory'
+import { getIconChar } from '@/lib/iconUtils'
 
 const OCCASION_ICONS: Record<string, string> = {
   casual: 'sunny',
@@ -38,12 +38,12 @@ export function WearHistoryScreen() {
     return (
       <main className="pt-24 pb-32 px-6 min-h-screen flex flex-col items-center justify-center text-center space-y-4">
         <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center">
-          <Icon name="lock" className="text-2xl text-secondary/40" />
+          <span className="text-2xl text-secondary/40">⊘</span>
         </div>
         <p className="text-secondary/60 text-sm">Sign in to view your wear history</p>
         <button
           onClick={() => navigate('/profile')}
-          className="gold-gradient text-on-primary-container px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest"
+          className="gold-gradient text-on-primary-container px-6 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest"
         >
           SIGN IN
         </button>
@@ -54,7 +54,7 @@ export function WearHistoryScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -71,7 +71,7 @@ export function WearHistoryScreen() {
     return (
       <main className="pt-24 pb-32 px-6 min-h-screen flex flex-col items-center justify-center text-center space-y-4">
         <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center">
-          <Icon name="checkroom" className="text-2xl text-secondary/40" />
+          <span className="text-2xl text-secondary/40">?</span>
         </div>
         <h3 className="font-headline text-lg text-on-surface">No wears logged yet</h3>
         <p className="text-secondary/60 text-sm max-w-[260px]">
@@ -79,7 +79,7 @@ export function WearHistoryScreen() {
         </p>
         <button
           onClick={() => navigate('/')}
-          className="gold-gradient text-on-primary-container px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest"
+          className="gold-gradient text-on-primary-container px-6 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest"
         >
           LOG YOUR FIRST WEAR
         </button>
@@ -91,15 +91,15 @@ export function WearHistoryScreen() {
     <main className="pt-24 pb-32 px-6 space-y-10">
       {/* Summary Stats */}
       <section className="grid grid-cols-3 gap-3">
-        <div className="bg-surface-container p-4 rounded-xl text-center">
+        <div className="bg-surface-container p-4 rounded-sm text-center">
           <p className="font-headline text-2xl text-on-surface">{entries.length}</p>
           <p className="font-label text-[9px] tracking-[0.15em] text-secondary/50 uppercase mt-1">Total Wears</p>
         </div>
-        <div className="bg-surface-container p-4 rounded-xl text-center">
+        <div className="bg-surface-container p-4 rounded-sm text-center">
           <p className="font-headline text-2xl text-on-surface">{mostWorn.length}</p>
           <p className="font-label text-[9px] tracking-[0.15em] text-secondary/50 uppercase mt-1">Fragrances</p>
         </div>
-        <div className="bg-surface-container p-4 rounded-xl text-center">
+        <div className="bg-surface-container p-4 rounded-sm text-center">
           <p className="font-headline text-2xl text-on-surface">{occasionBreakdown.length}</p>
           <p className="font-label text-[9px] tracking-[0.15em] text-secondary/50 uppercase mt-1">Occasions</p>
         </div>
@@ -114,15 +114,15 @@ export function WearHistoryScreen() {
               <button
                 key={fragrance.id}
                 onClick={() => navigate(`/fragrance/${fragrance.id}`)}
-                className="w-full flex items-center gap-3 bg-surface-container rounded-xl p-3 active:scale-[0.98] transition-transform text-left"
+                className="w-full flex items-center gap-3 bg-surface-container rounded-sm p-3 hover:opacity-80 transition-transform text-left"
               >
                 <span className="font-headline text-lg text-primary/60 w-6 text-center">{i + 1}</span>
-                <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                <div className="w-10 h-10 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                   {fragrance.image_url ? (
                     <img src={fragrance.image_url} alt={fragrance.name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Icon name="water_drop" className="text-secondary/30" size={16} />
+                      <span className="text-secondary/30">?</span>
                     </div>
                   )}
                 </div>
@@ -146,12 +146,9 @@ export function WearHistoryScreen() {
           <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary">BY OCCASION</h3>
           <div className="grid grid-cols-2 gap-2">
             {occasionBreakdown.map(({ occasion, count }) => (
-              <div key={occasion} className="bg-surface-container rounded-xl p-3 flex items-center gap-3">
+              <div key={occasion} className="bg-surface-container rounded-sm p-3 flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Icon
-                    name={OCCASION_ICONS[occasion] ?? 'help_outline'}
-                    className="text-primary text-sm"
-                  />
+                  <span className="text-primary text-sm">{getIconChar(OCCASION_ICONS[occasion] ?? 'help_outline')}</span>
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-on-surface truncate">{formatOccasion(occasion)}</p>
@@ -176,17 +173,17 @@ export function WearHistoryScreen() {
                 <button
                   key={entry.id}
                   onClick={() => navigate(`/fragrance/${entry.fragrance.id}`)}
-                  className="w-full flex items-center gap-3 bg-surface-container rounded-xl p-3 active:scale-[0.98] transition-transform text-left relative"
+                  className="w-full flex items-center gap-3 bg-surface-container rounded-sm p-3 hover:opacity-80 transition-transform text-left relative"
                 >
                   {/* Timeline dot */}
                   <div className="absolute -left-[calc(0.75rem+5px)] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary/40" />
 
-                  <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                  <div className="w-10 h-10 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                     {entry.fragrance.image_url ? (
                       <img src={entry.fragrance.image_url} alt={entry.fragrance.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Icon name="water_drop" className="text-secondary/30" size={16} />
+                        <span className="text-secondary/30">?</span>
                       </div>
                     )}
                   </div>

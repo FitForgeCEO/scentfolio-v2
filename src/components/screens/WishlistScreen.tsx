@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { FragranceImage } from '../ui/FragranceImage'
 import { InlineError } from '../ui/InlineError'
 import { useAuth } from '@/contexts/AuthContext'
@@ -210,7 +209,7 @@ export function WishlistScreen() {
       <section className="mb-16">
         <div className="relative group">
           <div className="flex items-center gap-4 py-4">
-            <Icon name="search" size={20} className="text-primary/60 flex-shrink-0" />
+            <span className="text-primary/60 flex-shrink-0">⌕</span>
             <input
               className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none font-headline italic text-xl text-on-background placeholder:text-secondary/40 placeholder:italic"
               placeholder="Request a title, a house, a note…"
@@ -480,7 +479,7 @@ function FilingDeskSheet({
         <div className="px-8 pb-6">
           <div className="relative group">
             <div className="flex items-center gap-4 py-3">
-              <Icon name="search" size={18} className="text-primary/60 flex-shrink-0" />
+              <span className="text-primary/60 flex-shrink-0">⌕</span>
               <input
                 className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none font-headline italic text-lg text-on-background placeholder:text-secondary/40 placeholder:italic"
                 placeholder="Request a title, a house, a note…"

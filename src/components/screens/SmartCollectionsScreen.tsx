@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 interface SmartCollection {
   key: string
@@ -125,7 +125,7 @@ export function SmartCollectionsScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="auto_fix_high" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to see smart collections</p>
       </main>
     )
@@ -134,7 +134,7 @@ export function SmartCollectionsScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -149,13 +149,13 @@ export function SmartCollectionsScreen() {
         const isExpanded = expanded === col.key
         const count = col.fragrances.length
         return (
-          <div key={col.key} className="bg-surface-container rounded-xl overflow-hidden">
+          <div key={col.key} className="bg-surface-container rounded-sm overflow-hidden">
             <button
               onClick={() => setExpanded(isExpanded ? null : col.key)}
               className="w-full flex items-center gap-3 p-4 active:bg-surface-container-high transition-colors text-left"
             >
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Icon name={col.icon} className="text-primary" size={20} />
+              <div className="w-10 h-10 rounded-sm bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <span className="text-primary">{getIconChar(col.icon)}</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -164,7 +164,7 @@ export function SmartCollectionsScreen() {
                 </div>
                 <p className="text-[10px] text-secondary/50">{col.description}</p>
               </div>
-              <Icon name={isExpanded ? 'expand_less' : 'expand_more'} className="text-secondary/40" size={20} />
+              <span className="text-secondary/40">{getIconChar(isExpanded ? 'expand_less' : 'expand_more')}</span>
             </button>
 
             {isExpanded && (
@@ -177,14 +177,14 @@ export function SmartCollectionsScreen() {
                       <button
                         key={f.id}
                         onClick={() => navigate(`/fragrance/${f.id}`)}
-                        className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container-high transition-colors text-left active:scale-[0.98]"
+                        className="w-full flex items-center gap-3 p-2 rounded-sm hover:bg-surface-container-high transition-colors text-left hover:opacity-80"
                       >
-                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
+                        <div className="w-10 h-10 rounded-sm overflow-hidden bg-surface-container-low flex-shrink-0">
                           {f.image_url ? (
                             <img src={f.image_url} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Icon name="water_drop" className="text-primary/20" size={16} />
+                              <span className="text-primary/20">?</span>
                             </div>
                           )}
                         </div>

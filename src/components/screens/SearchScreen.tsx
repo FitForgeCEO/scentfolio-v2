@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { FragranceImage } from '../ui/FragranceImage'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
@@ -234,7 +233,7 @@ export function SearchScreen() {
 
       {/* ── II. THE REQUEST SLIP ───────────────────────────── */}
       <div className="relative flex items-center mb-2 group">
-        <Icon name="search" className="mr-3 flex-shrink-0" style={{ color: 'rgba(229,194,118,0.6)' }} />
+        <span className="mr-3 flex-shrink-0">⌕</span>
         <input
           ref={inputRef}
           className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none w-full font-headline italic text-xl text-on-background placeholder:font-headline placeholder:italic"

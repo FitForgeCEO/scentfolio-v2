@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useFamilyExplorer, useFamilyFragrances, getFamilyIcon } from '@/hooks/useFamilyExplorer'
 import type { FamilySortOption, FamilyStats } from '@/hooks/useFamilyExplorer'
 import type { Fragrance } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 const SORT_OPTIONS: { value: FamilySortOption; label: string; icon: string }[] = [
   { value: 'most', label: 'Most owned', icon: 'sort' },
@@ -19,7 +19,7 @@ export function FamilyExplorerScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -39,12 +39,12 @@ export function FamilyExplorerScreen() {
 
       {/* Distribution overview */}
       {families.length > 0 && !search && (
-        <section className="mb-6 bg-surface-container rounded-2xl p-4">
+        <section className="mb-6 bg-surface-container rounded-sm p-4">
           <p className="text-[9px] uppercase tracking-[0.15em] text-secondary/40 font-bold mb-3">DISTRIBUTION</p>
           <div className="space-y-2">
             {families.slice(0, 6).map((fam) => (
               <div key={fam.family} className="flex items-center gap-2">
-                <Icon name={getFamilyIcon(fam.family)} size={14} className="text-primary/60 flex-shrink-0" />
+                <span className="text-primary/60 flex-shrink-0">{getIconChar(getFamilyIcon(fam.family))}</span>
                 <span className="text-[10px] text-on-surface-variant w-16 truncate flex-shrink-0">{fam.family}</span>
                 <div className="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
                   <div
@@ -61,20 +61,20 @@ export function FamilyExplorerScreen() {
 
       {/* Search */}
       <div className="relative mb-4">
-        <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/40" size={18} />
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/40">⌕</span>
         <input
           type="text"
           placeholder="Search families…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-surface-container rounded-xl pl-10 pr-4 py-3 text-sm text-on-surface placeholder:text-secondary/30 outline-none focus:ring-1 focus:ring-primary/30"
+          className="w-full bg-surface-container rounded-sm pl-10 pr-4 py-3 text-sm text-on-surface placeholder:text-secondary/30 outline-none focus:ring-1 focus:ring-primary/30"
         />
         {search && (
           <button
             onClick={() => setSearch('')}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary/40 active:text-secondary"
           >
-            <Icon name="close" size={16} />
+            <span>✕</span>
           </button>
         )}
       </div>
@@ -91,7 +91,7 @@ export function FamilyExplorerScreen() {
                 : 'bg-surface-container text-secondary/60'
             }`}
           >
-            <Icon name={opt.icon} size={12} />
+            <span>{getIconChar(opt.icon)}</span>
             {opt.label}
           </button>
         ))}
@@ -100,7 +100,7 @@ export function FamilyExplorerScreen() {
       {/* Family list */}
       {families.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <Icon name="category" className="text-4xl text-primary/20" />
+          <span className="text-4xl text-primary/20">?</span>
           <p className="text-sm text-secondary/50">
             {search ? 'No matching families' : 'No note families in your collection yet'}
           </p>
@@ -134,15 +134,15 @@ function FamilyCard({
   onNavigate: (fragranceId: string) => void
 }) {
   return (
-    <div className="bg-surface-container rounded-2xl overflow-hidden transition-all">
+    <div className="bg-surface-container rounded-sm overflow-hidden transition-all">
       {/* Family header row */}
       <button
         onClick={onToggle}
         className="w-full flex items-center gap-3 p-4 text-left active:bg-surface-container-highest/50 transition-colors"
       >
         {/* Family icon */}
-        <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <Icon name={getFamilyIcon(family.family)} className="text-primary" size={22} />
+        <div className="w-11 h-11 rounded-sm bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <span className="text-primary">{getIconChar(getFamilyIcon(family.family))}</span>
         </div>
 
         {/* Family info */}
@@ -156,7 +156,7 @@ function FamilyCard({
               <>
                 <span className="text-[10px] text-secondary/30">·</span>
                 <span className="text-[10px] text-primary/70 flex items-center gap-0.5">
-                  <Icon name="star" filled size={10} />
+                  <span>★</span>
                   {family.avgRating}
                 </span>
               </>
@@ -174,11 +174,7 @@ function FamilyCard({
           <span className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
             {family.count}
           </span>
-          <Icon
-            name="expand_more"
-            className={`text-secondary/40 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-            size={20}
-          />
+          <span>▼</span>
         </div>
       </button>
 
@@ -196,7 +192,7 @@ function FamilyFragranceList({ family, onNavigate }: { family: string; onNavigat
   if (loading) {
     return (
       <div className="px-4 pb-4 flex justify-center">
-        <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+        <span className="text-[9px] uppercase tracking-wider text-primary animate-pulse">Loading…</span>
       </div>
     )
   }
@@ -222,14 +218,14 @@ function FragranceRow({
   return (
     <button
       onClick={() => onNavigate(fragrance.id)}
-      className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-surface-container-highest/40 active:bg-surface-container-highest transition-colors text-left"
+      className="w-full flex items-center gap-3 p-2.5 rounded-sm bg-surface-container-highest/40 active:bg-surface-container-highest transition-colors text-left"
     >
-      <div className="w-9 h-9 rounded-lg overflow-hidden bg-surface-container flex-shrink-0">
+      <div className="w-9 h-9 rounded-sm overflow-hidden bg-surface-container flex-shrink-0">
         {fragrance.image_url ? (
           <img src={fragrance.image_url} alt="" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Icon name="water_drop" className="text-secondary/20" size={14} />
+            <span className="text-secondary/20">?</span>
           </div>
         )}
       </div>
@@ -239,11 +235,11 @@ function FragranceRow({
       </div>
       {fragrance.personal_rating !== null && fragrance.personal_rating > 0 && (
         <div className="flex items-center gap-0.5 text-primary/70">
-          <Icon name="star" filled size={10} />
+          <span>★</span>
           <span className="text-[10px] font-medium">{fragrance.personal_rating}</span>
         </div>
       )}
-      <Icon name="chevron_right" className="text-secondary/30" size={16} />
+      <span className="text-secondary/30">?</span>
     </button>
   )
 }

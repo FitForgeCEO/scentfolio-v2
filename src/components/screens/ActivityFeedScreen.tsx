@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
+import { getIconChar } from '@/lib/iconUtils'
 import {
   getNotifications,
   markRead,
@@ -141,9 +141,9 @@ export function ActivityFeedScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center">
-        <Icon name="notifications" className="text-4xl text-primary/20 mb-4" />
+        <span className="text-4xl text-primary/20 mb-4">⊙</span>
         <h3 className="font-headline text-xl text-on-surface mb-2">Sign in to view activity</h3>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg mt-4">
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all shadow-lg mt-4">
           SIGN IN
         </button>
       </main>
@@ -153,10 +153,10 @@ export function ActivityFeedScreen() {
   return (
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen space-y-5">
       {/* Tab bar */}
-      <div className="flex gap-2 bg-surface-container rounded-xl p-1">
+      <div className="flex gap-2 bg-surface-container rounded-sm p-1">
         <button
           onClick={() => setTab('notifications')}
-          className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2.5 rounded-sm text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
             tab === 'notifications'
               ? 'bg-primary/15 text-primary'
               : 'text-secondary/50 active:bg-surface-container-highest/40'
@@ -171,7 +171,7 @@ export function ActivityFeedScreen() {
         </button>
         <button
           onClick={() => setTab('activity')}
-          className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
+          className={`flex-1 py-2.5 rounded-sm text-xs font-bold uppercase tracking-widest transition-all ${
             tab === 'activity'
               ? 'bg-primary/15 text-primary'
               : 'text-secondary/50 active:bg-surface-container-highest/40'
@@ -190,14 +190,14 @@ export function ActivityFeedScreen() {
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="text-[10px] text-primary font-bold uppercase tracking-wider active:scale-95 transition-transform"
+                  className="text-[10px] text-primary font-bold uppercase tracking-wider hover:opacity-80 transition-transform"
                 >
                   Mark all read
                 </button>
               )}
               <button
                 onClick={() => { clearAllNotifications(); setNotifications([]) }}
-                className="text-[10px] text-secondary/40 font-bold uppercase tracking-wider active:scale-95 transition-transform ml-auto"
+                className="text-[10px] text-secondary/40 font-bold uppercase tracking-wider hover:opacity-80 transition-transform ml-auto"
               >
                 Clear all
               </button>
@@ -225,7 +225,7 @@ export function ActivityFeedScreen() {
           {loadingActivity ? (
             <div className="space-y-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-surface-container rounded-xl p-4 animate-pulse flex items-center gap-3">
+                <div key={i} className="bg-surface-container rounded-sm p-4 animate-pulse flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-surface-container-highest" />
                   <div className="flex-1 space-y-2">
                     <div className="h-3 bg-surface-container-highest rounded w-3/4" />
@@ -244,10 +244,10 @@ export function ActivityFeedScreen() {
                   <button
                     key={item.id}
                     onClick={() => item.href && navigate(item.href)}
-                    className="w-full text-left bg-surface-container rounded-xl px-4 py-3 flex items-center gap-3 active:scale-[0.98] transition-transform"
+                    className="w-full text-left bg-surface-container rounded-sm px-4 py-3 flex items-center gap-3 hover:opacity-80 transition-transform"
                   >
                     <div className="w-9 h-9 rounded-full bg-surface-container-highest/60 flex items-center justify-center flex-shrink-0">
-                      <Icon name={item.icon} className={item.iconColor} size={18} />
+                      <span>{getIconChar(item.icon)}</span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-on-surface font-medium truncate">{item.title}</p>
@@ -283,14 +283,14 @@ function NotificationRow({ notif, navigate }: { notif: AppNotification; navigate
         markRead(notif.id)
         if (notif.href) navigate(notif.href)
       }}
-      className={`w-full text-left rounded-xl px-4 py-3 flex items-start gap-3 active:scale-[0.98] transition-all ${
+      className={`w-full text-left rounded-sm px-4 py-3 flex items-start gap-3 hover:opacity-80 transition-all ${
         !notif.read ? 'bg-primary/5 border border-primary/10' : 'bg-surface-container'
       }`}
     >
       <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
         !notif.read ? 'bg-primary/10' : 'bg-surface-container-highest/60'
       }`}>
-        <Icon name={notif.icon} className={typeColor[notif.type] ?? 'text-primary'} size={18} />
+        <span>{getIconChar(notif.icon)}</span>
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
@@ -309,7 +309,7 @@ function NotificationRow({ notif, navigate }: { notif: AppNotification; navigate
 function EmptyState({ icon, message, sub }: { icon: string; message: string; sub: string }) {
   return (
     <div className="py-16 text-center">
-      <Icon name={icon} className="text-4xl text-secondary/15 mb-3 block mx-auto" />
+      <span className="text-4xl text-secondary/15 mb-3 block mx-auto">{getIconChar(icon)}</span>
       <p className="text-sm text-secondary/40 font-medium">{message}</p>
       <p className="text-[11px] text-secondary/25 mt-1">{sub}</p>
     </div>

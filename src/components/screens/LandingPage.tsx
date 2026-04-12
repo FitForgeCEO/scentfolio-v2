@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { AuthScreen } from './AuthScreen'
 import { supabase } from '@/lib/supabase'
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
@@ -121,10 +120,7 @@ function Clarification({ question, answer }: { question: string; answer: string 
         className="w-full flex justify-between items-center py-8 text-left min-h-[44px]"
       >
         <span className="font-headline text-lg md:text-xl text-on-surface pr-4">{question}</span>
-        <Icon
-          name="add"
-          className={`text-primary text-xl transition-transform duration-500 ${open ? 'rotate-45' : 'group-hover:rotate-45'}`}
-        />
+        <span>+</span>
       </button>
       <div className={`overflow-hidden transition-all duration-500 ${open ? 'max-h-60 pb-8' : 'max-h-0'}`}>
         <p className="text-secondary text-sm leading-relaxed max-w-2xl">{answer}</p>
@@ -147,13 +143,13 @@ function EditorialPhone() {
       <div className="flex flex-col h-full overflow-hidden">
         <div className="flex justify-between items-center mb-8 px-3 pt-4">
           <span className="font-headline italic text-lg text-on-surface">Shelf</span>
-          <Icon name="search" className="text-primary text-lg" />
+          <span className="text-primary text-lg">⌕</span>
         </div>
         <div className="grid grid-cols-2 gap-4 px-1">
           {shelves.map(label => (
             <div
               key={label}
-              className="aspect-[3/4] bg-surface-container-low rounded-xl flex items-center justify-center p-6 relative overflow-hidden"
+              className="aspect-[3/4] bg-surface-container-low rounded-sm flex items-center justify-center p-6 relative overflow-hidden"
             >
               <span className="font-headline text-4xl italic text-on-surface/40">{label}</span>
               <div className="absolute top-0 left-0 right-0 h-px bg-primary/10" />
@@ -204,7 +200,7 @@ export function LandingPage() {
           style={{ boxShadow: '0 12px 32px rgba(25,18,16,0.6)' }}
           aria-label="Back to landing page"
         >
-          <Icon name="arrow_back" className="text-primary text-lg" />
+          <span className="text-primary text-lg">←</span>
         </button>
         <AuthScreen />
       </div>
@@ -228,7 +224,7 @@ export function LandingPage() {
       <header className="fixed top-0 inset-x-0 z-50 glass-surface">
         <div className="max-w-6xl mx-auto flex justify-between items-center px-6 md:px-10 py-6">
           <div className="flex items-center gap-4">
-            <Icon name="menu" className="text-primary text-xl" />
+            <span className="text-primary text-xl">☰</span>
             <span className="font-label text-[10px] tracking-[0.25em] text-primary uppercase hidden sm:inline">
               An Invitation · For Collectors
             </span>
@@ -265,7 +261,7 @@ export function LandingPage() {
             <div className="mt-16 flex flex-col items-center gap-4">
               <button
                 onClick={() => openAuth('hero_open_volume')}
-                className="gold-gradient text-surface font-label font-bold text-xs tracking-[0.2em] uppercase px-10 py-4 rounded-lg hover:scale-[1.03] transition-all"
+                className="gold-gradient text-surface font-label font-bold text-xs tracking-[0.2em] uppercase px-10 py-4 rounded-sm hover:scale-[1.03] transition-all"
                 style={{ boxShadow: '0 32px 64px -12px rgba(25,18,16,0.6)' }}
               >
                 Open Your Volume
@@ -380,24 +376,24 @@ export function LandingPage() {
               <div className="p-10 md:p-12 bg-surface relative">
                 <h3 className="font-headline text-2xl mb-10 italic text-primary">ScentFolio</h3>
                 <ul className="space-y-6 text-sm tracking-wide text-on-surface">
-                  <li className="flex items-center gap-4"><Icon name="check" className="text-primary text-base" />Editorial layouts</li>
-                  <li className="flex items-center gap-4"><Icon name="check" className="text-primary text-base" />Scientific note weighting</li>
-                  <li className="flex items-center gap-4"><Icon name="check" className="text-primary text-base" />Ad-free environment</li>
-                  <li className="flex items-center gap-4"><Icon name="check" className="text-primary text-base" />High-fidelity assets</li>
-                  <li className="flex items-center gap-4"><Icon name="check" className="text-primary text-base" />Works offline</li>
-                  <li className="flex items-center gap-4"><Icon name="check" className="text-primary text-base" />Free, forever</li>
+                  <li className="flex items-center gap-4"><span className="text-primary text-base">✓</span>Editorial layouts</li>
+                  <li className="flex items-center gap-4"><span className="text-primary text-base">✓</span>Scientific note weighting</li>
+                  <li className="flex items-center gap-4"><span className="text-primary text-base">✓</span>Ad-free environment</li>
+                  <li className="flex items-center gap-4"><span className="text-primary text-base">✓</span>High-fidelity assets</li>
+                  <li className="flex items-center gap-4"><span className="text-primary text-base">✓</span>Works offline</li>
+                  <li className="flex items-center gap-4"><span className="text-primary text-base">✓</span>Free, forever</li>
                 </ul>
                 <div className="absolute top-0 right-0 bottom-0 w-px bg-gradient-to-b from-primary/20 via-primary/5 to-transparent hidden md:block" />
               </div>
               <div className="p-10 md:p-12 bg-surface-container opacity-60">
                 <h3 className="font-headline text-2xl mb-10 italic text-on-surface">The Others</h3>
                 <ul className="space-y-6 text-sm tracking-wide text-secondary">
-                  <li className="flex items-center gap-4"><Icon name="close" className="text-error text-base" />Cluttered interfaces</li>
-                  <li className="flex items-center gap-4"><Icon name="close" className="text-error text-base" />User-only data</li>
-                  <li className="flex items-center gap-4"><Icon name="close" className="text-error text-base" />Heavy advertising</li>
-                  <li className="flex items-center gap-4"><Icon name="close" className="text-error text-base" />Static spreadsheets</li>
-                  <li className="flex items-center gap-4"><Icon name="close" className="text-error text-base" />No layering tools</li>
-                  <li className="flex items-center gap-4"><Icon name="close" className="text-error text-base" />Paywalls everywhere</li>
+                  <li className="flex items-center gap-4"><span className="text-error text-base">✕</span>Cluttered interfaces</li>
+                  <li className="flex items-center gap-4"><span className="text-error text-base">✕</span>User-only data</li>
+                  <li className="flex items-center gap-4"><span className="text-error text-base">✕</span>Heavy advertising</li>
+                  <li className="flex items-center gap-4"><span className="text-error text-base">✕</span>Static spreadsheets</li>
+                  <li className="flex items-center gap-4"><span className="text-error text-base">✕</span>No layering tools</li>
+                  <li className="flex items-center gap-4"><span className="text-error text-base">✕</span>Paywalls everywhere</li>
                 </ul>
               </div>
             </div>
@@ -534,7 +530,7 @@ export function LandingPage() {
             </h2>
             <button
               onClick={() => openAuth('final_open_volume')}
-              className="gold-gradient text-surface font-label font-bold text-xs tracking-[0.2em] uppercase px-12 py-5 rounded-lg hover:scale-[1.03] transition-all"
+              className="gold-gradient text-surface font-label font-bold text-xs tracking-[0.2em] uppercase px-12 py-5 rounded-sm hover:scale-[1.03] transition-all"
               style={{ boxShadow: '0 32px 64px -12px rgba(25,18,16,0.6)' }}
             >
               Open Your Volume

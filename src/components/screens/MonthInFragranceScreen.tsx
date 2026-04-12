@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
@@ -125,7 +124,7 @@ export function MonthInFragranceScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="calendar_month" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to see your monthly summary</p>
       </main>
     )
@@ -135,8 +134,8 @@ export function MonthInFragranceScreen() {
     <main className="pt-24 pb-32 px-4 max-w-[430px] mx-auto min-h-screen space-y-5">
       {/* Month selector */}
       <div className="flex items-center justify-between">
-        <button onClick={() => setMonthOffset(prev => prev + 1)} className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center active:scale-90 transition-transform">
-          <Icon name="chevron_left" size={20} />
+        <button onClick={() => setMonthOffset(prev => prev + 1)} className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:opacity-80 transition-transform">
+          <span>?</span>
         </button>
         <div className="text-center">
           <p className="font-headline text-lg text-on-surface">{monthName} {year}</p>
@@ -145,25 +144,25 @@ export function MonthInFragranceScreen() {
         <button
           onClick={() => setMonthOffset(prev => Math.max(0, prev - 1))}
           disabled={monthOffset === 0}
-          className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center active:scale-90 transition-transform disabled:opacity-30"
+          className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:opacity-80 transition-transform disabled:opacity-30"
         >
-          <Icon name="chevron_right" size={20} />
+          <span>?</span>
         </button>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
         </div>
       ) : !stats || stats.totalWears === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 gap-3">
-          <Icon name="event_busy" className="text-4xl text-primary/20" />
+          <span className="text-4xl text-primary/20">?</span>
           <p className="text-sm text-on-surface-variant">No wears logged in {monthName}</p>
         </div>
       ) : (
         <>
           {/* Shareable card */}
-          <div ref={cardRef} className="rounded-2xl overflow-hidden" style={{ background: theme.bgGrad }}>
+          <div ref={cardRef} className="rounded-sm overflow-hidden" style={{ background: theme.bgGrad }}>
             <div className="p-6 space-y-5">
               {/* Title */}
               <div style={{ textAlign: 'center' }}>
@@ -246,7 +245,7 @@ export function MonthInFragranceScreen() {
               <button
                 key={t.name}
                 onClick={() => setThemeIdx(i)}
-                className={`flex-1 py-3 rounded-xl text-center text-xs font-medium transition-all ${i === themeIdx ? 'ring-2 ring-primary' : ''}`}
+                className={`flex-1 py-3 rounded-sm text-center text-xs font-medium transition-all ${i === themeIdx ? 'ring-2 ring-primary' : ''}`}
                 style={{ backgroundColor: t.bg, color: t.text, border: `1px solid ${t.dim}` }}
               >
                 {t.name}
@@ -258,9 +257,9 @@ export function MonthInFragranceScreen() {
           <button
             onClick={handleShare}
             disabled={sharing}
-            className="w-full py-3.5 gold-gradient text-on-primary-container font-bold uppercase tracking-[0.1em] rounded-xl ambient-glow active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-3.5 gold-gradient text-on-primary-container font-bold uppercase tracking-[0.1em] rounded-sm ambient-glow hover:opacity-80 transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            {sharing ? <div className="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin" /> : <><Icon name="share" size={18} />SHARE {monthName.toUpperCase()}</>}
+            {sharing ? <span className="text-[9px] uppercase tracking-wider animate-pulse">…</span> : <><span>↗</span>SHARE {monthName.toUpperCase()}</>}
           </button>
         </>
       )}

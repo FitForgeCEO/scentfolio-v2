@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useBlockedUsers } from '@/hooks/useBlockUser'
 import { useToast } from '@/contexts/ToastContext'
 
@@ -37,7 +36,7 @@ export function BlockedUsersScreen() {
       ) : users.length === 0 ? (
         <div className="py-16 text-center">
           <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4">
-            <Icon name="check_circle" className="text-primary/30 text-3xl" />
+            <span className="text-primary/30 text-3xl">✓</span>
           </div>
           <p className="text-sm text-secondary/50 mb-2">No blocked users</p>
           <p className="text-xs text-secondary/30">You haven't blocked anyone</p>
@@ -47,18 +46,18 @@ export function BlockedUsersScreen() {
           {users.map((u) => (
             <div
               key={u.id}
-              className="flex items-center gap-3 bg-surface-container rounded-xl px-4 py-3"
+              className="flex items-center gap-3 bg-surface-container rounded-sm px-4 py-3"
             >
               <button
                 onClick={() => navigate(`/u/${u.id}`)}
-                className="flex items-center gap-3 flex-1 min-w-0 text-left active:opacity-70 transition-opacity"
+                className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
               >
                 <div className="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden flex-shrink-0">
                   {u.avatar_url ? (
                     <img src={u.avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Icon name="person" className="text-secondary/30" size={18} />
+                      <span className="text-secondary/30">⊚</span>
                     </div>
                   )}
                 </div>
@@ -71,7 +70,7 @@ export function BlockedUsersScreen() {
               </button>
               <button
                 onClick={() => handleUnblock(u.id, u.display_name)}
-                className="text-[10px] text-error/70 font-bold uppercase tracking-wider px-3 py-2 rounded-lg bg-error/5 active:scale-95 transition-all"
+                className="text-[10px] text-error/70 font-bold uppercase tracking-wider px-3 py-2 rounded-sm bg-error/5 hover:opacity-80 transition-all"
               >
                 Unblock
               </button>

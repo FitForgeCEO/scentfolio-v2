@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback } from 'react'
-import { Icon } from '../ui/Icon'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { getIconChar } from '@/lib/iconUtils'
 
 interface ShareStackCardProps {
   isOpen: boolean
@@ -91,18 +91,18 @@ export function ShareStackCard({
         {/* The shareable card */}
         <div
           ref={cardRef}
-          className="w-[390px] h-[700px] rounded-2xl overflow-hidden shrink-0"
+          className="w-[390px] h-[700px] rounded-sm overflow-hidden shrink-0"
           style={{ background: 'linear-gradient(180deg, #191210 0%, #261e1b 50%, #191210 100%)' }}
         >
           {/* Card inner */}
           <div className="h-full flex flex-col px-7 py-8">
             {/* Logo / Brand */}
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Icon name="auto_awesome" filled className="text-primary text-sm" />
+              <span className="text-primary text-sm">?</span>
               <span className="text-[10px] font-bold tracking-[0.3em] text-primary uppercase">
                 SCENTFOLIO AI
               </span>
-              <Icon name="auto_awesome" filled className="text-primary text-sm" />
+              <span className="text-primary text-sm">?</span>
             </div>
             <p className="text-[8px] tracking-[0.2em] text-secondary/60 text-center uppercase mb-6">
               LAYERING STACK
@@ -179,7 +179,7 @@ export function ShareStackCard({
             {/* Why it works (abbreviated) */}
             <div className="mt-6 pt-5" style={{ borderTop: '1px solid rgba(229, 194, 118, 0.1)' }}>
               <div className="flex items-center gap-1.5 mb-2">
-                <Icon name="lightbulb" className="text-primary text-xs" />
+                <span className="text-primary text-xs">?</span>
                 <span className="text-[8px] font-bold tracking-[0.2em] text-primary uppercase">WHY THIS WORKS</span>
               </div>
               <p className="text-[11px] text-secondary/60 leading-relaxed line-clamp-3 italic">
@@ -189,7 +189,7 @@ export function ShareStackCard({
 
             {/* Footer */}
             <div className="mt-auto pt-5 flex items-center justify-center gap-1.5">
-              <Icon name="water_drop" filled className="text-primary text-xs" />
+              <span className="text-primary text-xs">?</span>
               <span className="text-[9px] font-bold tracking-[0.2em] text-primary/60 uppercase">
                 scentfolio.app
               </span>
@@ -201,17 +201,17 @@ export function ShareStackCard({
         <div className="flex gap-3 w-full max-w-[390px]">
           <button
             onClick={handleCopyText}
-            className="flex-1 h-12 bg-surface-container rounded-xl text-[11px] font-bold tracking-widest uppercase text-on-surface active:scale-95 transition-transform flex items-center justify-center gap-2"
+            className="flex-1 h-12 bg-surface-container rounded-sm text-[11px] font-bold tracking-widest uppercase text-on-surface hover:opacity-80 transition-transform flex items-center justify-center gap-2"
           >
-            <Icon name={copied ? 'check' : 'content_copy'} size={16} />
+            <span>{getIconChar(copied ? 'check' : 'content_copy')}</span>
             {copied ? 'Copied' : 'Copy Text'}
           </button>
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="flex-1 h-12 gold-gradient rounded-xl text-[11px] font-bold tracking-widest uppercase text-on-primary active:scale-95 transition-transform flex items-center justify-center gap-2 disabled:opacity-50"
+            className="flex-1 h-12 gold-gradient rounded-sm text-[11px] font-bold tracking-widest uppercase text-on-primary hover:opacity-80 transition-transform flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <Icon name={exporting ? 'hourglass_empty' : 'download'} size={16} />
+            <span>{getIconChar(exporting ? 'hourglass_empty' : 'download')}</span>
             {exporting ? 'Saving...' : 'Save Image'}
           </button>
         </div>
@@ -220,9 +220,9 @@ export function ShareStackCard({
         <button
           onClick={onClose}
           aria-label="Close"
-          className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center active:scale-90 transition-transform"
+          className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center hover:opacity-80 transition-transform"
         >
-          <Icon name="close" className="text-secondary" size={20} />
+          <span className="text-secondary">✕</span>
         </button>
       </div>
     </div>

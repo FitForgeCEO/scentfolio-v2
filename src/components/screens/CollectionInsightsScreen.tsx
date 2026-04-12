@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 /* ── Insight generation ─────────────────────────────────── */
 interface Insight {
@@ -168,7 +168,7 @@ export function CollectionInsightsScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="psychology" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to see your insights</p>
       </main>
     )
@@ -177,7 +177,7 @@ export function CollectionInsightsScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -190,10 +190,10 @@ export function CollectionInsightsScreen() {
       </div>
 
       {insights.map((insight, i) => (
-        <div key={i} className="bg-surface-container rounded-xl p-5 space-y-3 animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
+        <div key={i} className="bg-surface-container rounded-sm p-5 space-y-3 animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorMap[insight.color]}`}>
-              <Icon name={insight.icon} size={20} />
+            <div className={`w-10 h-10 rounded-sm flex items-center justify-center ${colorMap[insight.color]}`}>
+              <span>{getIconChar(insight.icon)}</span>
             </div>
             <h3 className="text-sm text-on-surface font-medium">{insight.title}</h3>
           </div>
@@ -203,21 +203,21 @@ export function CollectionInsightsScreen() {
 
       {/* CTA */}
       <div className="pt-4 space-y-3">
-        <button onClick={() => navigate('/stats')} className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-xl active:scale-[0.98] transition-transform">
-          <Icon name="analytics" className="text-primary" />
+        <button onClick={() => navigate('/stats')} className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-sm hover:opacity-80 transition-transform">
+          <span className="text-primary">?</span>
           <div className="flex-1">
             <p className="text-sm text-on-surface font-medium">Full Stats</p>
             <p className="text-[10px] text-secondary/50">Deep dive into your numbers</p>
           </div>
-          <Icon name="chevron_right" className="text-secondary/40" />
+          <span className="text-secondary/40">?</span>
         </button>
-        <button onClick={() => navigate('/scent-quiz')} className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-xl active:scale-[0.98] transition-transform">
-          <Icon name="quiz" className="text-primary" />
+        <button onClick={() => navigate('/scent-quiz')} className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-sm hover:opacity-80 transition-transform">
+          <span className="text-primary">?</span>
           <div className="flex-1">
             <p className="text-sm text-on-surface font-medium">Scent Quiz</p>
             <p className="text-[10px] text-secondary/50">Refine your profile</p>
           </div>
-          <Icon name="chevron_right" className="text-secondary/40" />
+          <span className="text-secondary/40">?</span>
         </button>
       </div>
     </main>

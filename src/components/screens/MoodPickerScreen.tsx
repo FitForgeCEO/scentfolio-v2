@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
 import { awardXP } from '@/lib/xp'
 import type { Fragrance } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 interface Mood {
   id: string
@@ -154,7 +154,7 @@ export function MoodPickerScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="mood" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to use the mood picker</p>
       </main>
     )
@@ -167,7 +167,7 @@ export function MoodPickerScreen() {
           {/* Mood Selection */}
           <section className="text-center mb-8">
             <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-3">
-              <Icon name="mood" filled className="text-3xl text-primary" />
+              <span className="text-3xl text-primary">?</span>
             </div>
             <h2 className="font-headline text-xl mb-1">How are you feeling?</h2>
             <p className="text-[10px] text-secondary/50">Pick your mood and we'll suggest the perfect scent</p>
@@ -178,10 +178,10 @@ export function MoodPickerScreen() {
               <button
                 key={mood.id}
                 onClick={() => setSelectedMood(mood)}
-                className="bg-surface-container rounded-2xl p-5 flex flex-col items-center gap-3 active:scale-[0.97] transition-all hover:bg-surface-container-high text-center"
+                className="bg-surface-container rounded-sm p-5 flex flex-col items-center gap-3 hover:opacity-80 transition-all hover:bg-surface-container-high text-center"
               >
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Icon name={mood.icon} className="text-primary text-2xl" />
+                  <span className="text-primary text-2xl">{getIconChar(mood.icon)}</span>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-on-surface">{mood.label}</p>
@@ -195,12 +195,12 @@ export function MoodPickerScreen() {
         <>
           {/* Results */}
           <div className="flex items-center gap-3 mb-6">
-            <button onClick={() => { setSelectedMood(null); setResults([]) }} className="p-2 rounded-full active:scale-90">
-              <Icon name="arrow_back" className="text-on-surface" />
+            <button onClick={() => { setSelectedMood(null); setResults([]) }} className="p-2 rounded-full hover:opacity-80">
+              <span className="text-on-surface">←</span>
             </button>
             <div className="flex items-center gap-2">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Icon name={selectedMood.icon} className="text-primary" />
+                <span className="text-primary">{getIconChar(selectedMood.icon)}</span>
               </div>
               <div>
                 <h2 className="font-headline text-lg">{selectedMood.label}</h2>
@@ -211,11 +211,11 @@ export function MoodPickerScreen() {
 
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+              <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
             </div>
           ) : results.length === 0 ? (
             <div className="flex flex-col items-center gap-4 py-16">
-              <Icon name="search_off" className="text-4xl text-secondary/20" />
+              <span className="text-4xl text-secondary/20">?</span>
               <p className="text-sm text-secondary/50">No matches found for this mood</p>
             </div>
           ) : (
@@ -226,18 +226,18 @@ export function MoodPickerScreen() {
               {results.map((frag) => (
                 <div
                   key={frag.id}
-                  className="bg-surface-container rounded-xl p-4 flex items-center gap-4"
+                  className="bg-surface-container rounded-sm p-4 flex items-center gap-4"
                 >
                   <button
                     onClick={() => navigate(`/fragrance/${frag.id}`)}
                     className="flex items-center gap-4 flex-1 min-w-0 text-left"
                   >
-                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
+                    <div className="w-14 h-14 rounded-sm overflow-hidden bg-surface-container-low flex-shrink-0">
                       {frag.image_url ? (
                         <img src={frag.image_url} alt={frag.name} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <Icon name="water_drop" className="text-secondary/20" size={24} />
+                          <span className="text-secondary/20">?</span>
                         </div>
                       )}
                     </div>
@@ -252,10 +252,10 @@ export function MoodPickerScreen() {
                   <button
                     onClick={() => handleWear(frag)}
                     disabled={wearingId === frag.id}
-                    className="flex-shrink-0 bg-primary/10 text-primary p-2.5 rounded-xl active:scale-90 transition-all disabled:opacity-50"
+                    className="flex-shrink-0 bg-primary/10 text-primary p-2.5 rounded-sm hover:opacity-80 transition-all disabled:opacity-50"
                     title="Wear today"
                   >
-                    <Icon name={wearingId === frag.id ? 'check' : 'checkroom'} size={20} />
+                    <span>{getIconChar(wearingId === frag.id ? 'check' : 'checkroom')}</span>
                   </button>
                 </div>
               ))}

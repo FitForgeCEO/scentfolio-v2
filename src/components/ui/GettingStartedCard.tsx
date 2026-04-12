@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from './Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
+import { getIconChar } from '@/lib/iconUtils'
 
 const DISMISSED_KEY = 'scentfolio_getting_started_dismissed'
 
@@ -160,12 +160,12 @@ export function GettingStartedCard() {
     <section className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary">GETTING STARTED</h3>
-        <button onClick={handleDismiss} className="text-[10px] text-secondary/40 active:scale-95">
+        <button onClick={handleDismiss} className="text-[10px] text-secondary/40 hover:opacity-80">
           Dismiss
         </button>
       </div>
 
-      <div className="bg-surface-container rounded-2xl overflow-hidden">
+      <div className="bg-surface-container rounded-sm overflow-hidden">
         {/* Progress header */}
         <div className="px-4 pt-4 pb-3">
           <div className="flex items-center justify-between mb-2">
@@ -191,17 +191,17 @@ export function GettingStartedCard() {
                 key={item.id}
                 onClick={() => !isDone && navigate(item.route)}
                 disabled={isDone}
-                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-all ${
-                  isDone ? 'opacity-50' : 'active:scale-[0.98] active:bg-surface-container-highest/50'
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-sm text-left transition-all ${
+                  isDone ? 'opacity-50' : 'hover:opacity-80 active:bg-surface-container-highest/50'
                 }`}
               >
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                   isDone ? 'bg-primary/20' : 'bg-surface-container-highest'
                 }`}>
                   {isDone ? (
-                    <Icon name="check" className="text-primary" size={18} />
+                    <span className="text-primary">✓</span>
                   ) : (
-                    <Icon name={item.icon} className="text-secondary/60" size={18} />
+                    <span className="text-secondary/60">{getIconChar(item.icon)}</span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -210,7 +210,7 @@ export function GettingStartedCard() {
                   </p>
                   <p className="text-[10px] text-secondary/50">{item.description}</p>
                 </div>
-                {!isDone && <Icon name="chevron_right" className="text-secondary/30" size={18} />}
+                {!isDone && <span className="text-secondary/30">?</span>}
               </button>
             )
           })}

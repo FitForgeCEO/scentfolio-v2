@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
 import { captureElement, shareImage, copyToClipboard } from '@/lib/share'
 import { hapticMedium } from '@/lib/haptics'
+import { getIconChar } from '@/lib/iconUtils'
 
 /* ── Card themes ─────────────────────────────────────── */
 const THEMES = [
@@ -123,7 +123,7 @@ export function CollectionShareScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="share" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">↗</span>
         <p className="text-secondary/60 text-sm">Sign in to share your collection</p>
       </main>
     )
@@ -132,7 +132,7 @@ export function CollectionShareScreen() {
   if (loading || !stats) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -154,7 +154,7 @@ export function CollectionShareScreen() {
               layout === l.key ? 'gold-gradient text-on-primary-container' : 'bg-surface-container text-on-surface-variant'
             }`}
           >
-            <Icon name={l.icon} size={14} />
+            <span>{getIconChar(l.icon)}</span>
             {l.label}
           </button>
         ))}
@@ -163,7 +163,7 @@ export function CollectionShareScreen() {
       {/* Card preview */}
       <div
         ref={cardRef}
-        className="rounded-2xl overflow-hidden"
+        className="rounded-sm overflow-hidden"
         style={{ background: theme.bgGrad }}
       >
         <div className="p-6 space-y-5">
@@ -200,7 +200,7 @@ export function CollectionShareScreen() {
             <button
               key={t.name}
               onClick={() => setThemeIdx(i)}
-              className={`flex-1 py-3 rounded-xl text-center text-xs font-medium transition-all ${i === themeIdx ? 'ring-2 ring-primary' : ''}`}
+              className={`flex-1 py-3 rounded-sm text-center text-xs font-medium transition-all ${i === themeIdx ? 'ring-2 ring-primary' : ''}`}
               style={{ backgroundColor: t.bg, color: t.text, border: `1px solid ${t.dim}` }}
             >
               {t.name}
@@ -214,15 +214,15 @@ export function CollectionShareScreen() {
         <button
           onClick={handleShare}
           disabled={sharing}
-          className="flex-1 py-3.5 gold-gradient text-on-primary-container font-bold uppercase tracking-[0.1em] rounded-xl ambient-glow active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+          className="flex-1 py-3.5 gold-gradient text-on-primary-container font-bold uppercase tracking-[0.1em] rounded-sm ambient-glow hover:opacity-80 transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50"
         >
-          {sharing ? <div className="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin" /> : <><Icon name="share" size={18} />SHARE</>}
+          {sharing ? <span className="text-[9px] uppercase tracking-wider animate-pulse">…</span> : <><span>↗</span>SHARE</>}
         </button>
         <button
           onClick={handleCopy}
-          className="py-3.5 px-5 bg-surface-container rounded-xl active:scale-95 transition-transform flex items-center gap-2"
+          className="py-3.5 px-5 bg-surface-container rounded-sm hover:opacity-80 transition-transform flex items-center gap-2"
         >
-          <Icon name="content_copy" className="text-primary" size={18} />
+          <span className="text-primary">?</span>
         </button>
       </div>
     </main>

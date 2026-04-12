@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { FollowButton } from '../ui/FollowButton'
 import { ReportSheet } from '../ui/ReportSheet'
 import { useFollowCounts } from '@/hooks/useFollows'
@@ -11,6 +10,7 @@ import { supabase } from '@/lib/supabase'
 import { getLevelTitle } from '@/lib/xp'
 import { copyToClipboard, profileLink } from '@/lib/share'
 import { useToast } from '@/contexts/ToastContext'
+import { getIconChar } from '@/lib/iconUtils'
 
 interface PublicProfile {
   display_name: string
@@ -118,7 +118,7 @@ export function PublicProfileScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -126,7 +126,7 @@ export function PublicProfileScreen() {
   if (notFound || !profile) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="person_off" className="text-5xl text-primary/20" />
+        <span className="text-5xl text-primary/20">?</span>
         <p className="text-secondary/60 text-sm">Profile not found</p>
         <button onClick={() => navigate('/')} className="text-primary text-sm underline">Go home</button>
       </main>
@@ -161,13 +161,13 @@ export function PublicProfileScreen() {
 
         {/* Signature Scent */}
         {signatureFragrance && (
-          <div className="flex items-center gap-2.5 bg-surface-container px-3.5 py-2.5 rounded-2xl">
-            <div className="w-8 h-8 rounded-lg overflow-hidden bg-surface-container-highest flex-shrink-0">
+          <div className="flex items-center gap-2.5 bg-surface-container px-3.5 py-2.5 rounded-sm">
+            <div className="w-8 h-8 rounded-sm overflow-hidden bg-surface-container-highest flex-shrink-0">
               {signatureFragrance.image_url ? (
                 <img src={signatureFragrance.image_url} alt="" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Icon name="water_drop" className="text-secondary/30" size={14} />
+                  <span className="text-secondary/30">?</span>
                 </div>
               )}
             </div>
@@ -193,7 +193,7 @@ export function PublicProfileScreen() {
         <div className="flex items-center gap-4 mt-1">
           <button
             onClick={() => navigate(`/u/${userId}/followers`)}
-            className="text-center active:opacity-70 transition-opacity"
+            className="text-center hover:opacity-80 transition-opacity"
           >
             <span className="font-headline text-sm text-on-surface">{followerCount}</span>
             <span className="text-[10px] text-secondary/50 ml-1">Followers</span>
@@ -201,7 +201,7 @@ export function PublicProfileScreen() {
           <div className="w-px h-4 bg-outline-variant/20" />
           <button
             onClick={() => navigate(`/u/${userId}/following`)}
-            className="text-center active:opacity-70 transition-opacity"
+            className="text-center hover:opacity-80 transition-opacity"
           >
             <span className="font-headline text-sm text-on-surface">{followingCount}</span>
             <span className="text-[10px] text-secondary/50 ml-1">Following</span>
@@ -221,7 +221,7 @@ export function PublicProfileScreen() {
             { label: 'Wears', value: stats.wears, icon: 'checkroom' },
             { label: 'Reviews', value: stats.reviews, icon: 'rate_review' },
           ].map(s => (
-            <div key={s.label} className="text-center bg-surface-container rounded-xl p-3">
+            <div key={s.label} className="text-center bg-surface-container rounded-sm p-3">
               <p className="font-headline text-lg text-primary">{s.value}</p>
               <p className="text-[8px] text-on-surface-variant uppercase tracking-wider">{s.label}</p>
             </div>
@@ -256,13 +256,13 @@ export function PublicProfileScreen() {
               <button
                 key={f.id}
                 onClick={() => navigate(`/fragrance/${f.id}`)}
-                className="aspect-square rounded-xl overflow-hidden bg-surface-container active:scale-95 transition-transform"
+                className="aspect-square rounded-sm overflow-hidden bg-surface-container hover:opacity-80 transition-transform"
               >
                 {f.image_url ? (
                   <img src={f.image_url} alt={f.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center p-1">
-                    <Icon name="water_drop" className="text-primary/20" size={18} />
+                    <span className="text-primary/20">?</span>
                     <span className="text-[7px] text-on-surface-variant/40 mt-0.5 text-center line-clamp-2">{f.name}</span>
                   </div>
                 )}
@@ -276,33 +276,33 @@ export function PublicProfileScreen() {
       <div className="flex gap-3">
         <button
           onClick={handleShareProfile}
-          className="flex-1 gold-gradient text-on-primary-container py-3.5 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2"
+          className="flex-1 gold-gradient text-on-primary-container py-3.5 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all flex items-center justify-center gap-2"
         >
-          <Icon name="share" size={16} />
+          <span>↗</span>
           SHARE PROFILE
         </button>
         <button
           onClick={handleCopyLink}
-          className="bg-surface-container text-on-surface py-3.5 px-5 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2"
+          className="bg-surface-container text-on-surface py-3.5 px-5 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all flex items-center justify-center gap-2"
         >
-          <Icon name="link" size={16} />
+          <span>⟁</span>
         </button>
         {/* Overflow menu (report/block) */}
         {!isOwnProfile && currentUser && (
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="bg-surface-container text-on-surface py-3.5 px-3 rounded-xl active:scale-95 transition-all"
+              className="bg-surface-container text-on-surface py-3.5 px-3 rounded-sm hover:opacity-80 transition-all"
             >
-              <Icon name="more_vert" size={16} />
+              <span>⋮</span>
             </button>
             {menuOpen && (
-              <div className="absolute bottom-full right-0 mb-2 w-48 bg-surface-container-highest rounded-xl shadow-lg overflow-hidden z-[var(--z-dropdown)]">
+              <div className="absolute bottom-full right-0 mb-2 w-48 bg-surface-container-highest rounded-sm shadow-lg overflow-hidden z-[var(--z-dropdown)]">
                 <button
                   onClick={() => { setMenuOpen(false); setReportOpen(true) }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-on-surface hover:bg-surface-container transition-colors"
                 >
-                  <Icon name="flag" size={16} className="text-secondary/60" />
+                  <span className="text-secondary/60">?</span>
                   Report User
                 </button>
                 <button
@@ -313,7 +313,7 @@ export function PublicProfileScreen() {
                   }}
                   className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm text-error/70 hover:bg-surface-container transition-colors"
                 >
-                  <Icon name={blocked ? 'lock_open' : 'block'} size={16} />
+                  <span>{getIconChar(blocked ? 'lock_open' : 'block')}</span>
                   {blocked ? 'Unblock User' : 'Block User'}
                 </button>
               </div>

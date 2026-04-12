@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
@@ -108,7 +107,7 @@ export function CollectionValueScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="payments" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to track collection value</p>
       </main>
     )
@@ -117,7 +116,7 @@ export function CollectionValueScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -128,19 +127,19 @@ export function CollectionValueScreen() {
     <main className="pt-24 pb-32 px-4 max-w-[430px] mx-auto min-h-screen space-y-6">
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-surface-container rounded-xl p-4 text-center">
+        <div className="bg-surface-container rounded-sm p-4 text-center">
           <p className="font-headline text-2xl text-primary">${totalValue.toFixed(0)}</p>
           <p className="text-[9px] text-secondary/50 uppercase tracking-wider">Total Value</p>
         </div>
-        <div className="bg-surface-container rounded-xl p-4 text-center">
+        <div className="bg-surface-container rounded-sm p-4 text-center">
           <p className="font-headline text-2xl text-on-surface">${avgPrice.toFixed(0)}</p>
           <p className="text-[9px] text-secondary/50 uppercase tracking-wider">Avg Price</p>
         </div>
-        <div className="bg-surface-container rounded-xl p-4 text-center">
+        <div className="bg-surface-container rounded-sm p-4 text-center">
           <p className="font-headline text-2xl text-tertiary">${avgCPW.toFixed(2)}</p>
           <p className="text-[9px] text-secondary/50 uppercase tracking-wider">Avg Cost/Wear</p>
         </div>
-        <div className="bg-surface-container rounded-xl p-4 text-center">
+        <div className="bg-surface-container rounded-sm p-4 text-center">
           <p className="font-headline text-2xl text-on-surface">{items.length}</p>
           <p className="text-[9px] text-secondary/50 uppercase tracking-wider">Bottles</p>
         </div>
@@ -149,14 +148,14 @@ export function CollectionValueScreen() {
       {/* Highlights */}
       <div className="flex gap-3">
         {mostValuable && mostValuable.price > 0 && (
-          <button onClick={() => navigate(`/fragrance/${mostValuable.fragrance.id}`)} className="flex-1 bg-surface-container rounded-xl p-3 text-left active:scale-[0.98] transition-transform">
+          <button onClick={() => navigate(`/fragrance/${mostValuable.fragrance.id}`)} className="flex-1 bg-surface-container rounded-sm p-3 text-left hover:opacity-80 transition-transform">
             <p className="text-[8px] uppercase tracking-[0.12em] text-secondary/40 font-bold">MOST VALUABLE</p>
             <p className="text-xs text-on-surface font-medium mt-1 truncate">{mostValuable.fragrance.name}</p>
             <p className="text-[10px] text-primary">${mostValuable.price.toFixed(0)}</p>
           </button>
         )}
         {bestValue && bestValue.costPerWear !== null && (
-          <button onClick={() => navigate(`/fragrance/${bestValue.fragrance.id}`)} className="flex-1 bg-surface-container rounded-xl p-3 text-left active:scale-[0.98] transition-transform">
+          <button onClick={() => navigate(`/fragrance/${bestValue.fragrance.id}`)} className="flex-1 bg-surface-container rounded-sm p-3 text-left hover:opacity-80 transition-transform">
             <p className="text-[8px] uppercase tracking-[0.12em] text-secondary/40 font-bold">BEST VALUE</p>
             <p className="text-xs text-on-surface font-medium mt-1 truncate">{bestValue.fragrance.name}</p>
             <p className="text-[10px] text-tertiary">${bestValue.costPerWear.toFixed(2)}/wear</p>
@@ -168,7 +167,7 @@ export function CollectionValueScreen() {
       {monthlyData.length > 1 && (
         <div>
           <p className="text-[10px] uppercase tracking-[0.15em] text-secondary/50 font-bold mb-3">VALUE GROWTH</p>
-          <div ref={chartRef} className="bg-surface-container rounded-xl p-4">
+          <div ref={chartRef} className="bg-surface-container rounded-sm p-4">
             <div className="flex items-end gap-1" style={{ height: '100px' }}>
               {monthlyData.map((d, i) => {
                 const h = chartMax > 0 ? (d.cumulative / chartMax) * 100 : 0
@@ -208,14 +207,14 @@ export function CollectionValueScreen() {
             <button
               key={item.fragrance.id}
               onClick={() => navigate(`/fragrance/${item.fragrance.id}`)}
-              className="w-full flex items-center gap-3 bg-surface-container rounded-xl p-3 active:scale-[0.98] transition-transform text-left"
+              className="w-full flex items-center gap-3 bg-surface-container rounded-sm p-3 hover:opacity-80 transition-transform text-left"
             >
-              <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
+              <div className="w-10 h-10 rounded-sm overflow-hidden bg-surface-container-low flex-shrink-0">
                 {item.fragrance.image_url ? (
                   <img src={item.fragrance.image_url} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Icon name="water_drop" className="text-primary/20" size={16} />
+                    <span className="text-primary/20">?</span>
                   </div>
                 )}
               </div>

@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react'
-import { Icon } from './Icon'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/contexts/ToastContext'
+import { getIconChar } from '@/lib/iconUtils'
 
 const REPORT_REASONS = [
   { id: 'spam', label: 'Spam or misleading', icon: 'report' },
@@ -76,7 +76,7 @@ export function ReportSheet({ isOpen, onClose, targetType, targetId, targetName 
         {submitted ? (
           <div className="text-center py-8">
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <Icon name="check_circle" className="text-primary text-3xl" />
+              <span className="text-primary text-3xl">✓</span>
             </div>
             <h3 className="font-headline text-xl text-on-surface mb-2">Report Submitted</h3>
             <p className="text-sm text-secondary/50 mb-6">
@@ -84,7 +84,7 @@ export function ReportSheet({ isOpen, onClose, targetType, targetId, targetName 
             </p>
             <button
               onClick={handleClose}
-              className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all"
+              className="gold-gradient text-on-primary-container px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all"
             >
               DONE
             </button>
@@ -107,22 +107,18 @@ export function ReportSheet({ isOpen, onClose, targetType, targetId, targetName 
                 <button
                   key={r.id}
                   onClick={() => setReason(r.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all active:scale-[0.98] ${
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-sm text-left transition-all hover:opacity-80 ${
                     reason === r.id
                       ? 'bg-primary/10 ring-1 ring-primary/30'
                       : 'bg-surface-container-highest/50'
                   }`}
                 >
-                  <Icon
-                    name={r.icon}
-                    size={18}
-                    className={reason === r.id ? 'text-primary' : 'text-secondary/40'}
-                  />
+                  <span>{getIconChar(r.icon)}</span>
                   <span className={`text-sm ${reason === r.id ? 'text-on-surface font-medium' : 'text-secondary/70'}`}>
                     {r.label}
                   </span>
                   {reason === r.id && (
-                    <Icon name="check_circle" className="text-primary ml-auto" size={18} />
+                    <span className="text-primary ml-auto">✓</span>
                   )}
                 </button>
               ))}
@@ -141,7 +137,7 @@ export function ReportSheet({ isOpen, onClose, targetType, targetId, targetName 
                   placeholder="Tell us more about the issue..."
                   rows={3}
                   maxLength={500}
-                  className="w-full bg-surface-container-highest/50 rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-secondary/30 focus:outline-none focus:ring-1 focus:ring-primary/30 resize-none"
+                  className="w-full bg-surface-container-highest/50 rounded-sm px-4 py-3 text-sm text-on-surface placeholder:text-secondary/30 focus:outline-none focus:ring-1 focus:ring-primary/30 resize-none"
                 />
                 <p className="text-[9px] text-secondary/30 text-right mt-1">{details.length}/500</p>
               </div>
@@ -151,14 +147,14 @@ export function ReportSheet({ isOpen, onClose, targetType, targetId, targetName 
             <div className="flex gap-3">
               <button
                 onClick={handleClose}
-                className="flex-1 bg-surface-container-highest/50 text-on-surface py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all"
+                className="flex-1 bg-surface-container-highest/50 text-on-surface py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all"
               >
                 CANCEL
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={!reason || submitting}
-                className="flex-1 bg-error/80 text-white py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all disabled:opacity-30"
+                className="flex-1 bg-error/80 text-white py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all disabled:opacity-30"
               >
                 {submitting ? 'SENDING...' : 'SUBMIT REPORT'}
               </button>

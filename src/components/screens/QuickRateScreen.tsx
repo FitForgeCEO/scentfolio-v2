@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
@@ -88,7 +87,7 @@ export function QuickRateScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="star_rate" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to rate your collection</p>
       </main>
     )
@@ -97,7 +96,7 @@ export function QuickRateScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -107,7 +106,7 @@ export function QuickRateScreen() {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center gap-6">
         <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-          <Icon name="check_circle" filled className="text-4xl text-primary" />
+          <span className="text-4xl text-primary">✓</span>
         </div>
         <div className="text-center space-y-2">
           <h2 className="font-headline text-2xl">All caught up!</h2>
@@ -118,7 +117,7 @@ export function QuickRateScreen() {
         </div>
         <button
           onClick={() => navigate('/collection')}
-          className="gold-gradient text-on-primary-container px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95"
+          className="gold-gradient text-on-primary-container px-6 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80"
         >
           BACK TO COLLECTION
         </button>
@@ -145,7 +144,7 @@ export function QuickRateScreen() {
       </div>
 
       {/* Fragrance Card */}
-      <div className="bg-surface-container rounded-2xl overflow-hidden mb-8">
+      <div className="bg-surface-container rounded-sm overflow-hidden mb-8">
         <div className="aspect-square relative">
           {current.fragrance.image_url ? (
             <img
@@ -155,7 +154,7 @@ export function QuickRateScreen() {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-surface-container-low">
-              <Icon name="water_drop" className="text-secondary/10" size={80} />
+              <span className="text-secondary/10">?</span>
             </div>
           )}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
@@ -171,13 +170,13 @@ export function QuickRateScreen() {
         <div className="p-5 space-y-3">
           {current.fragrance.note_family && (
             <div className="flex items-center gap-2">
-              <Icon name="spa" className="text-primary" size={16} />
+              <span className="text-primary">?</span>
               <span className="text-sm text-on-surface">{current.fragrance.note_family}</span>
             </div>
           )}
           {current.fragrance.rating && (
             <div className="flex items-center gap-2">
-              <Icon name="groups" className="text-secondary/50" size={16} />
+              <span className="text-secondary/50">?</span>
               <span className="text-sm text-secondary/60">Community: {Number(current.fragrance.rating).toFixed(1)}/5</span>
             </div>
           )}
@@ -195,13 +194,9 @@ export function QuickRateScreen() {
               onMouseEnter={() => setHoveredStar(star)}
               onMouseLeave={() => setHoveredStar(0)}
               disabled={saving}
-              className="p-1.5 active:scale-110 transition-transform disabled:opacity-50"
+              className="p-1.5 hover:opacity-80 transition-transform disabled:opacity-50"
             >
-              <Icon
-                name="star"
-                filled={star <= hoveredStar}
-                className={`text-4xl transition-all ${star <= hoveredStar ? 'text-primary' : 'text-secondary/20'}`}
-              />
+              <span>★</span>
             </button>
           ))}
         </div>
@@ -213,7 +208,7 @@ export function QuickRateScreen() {
               key={half}
               onClick={() => handleRate(half)}
               disabled={saving}
-              className="px-2.5 py-1 rounded-full bg-surface-container text-[10px] text-secondary/50 font-medium active:scale-95 transition-all disabled:opacity-50 hover:bg-surface-container-highest hover:text-primary"
+              className="px-2.5 py-1 rounded-full bg-surface-container text-[10px] text-secondary/50 font-medium hover:opacity-80 transition-all disabled:opacity-50 hover:bg-surface-container-highest hover:text-primary"
             >
               {half}
             </button>
@@ -222,7 +217,7 @@ export function QuickRateScreen() {
 
         <button
           onClick={handleSkip}
-          className="text-[10px] uppercase tracking-widest text-secondary/40 font-bold py-2 active:scale-95"
+          className="text-[10px] uppercase tracking-widest text-secondary/40 font-bold py-2 hover:opacity-80"
         >
           SKIP →
         </button>

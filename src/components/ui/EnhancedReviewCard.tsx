@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from './Icon'
 import { SubRatingBars } from './SubRatingBars'
 import { ReviewLikeButton } from './ReviewLikeButton'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Review } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 const SEASON_LABELS: Record<string, string> = {
   spring: 'Spring',
@@ -63,13 +63,13 @@ export function EnhancedReviewCard({ review, isVerifiedOwner, onEdit, onDelete }
     (review.occasion_tags && review.occasion_tags.length > 0)
 
   return (
-    <div className="p-5 bg-surface-container rounded-2xl space-y-3">
+    <div className="p-5 bg-surface-container rounded-sm space-y-3">
       {/* Header: avatar, name, badge, date, stars, menu */}
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <button
             onClick={() => navigate(`/u/${review.user_id}`)}
-            className="flex-shrink-0 active:scale-95 transition-transform"
+            className="flex-shrink-0 hover:opacity-80 transition-transform"
           >
             {avatarUrl ? (
               <img
@@ -87,13 +87,13 @@ export function EnhancedReviewCard({ review, isVerifiedOwner, onEdit, onDelete }
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => navigate(`/u/${review.user_id}`)}
-                className="text-xs font-bold text-on-surface truncate active:opacity-70"
+                className="text-xs font-bold text-on-surface truncate hover:opacity-80"
               >
                 {displayName}
               </button>
               {isVerifiedOwner && (
                 <div className="flex items-center gap-0.5 flex-shrink-0" title="Verified Owner">
-                  <Icon name="verified" filled className="text-primary text-[12px]" />
+                  <span className="text-primary text-[12px]">?</span>
                 </div>
               )}
             </div>
@@ -105,12 +105,7 @@ export function EnhancedReviewCard({ review, isVerifiedOwner, onEdit, onDelete }
           {/* Star rating */}
           <div className="flex text-primary">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Icon
-                key={i}
-                name="star"
-                filled={i < review.overall_rating}
-                className="text-[14px]"
-              />
+              <span key={i} className="text-[14px]">★</span>
             ))}
           </div>
 
@@ -119,21 +114,21 @@ export function EnhancedReviewCard({ review, isVerifiedOwner, onEdit, onDelete }
             <div className="relative">
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-secondary/50 hover:bg-surface-container-highest active:scale-90 transition-all"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-secondary/50 hover:bg-surface-container-highest hover:opacity-80 transition-all"
                 aria-label="Review options"
               >
-                <Icon name="more_vert" size={16} />
+                <span>⋮</span>
               </button>
               {menuOpen && (
                 <>
                   <div className="fixed inset-0 z-[var(--z-dropdown)]" onClick={() => { setMenuOpen(false); setConfirmDelete(false) }} />
-                  <div className="absolute right-0 top-8 z-[var(--z-dropdown)] bg-surface-container-low rounded-xl shadow-xl py-1 min-w-[140px] border border-outline-variant/10">
+                  <div className="absolute right-0 top-8 z-[var(--z-dropdown)] bg-surface-container-low rounded-sm shadow-xl py-1 min-w-[140px] border border-outline-variant/10">
                     {onEdit && (
                       <button
                         onClick={() => { setMenuOpen(false); onEdit() }}
                         className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-on-surface hover:bg-surface-container active:bg-surface-container-highest transition-colors"
                       >
-                        <Icon name="edit" size={16} className="text-secondary" />
+                        <span className="text-secondary">✎</span>
                         Edit Review
                       </button>
                     )}
@@ -142,7 +137,7 @@ export function EnhancedReviewCard({ review, isVerifiedOwner, onEdit, onDelete }
                         onClick={() => setConfirmDelete(true)}
                         className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/5 active:bg-red-500/10 transition-colors"
                       >
-                        <Icon name="delete" size={16} />
+                        <span>✕</span>
                         Delete Review
                       </button>
                     )}
@@ -151,7 +146,7 @@ export function EnhancedReviewCard({ review, isVerifiedOwner, onEdit, onDelete }
                         onClick={() => { setMenuOpen(false); setConfirmDelete(false); onDelete() }}
                         className="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-red-400 font-bold hover:bg-red-500/10 transition-colors"
                       >
-                        <Icon name="warning" size={16} />
+                        <span>?</span>
                         Confirm Delete
                       </button>
                     )}
@@ -212,11 +207,7 @@ export function EnhancedReviewCard({ review, isVerifiedOwner, onEdit, onDelete }
       {/* Would recommend */}
       {review.would_recommend !== null && (
         <div className="flex items-center gap-1.5 pt-0.5">
-          <Icon
-            name={review.would_recommend ? 'thumb_up' : 'thumb_down'}
-            filled
-            className={`text-[12px] ${review.would_recommend ? 'text-primary/60' : 'text-red-400/60'}`}
-          />
+          <span>{getIconChar(review.would_recommend ? 'thumb_up' : 'thumb_down')}</span>
           <span className="text-[9px] text-secondary/50">
             {review.would_recommend ? 'Would recommend' : 'Would not recommend'}
           </span>

@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { ReviewLikeButtonBatch } from '../ui/ReviewLikeButton'
 import { SubRatingBars } from '../ui/SubRatingBars'
 import { useReviewLikeCounts } from '@/hooks/useReviewLikes'
 import { supabase } from '@/lib/supabase'
 import { ReviewShareCard } from '../ui/ReviewShareCard'
 import { FragranceImage } from '../ui/FragranceImage'
+import { getIconChar } from '@/lib/iconUtils'
 
 interface FeedItem {
   id: string
@@ -257,9 +257,9 @@ export function CommunityFeedScreen() {
       {/* Explore People button */}
       <button
         onClick={() => navigate('/people')}
-        className="w-full flex items-center justify-center gap-2 bg-surface-container rounded-xl py-3 mb-4 active:scale-[0.98] transition-transform"
+        className="w-full flex items-center justify-center gap-2 bg-surface-container rounded-sm py-3 mb-4 hover:opacity-80 transition-transform"
       >
-        <Icon name="person_search" className="text-primary" size={16} />
+        <span className="text-primary">?</span>
         <span className="text-xs font-bold uppercase tracking-wider text-primary">Explore People</span>
       </button>
 
@@ -271,11 +271,11 @@ export function CommunityFeedScreen() {
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95 ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-all hover:opacity-80 ${
               tab === t.key ? 'bg-primary/15 text-primary' : 'bg-surface-container text-secondary/50'
             }`}
           >
-            <Icon name={t.icon} size={14} />
+            <span>{getIconChar(t.icon)}</span>
             {t.label}
           </button>
         ))}
@@ -283,12 +283,12 @@ export function CommunityFeedScreen() {
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
         </div>
       ) : tab === 'activity' ? (
         activityItems.length === 0 ? (
           <div className="flex flex-col items-center gap-4 py-16">
-            <Icon name="group" className="text-4xl text-secondary/20" />
+            <span className="text-4xl text-secondary/20">?</span>
             <p className="text-sm text-secondary/50">No community activity yet</p>
           </div>
         ) : (
@@ -303,10 +303,10 @@ export function CommunityFeedScreen() {
                 <button
                   key={entry.id}
                   onClick={() => navigate(`/fragrance/${entry.fragrance_id}`)}
-                  className="w-full text-left bg-surface-container rounded-xl px-4 py-3 flex items-center gap-3 active:scale-[0.98] transition-transform"
+                  className="w-full text-left bg-surface-container rounded-sm px-4 py-3 flex items-center gap-3 hover:opacity-80 transition-transform"
                 >
                   <div className="w-9 h-9 rounded-full bg-surface-container-highest/60 flex items-center justify-center flex-shrink-0">
-                    <Icon name={typeConfig.icon} className={typeConfig.color} size={18} />
+                    <span>{getIconChar(typeConfig.icon)}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-on-surface leading-tight">
@@ -332,18 +332,18 @@ export function CommunityFeedScreen() {
         )
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16">
-          <Icon name="forum" className="text-4xl text-secondary/20" />
+          <span className="text-4xl text-secondary/20">?</span>
           <p className="text-sm text-secondary/50">No community reviews yet</p>
         </div>
       ) : (
         <div className="space-y-4">
           {items.map((item) => (
-            <div key={item.id} className="bg-surface-container rounded-xl p-4 space-y-3">
+            <div key={item.id} className="bg-surface-container rounded-sm p-4 space-y-3">
               {/* User Header */}
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => navigate(`/u/${item.user_id}`)}
-                  className="flex items-center gap-3 flex-1 min-w-0 text-left active:opacity-70 transition-opacity"
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
                 >
                   <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                     {item.user_avatar ? (
@@ -356,7 +356,7 @@ export function CommunityFeedScreen() {
                     <div className="flex items-center gap-1.5">
                       <p className="text-sm text-on-surface font-medium truncate">{item.user_display_name}</p>
                       {item.is_verified_owner && (
-                        <Icon name="verified" filled className="text-primary text-[12px] flex-shrink-0" />
+                        <span className="text-primary text-[12px] flex-shrink-0">?</span>
                       )}
                     </div>
                     <p className="text-[9px] text-secondary/40">Level {item.user_level} · {timeAgo(item.created_at)}</p>
@@ -364,13 +364,7 @@ export function CommunityFeedScreen() {
                 </button>
                 <div className="flex items-center gap-0.5">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Icon
-                      key={i}
-                      name="star"
-                      filled={i < item.overall_rating}
-                      className={i < item.overall_rating ? 'text-primary' : 'text-secondary/20'}
-                      size={12}
-                    />
+                    <span key={i} className={i < item.overall_rating ? 'text-primary' : 'text-secondary/20'}>★</span>
                   ))}
                 </div>
               </div>
@@ -379,13 +373,13 @@ export function CommunityFeedScreen() {
               {item.fragrance && (
                 <button
                   onClick={() => navigate(`/fragrance/${item.fragrance!.id}`)}
-                  className="flex items-center gap-3 w-full text-left active:scale-[0.98] transition-transform"
+                  className="flex items-center gap-3 w-full text-left hover:opacity-80 transition-transform"
                 >
                   <FragranceImage
                     src={item.fragrance.image_url}
                     alt={item.fragrance.name}
                     size="sm"
-                    className="w-10 h-10 rounded-lg flex-shrink-0"
+                    className="w-10 h-10 rounded-sm flex-shrink-0"
                   />
                   <div className="min-w-0">
                     <p className="text-[9px] uppercase tracking-[0.1em] text-secondary/50">{item.fragrance.brand}</p>
@@ -423,9 +417,9 @@ export function CommunityFeedScreen() {
                 />
                 <button
                   onClick={() => setSharingReview(item)}
-                  className="flex items-center gap-1.5 text-[10px] text-secondary/40 hover:text-primary transition-colors active:scale-95"
+                  className="flex items-center gap-1.5 text-[10px] text-secondary/40 hover:text-primary transition-colors hover:opacity-80"
                 >
-                  <Icon name="share" size={14} />
+                  <span>↗</span>
                   Share
                 </button>
               </div>

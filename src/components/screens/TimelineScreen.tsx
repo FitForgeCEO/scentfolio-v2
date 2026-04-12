@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 interface TimelineEvent {
   id: string
@@ -133,9 +133,9 @@ export function TimelineScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="timeline" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to see your journey</p>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest">
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-6 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest">
           Sign In
         </button>
       </main>
@@ -145,7 +145,7 @@ export function TimelineScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -185,7 +185,7 @@ export function TimelineScreen() {
               filter === f.key ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary/70'
             }`}
           >
-            <Icon name={f.icon} size={14} />
+            <span>{getIconChar(f.icon)}</span>
             <span>{f.label}</span>
           </button>
         ))}
@@ -194,7 +194,7 @@ export function TimelineScreen() {
       {/* Timeline */}
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16">
-          <Icon name="timeline" className="text-4xl text-secondary/20 mb-3" />
+          <span className="text-4xl text-secondary/20 mb-3">?</span>
           <p className="text-secondary/40 text-sm">No events yet — start building your story</p>
         </div>
       ) : (
@@ -217,25 +217,25 @@ export function TimelineScreen() {
                         key={event.id}
                         onClick={() => event.fragrance && navigate(`/fragrance/${event.fragrance.id}`)}
                         disabled={!event.fragrance}
-                        className="w-full flex items-start gap-4 p-3 rounded-xl text-left active:bg-surface-container transition-colors relative"
+                        className="w-full flex items-start gap-4 p-3 rounded-sm text-left active:bg-surface-container transition-colors relative"
                       >
                         {/* Timeline dot */}
                         <div className={`w-[14px] h-[14px] rounded-full flex-shrink-0 mt-1 flex items-center justify-center z-[1] ${
                           event.type === 'milestone' ? 'bg-primary' : 'bg-surface-container-highest ring-2 ring-outline-variant/30'
                         }`}>
                           {event.type === 'milestone' && (
-                            <Icon name={event.icon} filled size={8} className="text-on-primary" />
+                            <span className="text-on-primary">{getIconChar(event.icon)}</span>
                           )}
                         </div>
 
                         {/* Image or icon */}
                         {event.fragrance?.image_url ? (
-                          <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                          <div className="w-10 h-10 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                             <img src={event.fragrance.image_url} alt="" className="w-full h-full object-cover" loading="lazy" />
                           </div>
                         ) : (
-                          <div className="w-10 h-10 rounded-lg flex-shrink-0 bg-surface-container flex items-center justify-center">
-                            <Icon name={event.icon} className={`text-lg ${event.iconColor}`} />
+                          <div className="w-10 h-10 rounded-sm flex-shrink-0 bg-surface-container flex items-center justify-center">
+                            <span>{getIconChar(event.icon)}</span>
                           </div>
                         )}
 
@@ -243,7 +243,7 @@ export function TimelineScreen() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-on-surface font-medium truncate">{event.title}</p>
                           <div className="flex items-center gap-2">
-                            <Icon name={event.icon} size={12} className={event.iconColor} />
+                            <span>{getIconChar(event.icon)}</span>
                             <span className="text-[10px] text-secondary/50">{event.subtitle}</span>
                           </div>
                         </div>

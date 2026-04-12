@@ -166,7 +166,7 @@ export function AuthScreen() {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="the name on your shelf"
-                  className="w-full bg-surface-container border-none rounded-lg py-4 px-5 text-on-surface placeholder:text-on-surface-variant/30 text-sm transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                  className="w-full bg-surface-container border-none rounded-sm py-4 px-5 text-on-surface placeholder:text-on-surface-variant/30 text-sm transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-primary/30"
                 />
               </div>
             )}
@@ -179,7 +179,7 @@ export function AuthScreen() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="w-full bg-surface-container border-none rounded-lg py-4 px-5 text-on-surface placeholder:text-on-surface-variant/30 text-sm transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                className="w-full bg-surface-container border-none rounded-sm py-4 px-5 text-on-surface placeholder:text-on-surface-variant/30 text-sm transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-primary/30"
               />
             </div>
 
@@ -192,7 +192,7 @@ export function AuthScreen() {
                 placeholder="at least six characters"
                 required
                 minLength={6}
-                className="w-full bg-surface-container border-none rounded-lg py-4 px-5 text-on-surface placeholder:text-on-surface-variant/30 text-sm transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                className="w-full bg-surface-container border-none rounded-sm py-4 px-5 text-on-surface placeholder:text-on-surface-variant/30 text-sm transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-primary/30"
               />
             </div>
 
@@ -207,7 +207,7 @@ export function AuthScreen() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full gold-gradient text-on-primary py-5 rounded-lg text-xs font-bold tracking-[0.2em] uppercase active:scale-[0.98] transition-transform duration-200 disabled:opacity-50"
+                className="w-full gold-gradient text-on-primary py-5 rounded-sm text-xs font-bold tracking-[0.2em] uppercase hover:opacity-80 transition-transform duration-200 disabled:opacity-50"
                 style={{ boxShadow: '0 12px 32px rgba(25,18,16,0.6)' }}
               >
                 {ctaLabel}

@@ -1,5 +1,4 @@
 import { Component, type ReactNode, type ErrorInfo } from 'react'
-import { Icon } from './Icon'
 import { trackEvent } from '@/lib/analytics'
 
 interface Props {
@@ -43,7 +42,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center px-8 text-center">
           <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-6">
-            <Icon name="error_outline" className="text-primary text-3xl" />
+            <span className="text-primary text-3xl">?</span>
           </div>
           <h2 className="font-headline text-xl text-on-surface mb-2">Something went wrong</h2>
           <p className="text-sm text-secondary mb-8 max-w-xs">
@@ -51,7 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
           </p>
           <button
             onClick={this.handleReset}
-            className="px-8 py-3 gold-gradient text-on-primary font-bold uppercase tracking-[0.1em] rounded-2xl active:scale-[0.98] transition-all text-sm"
+            className="px-8 py-3 gold-gradient text-on-primary font-bold uppercase tracking-[0.1em] rounded-sm hover:opacity-80 transition-all text-sm"
           >
             Try Again
           </button>

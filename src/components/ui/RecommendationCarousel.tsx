@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from './Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { findSimilarToCollection } from '@/lib/similarity'
@@ -81,7 +80,7 @@ export function RecommendationCarousel() {
       <div className="flex items-center justify-between">
         <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary font-bold">YOU MIGHT ALSO LIKE</h3>
         <div className="flex items-center gap-1 text-primary/50">
-          <Icon name="auto_awesome" size={14} />
+          <span>?</span>
           <span className="text-[9px] uppercase tracking-wider">Based on your taste</span>
         </div>
       </div>
@@ -90,14 +89,14 @@ export function RecommendationCarousel() {
           <button
             key={rec.fragrance.id}
             onClick={() => navigate(`/fragrance/${rec.fragrance.id}`)}
-            className="flex-shrink-0 w-[110px] text-left active:scale-95 transition-transform"
+            className="flex-shrink-0 w-[110px] text-left hover:opacity-80 transition-transform"
           >
-            <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-highest mb-2">
+            <div className="relative aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-highest mb-2">
               {rec.fragrance.image_url ? (
                 <img src={rec.fragrance.image_url} alt={rec.fragrance.name} className="w-full h-full object-cover" loading="lazy" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Icon name="water_drop" className="text-secondary/30" size={24} />
+                  <span className="text-secondary/30">?</span>
                 </div>
               )}
               <div className="absolute top-1.5 right-1.5 bg-black/60 backdrop-blur-sm rounded-full px-2 py-0.5">

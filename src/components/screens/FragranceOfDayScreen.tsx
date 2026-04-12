@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 function getCurrentSeason(): string {
   const m = new Date().getMonth()
@@ -140,9 +140,9 @@ export function FragranceOfDayScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="wb_sunny" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in for daily picks</p>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest">
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-6 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest">
           Sign In
         </button>
       </main>
@@ -152,7 +152,7 @@ export function FragranceOfDayScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -160,12 +160,12 @@ export function FragranceOfDayScreen() {
   if (!pick) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="wb_sunny" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <h3 className="font-headline text-xl">No fragrances yet</h3>
         <p className="text-secondary/60 text-sm text-center max-w-[260px]">
           Add some fragrances to your collection and we'll suggest a daily pick.
         </p>
-        <button onClick={() => navigate('/explore')} className="gold-gradient text-on-primary-container px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest">
+        <button onClick={() => navigate('/explore')} className="gold-gradient text-on-primary-container px-6 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest">
           Explore
         </button>
       </main>
@@ -186,7 +186,7 @@ export function FragranceOfDayScreen() {
       {/* Hero Card */}
       <section className="mb-8">
         <div
-          className="relative rounded-2xl overflow-hidden bg-surface-container-low shadow-xl cursor-pointer active:scale-[0.99] transition-transform"
+          className="relative rounded-sm overflow-hidden bg-surface-container-low shadow-xl cursor-pointer hover:opacity-80 transition-transform"
           onClick={() => navigate(`/fragrance/${pick.fragrance.id}`)}
         >
           {pick.fragrance.image_url ? (
@@ -197,7 +197,7 @@ export function FragranceOfDayScreen() {
             />
           ) : (
             <div className="w-full aspect-[3/4] flex items-center justify-center bg-surface-container">
-              <Icon name="water_drop" className="text-6xl text-secondary/20" />
+              <span className="text-6xl text-secondary/20">?</span>
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
@@ -214,9 +214,9 @@ export function FragranceOfDayScreen() {
       </section>
 
       {/* Reason */}
-      <section className="flex items-center gap-3 bg-surface-container rounded-xl p-4 mb-6">
+      <section className="flex items-center gap-3 bg-surface-container rounded-sm p-4 mb-6">
         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <Icon name={pick.icon} filled className="text-primary" />
+          <span className="text-primary">{getIconChar(pick.icon)}</span>
         </div>
         <p className="text-sm text-on-surface/80">{pick.reason}</p>
       </section>
@@ -224,22 +224,22 @@ export function FragranceOfDayScreen() {
       {/* Quick Details */}
       <section className="grid grid-cols-3 gap-3 mb-8">
         {pick.fragrance.rating && (
-          <div className="bg-surface-container rounded-xl p-3 text-center">
-            <Icon name="star" filled className="text-primary text-lg mb-1" />
+          <div className="bg-surface-container rounded-sm p-3 text-center">
+            <span className="text-primary text-lg mb-1">★</span>
             <p className="font-headline text-lg">{Number(pick.fragrance.rating).toFixed(1)}</p>
             <p className="text-[9px] text-secondary/50 uppercase">Rating</p>
           </div>
         )}
         {pick.fragrance.longevity && (
-          <div className="bg-surface-container rounded-xl p-3 text-center">
-            <Icon name="schedule" className="text-primary text-lg mb-1" />
+          <div className="bg-surface-container rounded-sm p-3 text-center">
+            <span className="text-primary text-lg mb-1">?</span>
             <p className="font-headline text-lg">{pick.fragrance.longevity}h</p>
             <p className="text-[9px] text-secondary/50 uppercase">Longevity</p>
           </div>
         )}
         {pick.fragrance.note_family && (
-          <div className="bg-surface-container rounded-xl p-3 text-center">
-            <Icon name="spa" className="text-primary text-lg mb-1" />
+          <div className="bg-surface-container rounded-sm p-3 text-center">
+            <span className="text-primary text-lg mb-1">?</span>
             <p className="text-sm font-medium truncate">{pick.fragrance.note_family}</p>
             <p className="text-[9px] text-secondary/50 uppercase">Family</p>
           </div>
@@ -250,7 +250,7 @@ export function FragranceOfDayScreen() {
       <button
         onClick={handleLogWear}
         disabled={wearLogged}
-        className={`w-full py-4 rounded-2xl font-bold uppercase tracking-[0.15em] text-sm active:scale-[0.98] transition-all ${
+        className={`w-full py-4 rounded-sm font-bold uppercase tracking-[0.15em] text-sm hover:opacity-80 transition-all ${
           wearLogged
             ? 'bg-surface-container text-primary/60'
             : 'gold-gradient text-on-primary ambient-glow'
@@ -262,7 +262,7 @@ export function FragranceOfDayScreen() {
       {/* View Details */}
       <button
         onClick={() => navigate(`/fragrance/${pick.fragrance.id}`)}
-        className="w-full py-3 mt-3 text-sm text-primary font-medium active:scale-[0.98] transition-all"
+        className="w-full py-3 mt-3 text-sm text-primary font-medium hover:opacity-80 transition-all"
       >
         View Full Details →
       </button>

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Icon } from './Icon'
+import { getIconChar } from '@/lib/iconUtils'
 
 interface CollectionItem {
   status: string
@@ -71,8 +71,8 @@ export function CollectionStatsBar({ items }: Props) {
 
 function StatChip({ icon, label, value, sub }: { icon: string; label: string; value: string; sub?: string }) {
   return (
-    <div className="flex items-center gap-2 bg-surface-container rounded-xl px-3 py-2 flex-shrink-0">
-      <Icon name={icon} className="text-primary" size={14} />
+    <div className="flex items-center gap-2 bg-surface-container rounded-sm px-3 py-2 flex-shrink-0">
+      <span className="text-primary">{getIconChar(icon)}</span>
       <div className="flex items-baseline gap-1">
         <span className="text-[10px] text-secondary/50">{label}</span>
         <span className="text-xs text-on-surface font-bold truncate max-w-[80px]">{value}</span>

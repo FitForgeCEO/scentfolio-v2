@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
-import { Icon } from '@/components/ui/Icon'
 
 type ToastType = 'success' | 'error' | 'info'
 
@@ -37,7 +36,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-xl backdrop-blur-md animate-slide-down ${
+            className={`pointer-events-auto flex items-center gap-3 px-5 py-3.5 rounded-sm shadow-xl backdrop-blur-md animate-slide-down ${
               toast.type === 'success'
                 ? 'bg-primary/20 text-primary'
                 : toast.type === 'error'
@@ -45,11 +44,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 : 'bg-surface-container-highest/90 text-on-surface'
             }`}
           >
-            <Icon
-              name={toast.icon ?? (toast.type === 'success' ? 'check_circle' : toast.type === 'error' ? 'error' : 'info')}
-              filled
-              className="text-lg flex-shrink-0"
-            />
+            <span className="text-lg flex-shrink-0">
+              {toast.icon ?? (toast.type === 'success' ? '✓' : toast.type === 'error' ? '⚠' : 'ℹ')}
+            </span>
             <span className="text-sm font-medium">{toast.message}</span>
           </div>
         ))}

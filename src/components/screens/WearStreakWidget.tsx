@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 
@@ -110,10 +109,10 @@ export function WearStreakWidget() {
   })()
 
   return (
-    <div className="bg-surface-container rounded-2xl p-4">
+    <div className="bg-surface-container rounded-sm p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Icon name="local_fire_department" filled className="text-primary" size={18} />
+          <span className="text-primary">?</span>
           <span className="text-xs font-bold text-on-surface">Wear Streak</span>
         </div>
         <div className="flex items-center gap-1">
@@ -136,9 +135,9 @@ export function WearStreakWidget() {
               }`}
             >
               {active ? (
-                <Icon name="local_fire_department" filled className="text-primary" size={14} />
+                <span className="text-primary">?</span>
               ) : i === 0 ? (
-                <Icon name="add" className="text-primary/40" size={12} />
+                <span className="text-primary/40">+</span>
               ) : (
                 <span className="w-1.5 h-1.5 rounded-full bg-secondary/20" />
               )}

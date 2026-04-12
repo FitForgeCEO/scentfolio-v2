@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
 import { hapticLight, hapticSuccess } from '@/lib/haptics'
+import { getIconChar } from '@/lib/iconUtils'
 
 /* ── Quiz structure ─────────────────────────────────────── */
 interface QuizQuestion {
@@ -188,7 +188,7 @@ export function ScentQuizScreen() {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center gap-6 animate-fade-in">
         <div className="w-20 h-20 rounded-full gold-gradient flex items-center justify-center ambient-glow">
-          <Icon name="auto_awesome" size={36} style={{ color: '#3f2e00' }} />
+          <span>?</span>
         </div>
 
         <div className="text-center space-y-2">
@@ -198,20 +198,20 @@ export function ScentQuizScreen() {
 
         {/* Profile breakdown */}
         <div className="w-full space-y-3">
-          <div className="flex justify-between bg-surface-container rounded-xl p-4">
+          <div className="flex justify-between bg-surface-container rounded-sm p-4">
             <span className="text-xs text-secondary/50">Temperature</span>
             <span className="text-xs text-on-surface font-medium capitalize">{result.warmth}</span>
           </div>
-          <div className="flex justify-between bg-surface-container rounded-xl p-4">
+          <div className="flex justify-between bg-surface-container rounded-sm p-4">
             <span className="text-xs text-secondary/50">Projection</span>
             <span className="text-xs text-on-surface font-medium capitalize">{result.weight}</span>
           </div>
-          <div className="flex justify-between bg-surface-container rounded-xl p-4">
+          <div className="flex justify-between bg-surface-container rounded-sm p-4">
             <span className="text-xs text-secondary/50">Occasion</span>
             <span className="text-xs text-on-surface font-medium capitalize">{result.occasion}</span>
           </div>
           {result.families.length > 0 && (
-            <div className="bg-surface-container rounded-xl p-4">
+            <div className="bg-surface-container rounded-sm p-4">
               <span className="text-xs text-secondary/50 block mb-2">Favourite families</span>
               <div className="flex flex-wrap gap-1.5">
                 {result.families.map(f => (
@@ -220,7 +220,7 @@ export function ScentQuizScreen() {
               </div>
             </div>
           )}
-          <div className="flex justify-between bg-surface-container rounded-xl p-4">
+          <div className="flex justify-between bg-surface-container rounded-sm p-4">
             <span className="text-xs text-secondary/50">Favourite season</span>
             <span className="text-xs text-on-surface font-medium capitalize">{result.season}</span>
           </div>
@@ -229,7 +229,7 @@ export function ScentQuizScreen() {
         <button
           onClick={() => navigate('/profile')}
           disabled={saving}
-          className="w-full py-3.5 gold-gradient text-on-primary-container font-bold uppercase tracking-[0.1em] rounded-xl ambient-glow active:scale-[0.98] transition-all text-sm"
+          className="w-full py-3.5 gold-gradient text-on-primary-container font-bold uppercase tracking-[0.1em] rounded-sm ambient-glow hover:opacity-80 transition-all text-sm"
         >
           {saving ? 'SAVING...' : 'DONE'}
         </button>
@@ -272,17 +272,17 @@ export function ScentQuizScreen() {
             <button
               key={opt.value}
               onClick={() => handleSelect(opt.value)}
-              className={`w-full flex items-center gap-3 p-4 rounded-xl text-left transition-all active:scale-[0.97] ${
+              className={`w-full flex items-center gap-3 p-4 rounded-sm text-left transition-all hover:opacity-80 ${
                 isSelected
                   ? 'bg-primary/15 ring-2 ring-primary'
                   : 'bg-surface-container hover:bg-surface-container-high'
               }`}
             >
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isSelected ? 'bg-primary/20' : 'bg-surface-container-highest'}`}>
-                <Icon name={opt.icon} className={isSelected ? 'text-primary' : 'text-secondary/50'} size={20} />
+              <div className={`w-10 h-10 rounded-sm flex items-center justify-center ${isSelected ? 'bg-primary/20' : 'bg-surface-container-highest'}`}>
+                <span>{getIconChar(opt.icon)}</span>
               </div>
               <span className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-on-surface'}`}>{opt.label}</span>
-              {isSelected && <Icon name="check_circle" className="text-primary ml-auto" size={20} />}
+              {isSelected && <span className="text-primary ml-auto">✓</span>}
             </button>
           )
         })}
@@ -293,7 +293,7 @@ export function ScentQuizScreen() {
         {step > 0 && (
           <button
             onClick={() => setStep(s => s - 1)}
-            className="px-6 py-3.5 bg-surface-container rounded-xl text-sm font-medium active:scale-95 transition-transform"
+            className="px-6 py-3.5 bg-surface-container rounded-sm text-sm font-medium hover:opacity-80 transition-transform"
           >
             Back
           </button>
@@ -302,7 +302,7 @@ export function ScentQuizScreen() {
           <button
             onClick={handleNext}
             disabled={!canProceed}
-            className="flex-1 py-3.5 gold-gradient text-on-primary-container font-bold uppercase tracking-[0.1em] rounded-xl active:scale-[0.98] transition-all text-sm disabled:opacity-30"
+            className="flex-1 py-3.5 gold-gradient text-on-primary-container font-bold uppercase tracking-[0.1em] rounded-sm hover:opacity-80 transition-all text-sm disabled:opacity-30"
           >
             {step === totalSteps - 1 ? 'SEE RESULTS' : 'NEXT'}
           </button>

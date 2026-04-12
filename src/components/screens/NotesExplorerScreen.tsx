@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { InlineError } from '../ui/InlineError'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 const NOTE_FAMILIES: Record<string, { icon: string; color: string }> = {
   'woody': { icon: 'park', color: '#8B6914' },
@@ -181,7 +181,7 @@ export function NotesExplorerScreen() {
         <section className="space-y-3">
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-16 rounded-xl bg-surface-container animate-pulse" />
+              <div key={i} className="h-16 rounded-sm bg-surface-container animate-pulse" />
             ))
           ) : (
             <div className="grid grid-cols-2 gap-3">
@@ -195,10 +195,10 @@ export function NotesExplorerScreen() {
                   <button
                     key={fr.family}
                     onClick={() => handleFamilyTap(fr.family)}
-                    className="bg-surface-container rounded-xl p-4 text-left active:scale-[0.97] transition-transform space-y-2"
+                    className="bg-surface-container rounded-sm p-4 text-left hover:opacity-80 transition-transform space-y-2"
                   >
                     <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: `${color}20` }}>
-                      <Icon name={icon} style={{ color }} size={20} />
+                      <span>{getIconChar(icon)}</span>
                     </div>
                     <p className="text-sm text-on-surface font-medium">{label}</p>
                     <p className="text-[10px] text-secondary/50">{fr.count} fragrances</p>
@@ -213,13 +213,13 @@ export function NotesExplorerScreen() {
       {/* Selected Family Detail */}
       {mode === 'families' && selectedFamily && (
         <section className="space-y-4">
-          <button onClick={() => setSelectedFamily(null)} className="flex items-center gap-2 text-primary text-sm font-medium active:opacity-70">
-            <Icon name="arrow_back" size={18} /> All Families
+          <button onClick={() => setSelectedFamily(null)} className="flex items-center gap-2 text-primary text-sm font-medium hover:opacity-80">
+            <span>←</span> All Families
           </button>
           <h3 className="font-headline text-2xl text-on-surface">{selectedFamily}</h3>
           {loading ? (
             <div className="grid grid-cols-2 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[3/4] rounded-xl bg-surface-container animate-pulse" />)}
+              {Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[3/4] rounded-sm bg-surface-container animate-pulse" />)}
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4">
@@ -232,7 +232,7 @@ export function NotesExplorerScreen() {
                   onClick={() => navigate(`/fragrance/${frag.id}`)}
                   onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/fragrance/${frag.id}`) }}
                 >
-                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low">
+                  <div className="aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-low">
                     {frag.image_url && <img src={frag.image_url} alt={frag.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
                   </div>
                   <div>
@@ -240,7 +240,7 @@ export function NotesExplorerScreen() {
                     <h4 className="text-sm font-medium text-on-surface truncate">{frag.name}</h4>
                     {frag.rating && (
                       <div className="flex items-center gap-1 mt-0.5">
-                        <Icon name="star" filled className="text-[10px] text-primary" />
+                        <span className="text-[10px] text-primary">★</span>
                         <span className="text-[10px] text-on-surface-variant">{Number(frag.rating).toFixed(1)}</span>
                       </div>
                     )}
@@ -263,7 +263,7 @@ export function NotesExplorerScreen() {
                 <button
                   key={a.accord}
                   onClick={() => handleAccordTap(a.accord)}
-                  className="bg-surface-container px-3 py-2 rounded-full flex items-center gap-2 active:scale-95 transition-all hover:bg-surface-container-highest"
+                  className="bg-surface-container px-3 py-2 rounded-full flex items-center gap-2 hover:opacity-80 transition-all hover:bg-surface-container-highest"
                 >
                   <span className="text-xs text-on-surface font-medium">{a.accord}</span>
                   <span className="text-[9px] text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded-full">{a.count}</span>
@@ -277,13 +277,13 @@ export function NotesExplorerScreen() {
       {/* Selected Accord Detail */}
       {mode === 'accords' && selectedAccord && (
         <section className="space-y-4">
-          <button onClick={() => setSelectedAccord(null)} className="flex items-center gap-2 text-primary text-sm font-medium active:opacity-70">
-            <Icon name="arrow_back" size={18} /> All Accords
+          <button onClick={() => setSelectedAccord(null)} className="flex items-center gap-2 text-primary text-sm font-medium hover:opacity-80">
+            <span>←</span> All Accords
           </button>
           <h3 className="font-headline text-2xl text-on-surface capitalize">{selectedAccord.accord}</h3>
           {loading ? (
             <div className="grid grid-cols-2 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[3/4] rounded-xl bg-surface-container animate-pulse" />)}
+              {Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-[3/4] rounded-sm bg-surface-container animate-pulse" />)}
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4">
@@ -296,7 +296,7 @@ export function NotesExplorerScreen() {
                   onClick={() => navigate(`/fragrance/${frag.id}`)}
                   onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/fragrance/${frag.id}`) }}
                 >
-                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low">
+                  <div className="aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-low">
                     {frag.image_url && <img src={frag.image_url} alt={frag.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
                   </div>
                   <div>
@@ -304,7 +304,7 @@ export function NotesExplorerScreen() {
                     <h4 className="text-sm font-medium text-on-surface truncate">{frag.name}</h4>
                     {frag.rating && (
                       <div className="flex items-center gap-1 mt-0.5">
-                        <Icon name="star" filled className="text-[10px] text-primary" />
+                        <span className="text-[10px] text-primary">★</span>
                         <span className="text-[10px] text-on-surface-variant">{Number(frag.rating).toFixed(1)}</span>
                       </div>
                     )}
@@ -319,8 +319,8 @@ export function NotesExplorerScreen() {
       {/* Notes Search */}
       {mode === 'notes' && (
         <section className="space-y-4">
-          <div className="relative flex items-center bg-surface-container rounded-xl px-4 py-3.5 focus-within:ring-1 ring-primary/30 transition-all">
-            <Icon name="search" className="text-secondary/50 mr-3" />
+          <div className="relative flex items-center bg-surface-container rounded-sm px-4 py-3.5 focus-within:ring-1 ring-primary/30 transition-all">
+            <span className="text-secondary/50 mr-3">⌕</span>
             <input
               className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-secondary/40 w-full text-sm"
               placeholder='Search by note (e.g. "bergamot", "vanilla")'
@@ -331,13 +331,13 @@ export function NotesExplorerScreen() {
             />
             {noteSearch && (
               <button onClick={() => { setNoteSearch(''); setNoteResults([]) }} className="text-secondary/60">
-                <Icon name="close" size={18} />
+                <span>✕</span>
               </button>
             )}
           </div>
 
           {searching ? (
-            <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+            <div className="flex justify-center py-8"><span className="text-[9px] uppercase tracking-wider text-primary animate-pulse">Loading…</span></div>
           ) : noteSearch.length >= 2 && noteResults.length === 0 ? (
             <p className="text-sm text-secondary/50 text-center py-8">No fragrances found with that note</p>
           ) : (
@@ -351,7 +351,7 @@ export function NotesExplorerScreen() {
                   onClick={() => navigate(`/fragrance/${frag.id}`)}
                   onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/fragrance/${frag.id}`) }}
                 >
-                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low">
+                  <div className="aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-low">
                     {frag.image_url && <img src={frag.image_url} alt={frag.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
                   </div>
                   <div>
@@ -371,7 +371,7 @@ export function NotesExplorerScreen() {
                   <button
                     key={note}
                     onClick={() => handleNoteSearch(note)}
-                    className="bg-surface-container px-3 py-2 rounded-full text-xs text-on-surface active:scale-95 transition-all"
+                    className="bg-surface-container px-3 py-2 rounded-full text-xs text-on-surface hover:opacity-80 transition-all"
                   >
                     {note}
                   </button>

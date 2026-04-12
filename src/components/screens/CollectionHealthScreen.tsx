@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { ScoreRingSkeleton, CardListSkeleton } from '../ui/ContentSkeleton'
 import type { Fragrance } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 /* ── Types ─────────────────────────────────────────────── */
 interface WearLog {
@@ -316,7 +316,7 @@ export function CollectionHealthScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="health_and_safety" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to see your collection health</p>
       </main>
     )
@@ -358,11 +358,11 @@ export function CollectionHealthScreen() {
           <button
             key={dim.name}
             onClick={() => setExpandedDim(expandedDim === dim.name ? null : dim.name)}
-            className="w-full bg-surface-container rounded-xl p-4 text-left active:scale-[0.98] transition-all"
+            className="w-full bg-surface-container rounded-sm p-4 text-left hover:opacity-80 transition-all"
           >
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Icon name={dim.icon} className="text-primary" size={18} />
+              <div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center">
+                <span className="text-primary">{getIconChar(dim.icon)}</span>
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
@@ -396,25 +396,25 @@ export function CollectionHealthScreen() {
         <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary">Improve Your Score</h3>
         <button
           onClick={() => navigate('/smart-collections')}
-          className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-xl active:scale-[0.98] transition-transform text-left"
+          className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-sm hover:opacity-80 transition-transform text-left"
         >
-          <Icon name="auto_awesome" className="text-primary" />
+          <span className="text-primary">?</span>
           <div className="flex-1">
             <p className="text-sm text-on-surface font-medium">Smart Collections</p>
             <p className="text-[10px] text-secondary/50">Find forgotten gems & under-worn bottles</p>
           </div>
-          <Icon name="chevron_right" className="text-secondary/40" />
+          <span className="text-secondary/40">?</span>
         </button>
         <button
           onClick={() => navigate('/explore')}
-          className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-xl active:scale-[0.98] transition-transform text-left"
+          className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-sm hover:opacity-80 transition-transform text-left"
         >
-          <Icon name="explore" className="text-primary" />
+          <span className="text-primary">?</span>
           <div className="flex-1">
             <p className="text-sm text-on-surface font-medium">Explore New Scents</p>
             <p className="text-[10px] text-secondary/50">Expand your collection diversity</p>
           </div>
-          <Icon name="chevron_right" className="text-secondary/40" />
+          <span className="text-secondary/40">?</span>
         </button>
       </div>
     </main>

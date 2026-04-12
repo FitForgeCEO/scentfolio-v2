@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { hapticLight } from '@/lib/haptics'
 import { HeroListSkeleton } from '../ui/ContentSkeleton'
 import type { Fragrance } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 /* ── Types ─────────────────────────────────────────────── */
 interface WearLog {
@@ -204,7 +204,7 @@ export function WearPredictionsScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="smart_toy" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to see predictions</p>
       </main>
     )
@@ -234,18 +234,18 @@ export function WearPredictionsScreen() {
 
       {/* Top pick hero */}
       {predictions.length > 0 && (
-        <div className="relative bg-surface-container rounded-2xl overflow-hidden">
+        <div className="relative bg-surface-container rounded-sm overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent" />
           <div className="relative p-6 flex flex-col items-center gap-4">
             <div className="flex items-center gap-2 mb-1">
-              <Icon name="auto_awesome" className="text-primary text-sm" />
+              <span className="text-primary text-sm">?</span>
               <span className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">Top Pick</span>
             </div>
-            <div className="w-20 h-20 rounded-xl bg-surface-container-highest flex items-center justify-center overflow-hidden">
+            <div className="w-20 h-20 rounded-sm bg-surface-container-highest flex items-center justify-center overflow-hidden">
               {predictions[0].fragrance.image_url ? (
                 <img src={predictions[0].fragrance.image_url} alt="" className="w-full h-full object-cover" />
               ) : (
-                <Icon name="water_drop" className="text-3xl text-primary/30" />
+                <span className="text-3xl text-primary/30">?</span>
               )}
             </div>
             <div className="text-center">
@@ -262,7 +262,7 @@ export function WearPredictionsScreen() {
             </div>
             <button
               onClick={() => { hapticLight(); navigate(`/fragrance/${predictions[0].fragrance.id}`) }}
-              className="mt-1 px-6 py-2.5 gold-gradient rounded-xl text-on-primary-container text-xs font-bold uppercase tracking-widest active:scale-[0.97] transition-transform"
+              className="mt-1 px-6 py-2.5 gold-gradient rounded-sm text-on-primary-container text-xs font-bold uppercase tracking-widest hover:opacity-80 transition-transform"
             >
               View Details
             </button>
@@ -281,14 +281,14 @@ export function WearPredictionsScreen() {
                 hapticLight()
                 setSelectedId(selectedId === pred.fragrance.id ? null : pred.fragrance.id)
               }}
-              className="w-full bg-surface-container rounded-xl p-4 text-left active:scale-[0.98] transition-all"
+              className="w-full bg-surface-container rounded-sm p-4 text-left hover:opacity-80 transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-lg bg-surface-container-highest flex-shrink-0 flex items-center justify-center overflow-hidden">
+                <div className="w-12 h-12 rounded-sm bg-surface-container-highest flex-shrink-0 flex items-center justify-center overflow-hidden">
                   {pred.fragrance.image_url ? (
                     <img src={pred.fragrance.image_url} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <Icon name="water_drop" className="text-xl text-primary/30" />
+                    <span className="text-xl text-primary/30">?</span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -323,7 +323,7 @@ export function WearPredictionsScreen() {
       {/* Empty state */}
       {predictions.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-4 py-16">
-          <Icon name="smart_toy" className="text-5xl text-primary/20" />
+          <span className="text-5xl text-primary/20">?</span>
           <div className="text-center space-y-1">
             <p className="text-sm text-on-surface-variant">Not enough data yet</p>
             <p className="text-[10px] text-secondary/50 max-w-[260px]">
@@ -332,7 +332,7 @@ export function WearPredictionsScreen() {
           </div>
           <button
             onClick={() => navigate('/explore')}
-            className="px-5 py-2.5 bg-primary/15 text-primary text-xs font-medium rounded-xl active:scale-[0.97] transition-transform"
+            className="px-5 py-2.5 bg-primary/15 text-primary text-xs font-medium rounded-sm hover:opacity-80 transition-transform"
           >
             Explore Fragrances
           </button>
@@ -343,11 +343,11 @@ export function WearPredictionsScreen() {
       <div className="pt-2">
         <button
           onClick={() => setSelectedId(selectedId === '__info' ? null : '__info')}
-          className="w-full flex items-center gap-3 bg-surface-container/50 p-4 rounded-xl"
+          className="w-full flex items-center gap-3 bg-surface-container/50 p-4 rounded-sm"
         >
-          <Icon name="info" className="text-secondary/40" size={18} />
+          <span className="text-secondary/40">ℹ</span>
           <span className="text-[10px] text-secondary/40">How predictions work</span>
-          <Icon name={selectedId === '__info' ? 'expand_less' : 'expand_more'} className="text-secondary/40 ml-auto" size={18} />
+          <span className="text-secondary/40 ml-auto">{getIconChar(selectedId === '__info' ? 'expand_less' : 'expand_more')}</span>
         </button>
         {selectedId === '__info' && (
           <div className="px-4 py-3 text-[10px] text-secondary/50 leading-relaxed space-y-1 animate-fade-in">

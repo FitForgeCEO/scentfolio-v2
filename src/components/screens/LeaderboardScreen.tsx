@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { supabase } from '@/lib/supabase'
+import { getIconChar } from '@/lib/iconUtils'
 
 interface LeaderboardEntry {
   fragrance_id: string
@@ -94,7 +94,7 @@ export function LeaderboardScreen() {
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
       <section className="text-center mb-6">
         <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-3">
-          <Icon name="leaderboard" filled className="text-3xl text-primary" />
+          <span className="text-3xl text-primary">?</span>
         </div>
         <h2 className="font-headline text-xl mb-1">Trending</h2>
         <p className="text-[10px] text-secondary/50">What the community is into right now</p>
@@ -106,23 +106,23 @@ export function LeaderboardScreen() {
           <button
             key={c}
             onClick={() => setCategory(c)}
-            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95 ${
+            className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-all hover:opacity-80 ${
               category === c ? 'bg-primary/15 text-primary' : 'bg-surface-container text-secondary/50'
             }`}
           >
-            <Icon name={categoryLabels[c].icon} size={12} />
+            <span>{getIconChar(categoryLabels[c].icon)}</span>
             {categoryLabels[c].label.split(' ')[1]}
           </button>
         ))}
       </div>
 
       {/* Period Toggle */}
-      <div className="flex gap-1 bg-surface-container rounded-xl p-1 mb-6">
+      <div className="flex gap-1 bg-surface-container rounded-sm p-1 mb-6">
         {(['7d', '30d', 'all'] as Period[]).map((p) => (
           <button
             key={p}
             onClick={() => setPeriod(p)}
-            className={`flex-1 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+            className={`flex-1 py-2 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-all ${
               period === p ? 'bg-primary text-on-primary-container' : 'text-secondary/50'
             }`}
           >
@@ -134,11 +134,11 @@ export function LeaderboardScreen() {
       {/* Leaderboard */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
         </div>
       ) : entries.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16">
-          <Icon name="trending_up" className="text-4xl text-secondary/20" />
+          <span className="text-4xl text-secondary/20">?</span>
           <p className="text-sm text-secondary/50">No data for this period yet</p>
         </div>
       ) : (
@@ -147,7 +147,7 @@ export function LeaderboardScreen() {
             <button
               key={entry.fragrance_id}
               onClick={() => navigate(`/fragrance/${entry.fragrance_id}`)}
-              className="w-full bg-surface-container rounded-xl p-3 flex items-center gap-3 active:scale-[0.98] transition-transform text-left"
+              className="w-full bg-surface-container rounded-sm p-3 flex items-center gap-3 hover:opacity-80 transition-transform text-left"
             >
               {/* Rank */}
               <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
@@ -159,12 +159,12 @@ export function LeaderboardScreen() {
               </div>
 
               {/* Image */}
-              <div className="w-11 h-11 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
+              <div className="w-11 h-11 rounded-sm overflow-hidden bg-surface-container-low flex-shrink-0">
                 {entry.image_url ? (
                   <img src={entry.image_url} alt={entry.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Icon name="water_drop" className="text-secondary/20" size={18} />
+                    <span className="text-secondary/20">?</span>
                   </div>
                 )}
               </div>

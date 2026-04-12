@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 interface ScoredFragrance {
   fragrance: Fragrance
@@ -142,7 +142,7 @@ export function SmartRecsScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="auto_awesome" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to get personalised recommendations</p>
       </main>
     )
@@ -153,7 +153,7 @@ export function SmartRecsScreen() {
       {/* Header */}
       <section className="text-center mb-6">
         <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-3">
-          <Icon name="auto_awesome" filled className="text-3xl text-primary" />
+          <span className="text-3xl text-primary">?</span>
         </div>
         <h2 className="font-headline text-xl mb-1">Smart Recommendations</h2>
         <p className="text-[10px] text-secondary/50">Based on your collection and taste profile</p>
@@ -169,11 +169,11 @@ export function SmartRecsScreen() {
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95 ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-all hover:opacity-80 ${
               tab === t.key ? 'bg-primary/15 text-primary' : 'bg-surface-container text-secondary/50'
             }`}
           >
-            <Icon name={t.icon} size={14} />
+            <span>{getIconChar(t.icon)}</span>
             {t.label}
           </button>
         ))}
@@ -182,11 +182,11 @@ export function SmartRecsScreen() {
       {/* Results */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
         </div>
       ) : recs.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16">
-          <Icon name="search_off" className="text-4xl text-secondary/20" />
+          <span className="text-4xl text-secondary/20">?</span>
           <p className="text-sm text-secondary/50">
             {tab === 'explore' ? 'Add more fragrances to get diverse recommendations' : 'Add fragrances to your collection to unlock recommendations'}
           </p>
@@ -197,14 +197,14 @@ export function SmartRecsScreen() {
             <button
               key={rec.fragrance.id}
               onClick={() => navigate(`/fragrance/${rec.fragrance.id}`)}
-              className="w-full bg-surface-container rounded-xl p-4 flex items-start gap-4 active:scale-[0.98] transition-transform text-left"
+              className="w-full bg-surface-container rounded-sm p-4 flex items-start gap-4 hover:opacity-80 transition-transform text-left"
             >
-              <div className="w-14 h-14 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
+              <div className="w-14 h-14 rounded-sm overflow-hidden bg-surface-container-low flex-shrink-0">
                 {rec.fragrance.image_url ? (
                   <img src={rec.fragrance.image_url} alt={rec.fragrance.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Icon name="water_drop" className="text-secondary/20" size={24} />
+                    <span className="text-secondary/20">?</span>
                   </div>
                 )}
               </div>
@@ -221,7 +221,7 @@ export function SmartRecsScreen() {
               </div>
               {rec.fragrance.rating && (
                 <div className="flex items-center gap-0.5">
-                  <Icon name="star" filled className="text-primary" size={12} />
+                  <span className="text-primary">★</span>
                   <span className="text-[10px] text-primary font-semibold">{Number(rec.fragrance.rating).toFixed(1)}</span>
                 </div>
               )}

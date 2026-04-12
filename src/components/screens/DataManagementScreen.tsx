@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/contexts/ToastContext'
@@ -47,7 +46,7 @@ export function DataManagementScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center gap-4">
-        <Icon name="cloud_download" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to manage your data</p>
       </main>
     )
@@ -403,76 +402,76 @@ ${collection
         <button
           onClick={handleExportJSON}
           disabled={exporting !== null}
-          className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-xl active:scale-[0.98] transition-transform text-left disabled:opacity-50"
+          className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-sm hover:opacity-80 transition-transform text-left disabled:opacity-50"
         >
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Icon name="data_object" className="text-primary" size={20} />
+          <div className="w-10 h-10 rounded-sm bg-primary/10 flex items-center justify-center">
+            <span className="text-primary">?</span>
           </div>
           <div className="flex-1">
             <p className="text-sm text-on-surface font-medium">Full Backup (JSON)</p>
             <p className="text-[10px] text-secondary/50">Collection, wears, reviews, boards, lists</p>
           </div>
           {exporting === 'json' ? (
-            <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <span className="text-[9px] uppercase tracking-wider text-primary animate-pulse">Loading…</span>
           ) : (
-            <Icon name="download" className="text-primary" />
+            <span className="text-primary">⬇</span>
           )}
         </button>
 
         <button
           onClick={handleExportCollectionCSV}
           disabled={exporting !== null}
-          className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-xl active:scale-[0.98] transition-transform text-left disabled:opacity-50"
+          className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-sm hover:opacity-80 transition-transform text-left disabled:opacity-50"
         >
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Icon name="table_chart" className="text-primary" size={20} />
+          <div className="w-10 h-10 rounded-sm bg-primary/10 flex items-center justify-center">
+            <span className="text-primary">?</span>
           </div>
           <div className="flex-1">
             <p className="text-sm text-on-surface font-medium">Collection (CSV)</p>
             <p className="text-[10px] text-secondary/50">Spreadsheet-ready with all details</p>
           </div>
           {exporting === 'csv-collection' ? (
-            <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <span className="text-[9px] uppercase tracking-wider text-primary animate-pulse">Loading…</span>
           ) : (
-            <Icon name="download" className="text-primary" />
+            <span className="text-primary">⬇</span>
           )}
         </button>
 
         <button
           onClick={handleExportWearsCSV}
           disabled={exporting !== null}
-          className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-xl active:scale-[0.98] transition-transform text-left disabled:opacity-50"
+          className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-sm hover:opacity-80 transition-transform text-left disabled:opacity-50"
         >
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Icon name="calendar_month" className="text-primary" size={20} />
+          <div className="w-10 h-10 rounded-sm bg-primary/10 flex items-center justify-center">
+            <span className="text-primary">?</span>
           </div>
           <div className="flex-1">
             <p className="text-sm text-on-surface font-medium">Wear Log (CSV)</p>
             <p className="text-[10px] text-secondary/50">Every wear with date and details</p>
           </div>
           {exporting === 'csv-wears' ? (
-            <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <span className="text-[9px] uppercase tracking-wider text-primary animate-pulse">Loading…</span>
           ) : (
-            <Icon name="download" className="text-primary" />
+            <span className="text-primary">⬇</span>
           )}
         </button>
 
         <button
           onClick={handleExportReport}
           disabled={exporting !== null}
-          className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-xl active:scale-[0.98] transition-transform text-left disabled:opacity-50"
+          className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-sm hover:opacity-80 transition-transform text-left disabled:opacity-50"
         >
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Icon name="summarize" className="text-primary" size={20} />
+          <div className="w-10 h-10 rounded-sm bg-primary/10 flex items-center justify-center">
+            <span className="text-primary">?</span>
           </div>
           <div className="flex-1">
             <p className="text-sm text-on-surface font-medium">Collection Report (HTML)</p>
             <p className="text-[10px] text-secondary/50">Beautiful printable report with stats & charts</p>
           </div>
           {exporting === 'report' ? (
-            <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            <span className="text-[9px] uppercase tracking-wider text-primary animate-pulse">Loading…</span>
           ) : (
-            <Icon name="download" className="text-primary" />
+            <span className="text-primary">⬇</span>
           )}
         </button>
       </section>
@@ -491,21 +490,21 @@ ${collection
 
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-xl active:scale-[0.98] transition-transform text-left"
+          className="w-full flex items-center gap-3 bg-surface-container p-4 rounded-sm hover:opacity-80 transition-transform text-left"
         >
-          <div className="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center">
-            <Icon name="upload_file" className="text-tertiary" size={20} />
+          <div className="w-10 h-10 rounded-sm bg-tertiary/10 flex items-center justify-center">
+            <span className="text-tertiary">?</span>
           </div>
           <div className="flex-1">
             <p className="text-sm text-on-surface font-medium">Restore from Backup</p>
             <p className="text-[10px] text-secondary/50">Import a ScentFolio JSON backup file</p>
           </div>
-          <Icon name="upload" className="text-tertiary" />
+          <span className="text-tertiary">⬆</span>
         </button>
 
-        <div className="px-4 py-3 bg-surface-container/50 rounded-xl">
+        <div className="px-4 py-3 bg-surface-container/50 rounded-sm">
           <div className="flex items-start gap-2">
-            <Icon name="info" className="text-secondary/40 mt-0.5" size={16} />
+            <span className="text-secondary/40 mt-0.5">ℹ</span>
             <p className="text-[10px] text-secondary/50 leading-relaxed">
               Restore merges data with your existing collection — it won't delete anything.
               Duplicate items are automatically skipped.
@@ -538,7 +537,7 @@ function RestoreConfirmDialog({ stats, restoring, onConfirm, onCancel }: {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
       <div className="relative mx-8 max-w-sm w-full bg-surface-container-low rounded-3xl p-8 animate-scale-in">
         <div className="w-14 h-14 rounded-full bg-tertiary/10 flex items-center justify-center mx-auto mb-4">
-          <Icon name="restore" className="text-tertiary text-2xl" />
+          <span className="text-tertiary text-2xl">?</span>
         </div>
         <h3 className="font-headline text-xl text-on-surface text-center mb-2">Restore Backup?</h3>
         <p className="text-sm text-secondary/60 text-center mb-2">This backup contains:</p>
@@ -550,14 +549,14 @@ function RestoreConfirmDialog({ stats, restoring, onConfirm, onCancel }: {
           <button
             onClick={onCancel}
             disabled={restoring}
-            className="flex-1 py-3 bg-surface-container rounded-xl text-sm font-medium text-secondary active:scale-[0.98] transition-all"
+            className="flex-1 py-3 bg-surface-container rounded-sm text-sm font-medium text-secondary hover:opacity-80 transition-all"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={restoring}
-            className="flex-1 py-3 gold-gradient rounded-xl text-sm font-bold text-on-primary-container active:scale-[0.98] transition-all disabled:opacity-50"
+            className="flex-1 py-3 gold-gradient rounded-sm text-sm font-bold text-on-primary-container hover:opacity-80 transition-all disabled:opacity-50"
           >
             {restoring ? 'Restoring...' : 'Restore'}
           </button>

@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback } from 'react'
-import { Icon } from './Icon'
 
 interface TagInputProps {
   tags: string[]
@@ -76,7 +75,7 @@ export function TagInput({ tags, onChange, suggestions = [], placeholder = 'Add 
                 className="w-3.5 h-3.5 rounded-full flex items-center justify-center hover:bg-black/10 transition-colors"
                 aria-label={`Remove tag ${tag}`}
               >
-                <Icon name="close" size={10} />
+                <span>✕</span>
               </button>
             </span>
           ))}
@@ -85,8 +84,8 @@ export function TagInput({ tags, onChange, suggestions = [], placeholder = 'Add 
 
       {/* Input */}
       <div className="relative">
-        <div className="flex items-center bg-surface-container rounded-xl px-3 py-2.5 focus-within:ring-1 ring-primary/30 transition-all">
-          <Icon name="label" className="text-secondary/40 mr-2" size={16} />
+        <div className="flex items-center bg-surface-container rounded-sm px-3 py-2.5 focus-within:ring-1 ring-primary/30 transition-all">
+          <span className="text-secondary/40 mr-2">?</span>
           <input
             ref={inputRef}
             type="text"
@@ -103,7 +102,7 @@ export function TagInput({ tags, onChange, suggestions = [], placeholder = 'Add 
           {input && (
             <button
               onClick={() => addTag(input)}
-              className="text-primary text-[10px] font-bold uppercase tracking-wider flex-shrink-0 active:scale-95"
+              className="text-primary text-[10px] font-bold uppercase tracking-wider flex-shrink-0 hover:opacity-80"
             >
               ADD
             </button>
@@ -112,14 +111,14 @@ export function TagInput({ tags, onChange, suggestions = [], placeholder = 'Add 
 
         {/* Suggestions dropdown */}
         {showSuggestions && filteredSuggestions.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-surface-container-highest rounded-xl py-1 shadow-xl border border-outline-variant/10 z-[var(--z-dropdown)] max-h-[160px] overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 mt-1 bg-surface-container-highest rounded-sm py-1 shadow-xl border border-outline-variant/10 z-[var(--z-dropdown)] max-h-[160px] overflow-y-auto">
             {filteredSuggestions.map((s) => (
               <button
                 key={s}
                 onMouseDown={(e) => { e.preventDefault(); addTag(s) }}
                 className="w-full text-left px-3 py-2 text-xs text-on-surface hover:bg-surface-container transition-colors flex items-center gap-2"
               >
-                <Icon name="add" size={14} className="text-primary/50" />
+                <span className="text-primary/50">+</span>
                 {s}
               </button>
             ))}

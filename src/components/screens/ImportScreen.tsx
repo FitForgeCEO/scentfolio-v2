@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
@@ -159,7 +158,7 @@ export function ImportScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="upload_file" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to import fragrances</p>
       </main>
     )
@@ -170,7 +169,7 @@ export function ImportScreen() {
       {step === 'upload' && (
         <section className="flex flex-col items-center gap-6 mt-8">
           <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-            <Icon name="upload_file" filled className="text-4xl text-primary" />
+            <span className="text-4xl text-primary">?</span>
           </div>
           <div className="text-center space-y-2">
             <h2 className="font-headline text-2xl">Import Collection</h2>
@@ -182,22 +181,22 @@ export function ImportScreen() {
           <div className="w-full space-y-4">
             <button
               onClick={() => fileRef.current?.click()}
-              className="w-full border-2 border-dashed border-outline-variant/40 rounded-2xl p-8 flex flex-col items-center gap-3 active:scale-[0.98] transition-all hover:border-primary/40"
+              className="w-full border-2 border-dashed border-outline-variant/40 rounded-sm p-8 flex flex-col items-center gap-3 hover:opacity-80 transition-all hover:border-primary/40"
             >
-              <Icon name="cloud_upload" className="text-3xl text-primary/60" />
+              <span className="text-3xl text-primary/60">?</span>
               <p className="text-sm text-on-surface font-medium">Choose CSV file</p>
               <p className="text-[10px] text-secondary/50">or drag and drop</p>
             </button>
             <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleFile} />
 
             {error && (
-              <div className="bg-error/10 rounded-xl p-4 flex items-start gap-3">
-                <Icon name="error" className="text-error" size={18} />
+              <div className="bg-error/10 rounded-sm p-4 flex items-start gap-3">
+                <span className="text-error">⚠</span>
                 <p className="text-sm text-error">{error}</p>
               </div>
             )}
 
-            <div className="bg-surface-container rounded-xl p-4 space-y-2">
+            <div className="bg-surface-container rounded-sm p-4 space-y-2">
               <p className="text-[10px] uppercase tracking-[0.15em] text-secondary font-bold">EXPECTED FORMAT</p>
               <div className="overflow-x-auto">
                 <table className="text-[10px] text-secondary/70 w-full">
@@ -240,7 +239,7 @@ export function ImportScreen() {
             </div>
             <button
               onClick={() => { setStep('upload'); setRows([]); setError(null) }}
-              className="text-[10px] uppercase tracking-widest text-secondary font-bold px-3 py-2 rounded-lg active:scale-95"
+              className="text-[10px] uppercase tracking-widest text-secondary font-bold px-3 py-2 rounded-sm hover:opacity-80"
             >
               CHANGE FILE
             </button>
@@ -248,7 +247,7 @@ export function ImportScreen() {
 
           <div className="space-y-2 max-h-[50vh] overflow-y-auto">
             {rows.slice(0, 50).map((row, i) => (
-              <div key={i} className="bg-surface-container rounded-xl px-4 py-3 flex items-center justify-between">
+              <div key={i} className="bg-surface-container rounded-sm px-4 py-3 flex items-center justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="text-[9px] uppercase tracking-[0.1em] text-secondary/50">{row.brand}</p>
                   <p className="text-sm text-on-surface font-medium truncate">{row.name}</p>
@@ -272,7 +271,7 @@ export function ImportScreen() {
 
           <button
             onClick={handleImport}
-            className="w-full gold-gradient text-on-primary-container py-4 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg"
+            className="w-full gold-gradient text-on-primary-container py-4 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all shadow-lg"
           >
             IMPORT {rows.length} FRAGRANCES
           </button>
@@ -281,7 +280,7 @@ export function ImportScreen() {
 
       {step === 'importing' && (
         <section className="flex flex-col items-center gap-6 mt-16">
-          <div className="w-16 h-16 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <div className="flex flex-col items-center gap-2">{[1,2,3,4].map(i => <div key={i} className="h-1.5 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${80 - i * 14}px` }} />)}</div>
           <div className="text-center space-y-2">
             <h2 className="font-headline text-xl">Importing...</h2>
             <p className="text-sm text-secondary/60">{imported + skipped} / {total}</p>
@@ -308,7 +307,7 @@ export function ImportScreen() {
       {step === 'done' && (
         <section className="flex flex-col items-center gap-6 mt-16">
           <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-            <Icon name="check_circle" filled className="text-4xl text-primary" />
+            <span className="text-4xl text-primary">✓</span>
           </div>
           <div className="text-center space-y-2">
             <h2 className="font-headline text-2xl">Import Complete</h2>
@@ -319,13 +318,13 @@ export function ImportScreen() {
           <div className="flex gap-3">
             <button
               onClick={() => navigate('/collection')}
-              className="gold-gradient text-on-primary-container px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95"
+              className="gold-gradient text-on-primary-container px-6 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80"
             >
               VIEW COLLECTION
             </button>
             <button
               onClick={() => { setStep('upload'); setRows([]); setImported(0); setSkipped(0); setError(null) }}
-              className="bg-surface-container text-on-surface px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95"
+              className="bg-surface-container text-on-surface px-6 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80"
             >
               IMPORT MORE
             </button>

@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react'
-import { Icon } from './Icon'
 import { useToast } from '@/contexts/ToastContext'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { captureElement, shareImage, copyToClipboard } from '@/lib/share'
@@ -58,14 +57,14 @@ export function ReviewShareCard({ reviewerName, fragranceName, fragranceBrand, f
         <div className="flex justify-center py-4"><div className="w-12 h-1 bg-surface-container-highest rounded-full" /></div>
         <header className="px-8 pb-4 flex justify-between items-center">
           <h2 className="text-xl font-headline font-bold text-on-surface">Share Review</h2>
-          <button onClick={onClose} className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform">
-            <Icon name="close" size={20} />
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant hover:opacity-80 transition-transform">
+            <span>✕</span>
           </button>
         </header>
 
         <div className="flex-1 overflow-y-auto px-8 pb-6 space-y-6">
           {/* Card Preview */}
-          <div ref={cardRef} className="rounded-2xl overflow-hidden p-6" style={{ backgroundColor: theme.bg }}>
+          <div ref={cardRef} className="rounded-sm overflow-hidden p-6" style={{ backgroundColor: theme.bg }}>
             {/* Fragrance header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
               <div style={{ width: '48px', height: '56px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, backgroundColor: `${theme.accent}15` }}>
@@ -123,7 +122,7 @@ export function ReviewShareCard({ reviewerName, fragranceName, fragranceBrand, f
               <button
                 key={t.name}
                 onClick={() => setThemeIdx(i)}
-                className={`flex-1 py-3 rounded-xl text-center text-xs font-medium transition-all ${i === themeIdx ? 'ring-2 ring-primary' : ''}`}
+                className={`flex-1 py-3 rounded-sm text-center text-xs font-medium transition-all ${i === themeIdx ? 'ring-2 ring-primary' : ''}`}
                 style={{ backgroundColor: t.bg, color: t.text, border: `1px solid ${t.dim}` }}
               >
                 {t.name}
@@ -136,15 +135,15 @@ export function ReviewShareCard({ reviewerName, fragranceName, fragranceBrand, f
             <button
               onClick={handleShare}
               disabled={sharing}
-              className="flex-1 py-3.5 gold-gradient text-on-primary font-bold uppercase tracking-[0.1em] rounded-xl ambient-glow active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              className="flex-1 py-3.5 gold-gradient text-on-primary font-bold uppercase tracking-[0.1em] rounded-sm ambient-glow hover:opacity-80 transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {sharing ? <div className="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin" /> : <><Icon name="share" size={18} />SHARE</>}
+              {sharing ? <span className="text-[9px] uppercase tracking-wider animate-pulse">…</span> : <><span>↗</span>SHARE</>}
             </button>
             <button
               onClick={handleCopy}
-              className="py-3.5 px-5 bg-surface-container rounded-xl active:scale-95 transition-transform flex items-center gap-2"
+              className="py-3.5 px-5 bg-surface-container rounded-sm hover:opacity-80 transition-transform flex items-center gap-2"
             >
-              <Icon name="content_copy" className="text-primary" size={18} />
+              <span className="text-primary">?</span>
             </button>
           </div>
         </div>

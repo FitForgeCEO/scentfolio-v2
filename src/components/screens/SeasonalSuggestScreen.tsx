@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 interface SeasonalItem {
   fragrance: Fragrance
@@ -126,7 +126,7 @@ export function SeasonalSuggestScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="calendar_month" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in for seasonal suggestions</p>
       </main>
     )
@@ -135,7 +135,7 @@ export function SeasonalSuggestScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -149,7 +149,7 @@ export function SeasonalSuggestScreen() {
           className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-3"
           style={{ backgroundColor: `${currentConfig.color}20` }}
         >
-          <Icon name={currentConfig.icon} filled className="text-3xl" style={{ color: currentConfig.color }} />
+          <span className="text-3xl">{getIconChar(currentConfig.icon)}</span>
         </div>
         <h2 className="font-headline text-xl mb-1">Seasonal Picks</h2>
         <p className="text-[10px] text-secondary/50">The best from your collection for each season</p>
@@ -164,11 +164,11 @@ export function SeasonalSuggestScreen() {
             <button
               key={s}
               onClick={() => setSeason(s)}
-              className={`flex flex-col items-center gap-1 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95 ${
+              className={`flex flex-col items-center gap-1 py-2.5 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-all hover:opacity-80 ${
                 season === s ? 'bg-primary/15 text-primary' : 'bg-surface-container text-secondary/50'
               }`}
             >
-              <Icon name={cfg.icon} size={16} />
+              <span>{getIconChar(cfg.icon)}</span>
               <span>{cfg.label}</span>
               {isCurrent && (
                 <span className="text-[7px] normal-case tracking-normal text-primary/60">now</span>
@@ -181,7 +181,7 @@ export function SeasonalSuggestScreen() {
       {/* Results */}
       {items.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16">
-          <Icon name={currentConfig.icon} className="text-4xl text-secondary/20" />
+          <span className="text-4xl text-secondary/20">{getIconChar(currentConfig.icon)}</span>
           <p className="text-sm text-secondary/50 text-center">
             No strong {currentConfig.label.toLowerCase()} matches in your collection
           </p>
@@ -192,7 +192,7 @@ export function SeasonalSuggestScreen() {
             <button
               key={item.fragrance.id}
               onClick={() => navigate(`/fragrance/${item.fragrance.id}`)}
-              className="w-full bg-surface-container rounded-xl p-3 flex items-center gap-3 active:scale-[0.98] transition-transform text-left"
+              className="w-full bg-surface-container rounded-sm p-3 flex items-center gap-3 hover:opacity-80 transition-transform text-left"
             >
               {/* Rank */}
               <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0`}
@@ -206,12 +206,12 @@ export function SeasonalSuggestScreen() {
               </div>
 
               {/* Image */}
-              <div className="w-11 h-11 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
+              <div className="w-11 h-11 rounded-sm overflow-hidden bg-surface-container-low flex-shrink-0">
                 {item.fragrance.image_url ? (
                   <img src={item.fragrance.image_url} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Icon name="water_drop" className="text-secondary/20" size={18} />
+                    <span className="text-secondary/20">?</span>
                   </div>
                 )}
               </div>
@@ -227,7 +227,7 @@ export function SeasonalSuggestScreen() {
 
               {/* Season score */}
               <div className="flex-shrink-0" style={{ color: currentConfig.color }}>
-                <Icon name={currentConfig.icon} size={20} />
+                <span>{getIconChar(currentConfig.icon)}</span>
               </div>
             </button>
           ))}

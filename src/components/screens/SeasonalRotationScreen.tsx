@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { InlineError } from '../ui/InlineError'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance, UserCollection, WearLog } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 type Season = 'SPRING' | 'SUMMER' | 'FALL' | 'WINTER'
 
@@ -90,10 +90,10 @@ export function SeasonalRotationScreen() {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center">
         <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5">
-          <Icon name="calendar_month" className="text-3xl text-primary/40" />
+          <span className="text-3xl text-primary/40">?</span>
         </div>
         <h3 className="font-headline text-xl text-on-surface mb-2">Sign in to see rotation</h3>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg mt-6">SIGN IN</button>
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all shadow-lg mt-6">SIGN IN</button>
       </main>
     )
   }
@@ -103,7 +103,7 @@ export function SeasonalRotationScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
-        <div className="space-y-4 pt-4">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-xl bg-surface-container animate-pulse" />)}</div>
+        <div className="space-y-4 pt-4">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-sm bg-surface-container animate-pulse" />)}</div>
       </main>
     )
   }
@@ -125,10 +125,10 @@ export function SeasonalRotationScreen() {
             <button
               key={s}
               onClick={() => setActiveSeason(s)}
-              className={`flex flex-col items-center gap-1.5 py-3 rounded-xl transition-all ${isActive ? 'ring-2 ring-primary' : 'bg-surface-container'}`}
+              className={`flex flex-col items-center gap-1.5 py-3 rounded-sm transition-all ${isActive ? 'ring-2 ring-primary' : 'bg-surface-container'}`}
               style={isActive ? { backgroundColor: `${sc.color}20` } : undefined}
             >
-              <Icon name={sc.icon} style={{ color: isActive ? sc.color : undefined }} className={isActive ? '' : 'text-secondary/50'} size={20} />
+              <span>{getIconChar(sc.icon)}</span>
               <span className={`text-[9px] font-bold tracking-widest ${isActive ? 'text-on-surface' : 'text-secondary/60'}`}>{s}</span>
               {isCurrent && <span className="text-[7px] text-primary font-bold">NOW</span>}
             </button>
@@ -139,18 +139,18 @@ export function SeasonalRotationScreen() {
       {collection.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center mb-6">
-            <Icon name={config.icon} style={{ color: config.color }} className="text-4xl" />
+            <span className="text-4xl">{getIconChar(config.icon)}</span>
           </div>
           <h3 className="font-headline text-xl text-on-surface mb-2">No fragrances yet</h3>
           <p className="text-sm text-secondary/60 text-center mb-8 max-w-[280px]">Add fragrances to your collection to see seasonal recommendations.</p>
-          <button onClick={() => navigate('/explore')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg">EXPLORE</button>
+          <button onClick={() => navigate('/explore')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all shadow-lg">EXPLORE</button>
         </div>
       ) : (
         <>
           {/* Capsule Collection */}
           <section className="space-y-4">
             <div className="flex items-center gap-2">
-              <Icon name={config.icon} style={{ color: config.color }} size={18} />
+              <span>{getIconChar(config.icon)}</span>
               <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold" style={{ color: config.color }}>
                 {activeSeason} CAPSULE ({capsule.length})
               </h3>
@@ -169,7 +169,7 @@ export function SeasonalRotationScreen() {
                     onClick={() => navigate(`/fragrance/${item.fragrance.id}`)}
                     onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/fragrance/${item.fragrance.id}`) }}
                   >
-                    <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low">
+                    <div className="relative aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-low">
                       {item.fragrance.image_url && (
                         <img src={item.fragrance.image_url} alt={item.fragrance.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       )}
@@ -200,9 +200,9 @@ export function SeasonalRotationScreen() {
                   <button
                     key={item.id}
                     onClick={() => navigate(`/fragrance/${item.fragrance.id}`)}
-                    className="w-full flex items-center gap-3 bg-surface-container rounded-xl px-3 py-2.5 text-left active:scale-[0.98] transition-transform"
+                    className="w-full flex items-center gap-3 bg-surface-container rounded-sm px-3 py-2.5 text-left hover:opacity-80 transition-transform"
                   >
-                    <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                    <div className="w-9 h-9 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                       {item.fragrance.image_url && <img src={item.fragrance.image_url} alt="" className="w-full h-full object-cover" />}
                     </div>
                     <div className="flex-1 min-w-0">

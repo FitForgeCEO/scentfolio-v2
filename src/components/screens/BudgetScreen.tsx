@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { InlineError } from '../ui/InlineError'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
@@ -138,10 +137,10 @@ export function BudgetScreen() {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center">
         <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5">
-          <Icon name="account_balance_wallet" className="text-3xl text-primary/40" />
+          <span className="text-3xl text-primary/40">?</span>
         </div>
         <h3 className="font-headline text-xl text-on-surface mb-2">Sign in to track budget</h3>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg mt-6">SIGN IN</button>
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all shadow-lg mt-6">SIGN IN</button>
       </main>
     )
   }
@@ -152,7 +151,7 @@ export function BudgetScreen() {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
         <div className="space-y-4 pt-4">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-xl bg-surface-container animate-pulse" />)}
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-sm bg-surface-container animate-pulse" />)}
         </div>
       </main>
     )
@@ -167,17 +166,17 @@ export function BudgetScreen() {
 
       {/* Total Value */}
       <section className="grid grid-cols-2 gap-3">
-        <div className="bg-surface-container rounded-xl p-5 space-y-1">
+        <div className="bg-surface-container rounded-sm p-5 space-y-1">
           <div className="flex items-center gap-2 mb-2">
-            <Icon name="account_balance_wallet" className="text-primary" size={18} />
+            <span className="text-primary">?</span>
             <span className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">COLLECTION VALUE</span>
           </div>
           <p className="font-headline text-2xl text-on-surface">£{totalValue.toFixed(0)}</p>
           <p className="text-[10px] text-secondary/50">{collection.length} bottles</p>
         </div>
-        <div className="bg-surface-container rounded-xl p-5 space-y-1">
+        <div className="bg-surface-container rounded-sm p-5 space-y-1">
           <div className="flex items-center gap-2 mb-2">
-            <Icon name="science" className="text-primary" size={18} />
+            <span className="text-primary">?</span>
             <span className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">DECANT VALUE</span>
           </div>
           <p className="font-headline text-2xl text-on-surface">£{totalDecantValue.toFixed(0)}</p>
@@ -187,9 +186,9 @@ export function BudgetScreen() {
 
       {/* Monthly Spending Chart */}
       {monthlySpends.length > 0 && (
-        <section className="bg-surface-container rounded-xl p-5 space-y-4">
+        <section className="bg-surface-container rounded-sm p-5 space-y-4">
           <div className="flex items-center gap-2">
-            <Icon name="bar_chart" className="text-primary" size={18} />
+            <span className="text-primary">?</span>
             <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">MONTHLY SPENDING</h3>
           </div>
           <div className="flex items-end gap-2 h-32">
@@ -209,9 +208,9 @@ export function BudgetScreen() {
 
       {/* Brand Spending */}
       {brandSpends.length > 0 && (
-        <section className="bg-surface-container rounded-xl p-5 space-y-4">
+        <section className="bg-surface-container rounded-sm p-5 space-y-4">
           <div className="flex items-center gap-2">
-            <Icon name="storefront" className="text-primary" size={18} />
+            <span className="text-primary">?</span>
             <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">SPENDING BY BRAND</h3>
           </div>
           <div className="space-y-3">
@@ -235,9 +234,9 @@ export function BudgetScreen() {
 
       {/* Cost Per Wear */}
       {costPerWear.length > 0 && (
-        <section className="bg-surface-container rounded-xl p-5 space-y-4">
+        <section className="bg-surface-container rounded-sm p-5 space-y-4">
           <div className="flex items-center gap-2">
-            <Icon name="trending_down" className="text-primary" size={18} />
+            <span className="text-primary">?</span>
             <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">COST PER WEAR</h3>
           </div>
           <div className="space-y-3">
@@ -245,9 +244,9 @@ export function BudgetScreen() {
               <button
                 key={item.fragrance.id}
                 onClick={() => navigate(`/fragrance/${item.fragrance.id}`)}
-                className="w-full flex items-center gap-3 py-1 text-left active:opacity-70 transition-opacity"
+                className="w-full flex items-center gap-3 py-1 text-left hover:opacity-80 transition-opacity"
               >
-                <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                <div className="w-10 h-10 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                   {item.fragrance.image_url && <img src={item.fragrance.image_url} alt={item.fragrance.name} className="w-full h-full object-cover" />}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -267,11 +266,11 @@ export function BudgetScreen() {
       {(collection.length === 0 && decants.length === 0) && (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center mb-6">
-            <Icon name="account_balance_wallet" className="text-primary/40 text-4xl" />
+            <span className="text-primary/40 text-4xl">?</span>
           </div>
           <h3 className="font-headline text-xl text-on-surface mb-2">No spending data yet</h3>
           <p className="text-sm text-secondary/60 text-center mb-8 max-w-[280px]">Add fragrances to your collection to start tracking your fragrance budget.</p>
-          <button onClick={() => navigate('/explore')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg">EXPLORE</button>
+          <button onClick={() => navigate('/explore')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all shadow-lg">EXPLORE</button>
         </div>
       )}
     </main>

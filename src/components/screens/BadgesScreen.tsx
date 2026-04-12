@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
 import { captureElement, shareImage } from '@/lib/share'
+import { getIconChar } from '@/lib/iconUtils'
 
 /* ── Badge definitions ─────────────────────────────────── */
 interface Badge {
@@ -151,7 +151,7 @@ export function BadgesScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="military_tech" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to earn badges</p>
       </main>
     )
@@ -160,7 +160,7 @@ export function BadgesScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -180,7 +180,7 @@ export function BadgesScreen() {
       {/* Shareable badge card */}
       {earned.length > 0 && (
         <>
-          <div ref={cardRef} className="rounded-2xl overflow-hidden p-5" style={{ background: 'linear-gradient(135deg, #191210 0%, #2a1f1a 50%, #191210 100%)' }}>
+          <div ref={cardRef} className="rounded-sm overflow-hidden p-5" style={{ background: 'linear-gradient(135deg, #191210 0%, #2a1f1a 50%, #191210 100%)' }}>
             <div style={{ textAlign: 'center', marginBottom: '12px' }}>
               <p style={{ color: '#e5c276', fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700 }}>SCENTFOLIO BADGES</p>
               <p style={{ color: '#f0dfdb', fontSize: '14px', fontWeight: 600, marginTop: '2px' }}>{displayName}</p>
@@ -203,8 +203,8 @@ export function BadgesScreen() {
             </div>
           </div>
 
-          <button onClick={handleShareBadges} disabled={sharing} className="w-full py-3 gold-gradient text-on-primary-container font-bold uppercase tracking-[0.1em] rounded-xl active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50">
-            {sharing ? <div className="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin" /> : <><Icon name="share" size={16} />SHARE BADGES</>}
+          <button onClick={handleShareBadges} disabled={sharing} className="w-full py-3 gold-gradient text-on-primary-container font-bold uppercase tracking-[0.1em] rounded-sm hover:opacity-80 transition-all text-sm flex items-center justify-center gap-2 disabled:opacity-50">
+            {sharing ? <span className="text-[9px] uppercase tracking-wider animate-pulse">…</span> : <><span>↗</span>SHARE BADGES</>}
           </button>
         </>
       )}
@@ -245,12 +245,12 @@ export function BadgesScreen() {
 function BadgeCard({ badge }: { badge: Badge }) {
   const tc = TIER_COLORS[badge.tier]
   return (
-    <div className={`bg-surface-container rounded-xl p-3 text-center ${badge.earned ? '' : 'opacity-40'}`}>
+    <div className={`bg-surface-container rounded-sm p-3 text-center ${badge.earned ? '' : 'opacity-40'}`}>
       <div
         className="w-12 h-12 rounded-full mx-auto flex items-center justify-center mb-2"
         style={{ backgroundColor: badge.earned ? tc.bg : 'var(--color-surface-container-highest)', boxShadow: badge.earned ? `0 4px 12px ${tc.glow}` : 'none' }}
       >
-        <Icon name={badge.earned ? badge.icon : 'lock'} size={22} style={{ color: badge.earned ? tc.text : 'var(--color-secondary)' }} />
+        <span>{getIconChar(badge.earned ? badge.icon : 'lock')}</span>
       </div>
       <p className="text-[10px] text-on-surface font-medium truncate">{badge.name}</p>
       <p className="text-[8px] text-secondary/40 mt-0.5">{badge.requirement}</p>

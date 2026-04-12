@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { useNavigate } from 'react-router-dom'
 import { getLevelTitle } from '@/lib/xp'
+import { getIconChar } from '@/lib/iconUtils'
 
 interface AchievementDef {
   id: string
@@ -150,9 +150,9 @@ export function AchievementsScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="emoji_events" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to track achievements</p>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest">
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-6 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest">
           Sign In
         </button>
       </main>
@@ -162,7 +162,7 @@ export function AchievementsScreen() {
   if (loading || !stats) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -183,7 +183,7 @@ export function AchievementsScreen() {
       {/* Summary Header */}
       <section className="text-center mb-8">
         <div className="w-20 h-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
-          <Icon name="emoji_events" filled className="text-4xl text-primary" />
+          <span className="text-4xl text-primary">?</span>
         </div>
         <h2 className="font-headline text-2xl mb-1">{unlocked.length} / {ACHIEVEMENTS.length}</h2>
         <p className="text-[10px] uppercase tracking-[0.15em] text-secondary/60">Achievements Unlocked</p>
@@ -225,7 +225,7 @@ export function AchievementsScreen() {
                 isActive ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary/70'
               }`}
             >
-              {cat !== 'all' && <Icon name={CATEGORY_META[cat].icon} size={14} />}
+              {cat !== 'all' && <span>{getIconChar(CATEGORY_META[cat].icon)}</span>}
               <span>{cat === 'all' ? 'All' : CATEGORY_META[cat].label}</span>
               <span className={`text-[9px] ${isActive ? 'text-on-primary/70' : 'text-secondary/40'}`}>
                 {catCount}/{catTotal}
@@ -266,7 +266,7 @@ export function AchievementsScreen() {
       {/* Empty filter state */}
       {filtered.length === 0 && (
         <div className="text-center py-16">
-          <Icon name="emoji_events" className="text-4xl text-secondary/20 mb-3" />
+          <span className="text-4xl text-secondary/20 mb-3">?</span>
           <p className="text-secondary/40 text-sm">No achievements in this category</p>
         </div>
       )}
@@ -276,17 +276,13 @@ export function AchievementsScreen() {
 
 function AchievementCard({ achievement, unlocked }: { achievement: AchievementDef; unlocked: boolean }) {
   return (
-    <div className={`flex items-center gap-4 p-4 rounded-xl transition-all ${
+    <div className={`flex items-center gap-4 p-4 rounded-sm transition-all ${
       unlocked ? 'bg-surface-container' : 'bg-surface-container/40 opacity-50'
     }`}>
       <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
         unlocked ? 'bg-primary/15' : 'bg-surface-container-highest'
       }`}>
-        <Icon
-          name={unlocked ? achievement.icon : 'lock'}
-          filled={unlocked}
-          className={`text-xl ${unlocked ? 'text-primary' : 'text-secondary/30'}`}
-        />
+        <span>{getIconChar(unlocked ? achievement.icon : 'lock')}</span>
       </div>
       <div className="flex-1 min-w-0">
         <p className={`text-sm font-medium ${unlocked ? 'text-on-surface' : 'text-secondary/60'}`}>

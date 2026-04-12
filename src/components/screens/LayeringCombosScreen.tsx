@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { InlineError } from '../ui/InlineError'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
@@ -64,10 +63,10 @@ export function LayeringCombosScreen() {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center">
         <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5">
-          <Icon name="layers" className="text-3xl text-primary/40" />
+          <span className="text-3xl text-primary/40">?</span>
         </div>
         <h3 className="font-headline text-xl text-on-surface mb-2">Sign in to save combos</h3>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg mt-6">SIGN IN</button>
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all shadow-lg mt-6">SIGN IN</button>
       </main>
     )
   }
@@ -82,11 +81,11 @@ export function LayeringCombosScreen() {
       </header>
 
       {loading ? (
-        <div className="space-y-4">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-24 rounded-xl bg-surface-container animate-pulse" />)}</div>
+        <div className="space-y-4">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-24 rounded-sm bg-surface-container animate-pulse" />)}</div>
       ) : combos.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16">
           <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center mb-6">
-            <Icon name="layers" className="text-primary/40 text-4xl" />
+            <span className="text-primary/40 text-4xl">?</span>
           </div>
           <h3 className="font-headline text-xl text-on-surface mb-2">No combos yet</h3>
           <p className="text-sm text-secondary/60 text-center mb-8 max-w-[280px]">Save fragrance pairings that work well together and rate them.</p>
@@ -94,11 +93,11 @@ export function LayeringCombosScreen() {
       ) : (
         <div className="space-y-4">
           {combos.map((combo) => (
-            <div key={combo.id} className="bg-surface-container rounded-xl p-4 space-y-3">
+            <div key={combo.id} className="bg-surface-container rounded-sm p-4 space-y-3">
               <div className="flex items-center gap-3">
                 {/* Fragrance A */}
-                <button onClick={() => navigate(`/fragrance/${combo.fragrance_a.id}`)} className="flex items-center gap-2 flex-1 min-w-0 active:opacity-70">
-                  <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                <button onClick={() => navigate(`/fragrance/${combo.fragrance_a.id}`)} className="flex items-center gap-2 flex-1 min-w-0 hover:opacity-80">
+                  <div className="w-10 h-10 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                     {combo.fragrance_a.image_url && <img src={combo.fragrance_a.image_url} alt="" className="w-full h-full object-cover" />}
                   </div>
                   <div className="min-w-0">
@@ -107,11 +106,11 @@ export function LayeringCombosScreen() {
                   </div>
                 </button>
 
-                <Icon name="add" className="text-primary/40 flex-shrink-0" size={16} />
+                <span className="text-primary/40 flex-shrink-0">+</span>
 
                 {/* Fragrance B */}
-                <button onClick={() => navigate(`/fragrance/${combo.fragrance_b.id}`)} className="flex items-center gap-2 flex-1 min-w-0 active:opacity-70">
-                  <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                <button onClick={() => navigate(`/fragrance/${combo.fragrance_b.id}`)} className="flex items-center gap-2 flex-1 min-w-0 hover:opacity-80">
+                  <div className="w-10 h-10 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                     {combo.fragrance_b.image_url && <img src={combo.fragrance_b.image_url} alt="" className="w-full h-full object-cover" />}
                   </div>
                   <div className="min-w-0">
@@ -128,18 +127,14 @@ export function LayeringCombosScreen() {
                     <button
                       key={star}
                       onClick={() => handleRateCombo(combo.id, star)}
-                      className="active:scale-110 transition-transform"
+                      className="hover:opacity-80 transition-transform"
                     >
-                      <Icon
-                        name="star"
-                        filled={star <= (combo.rating ?? 0)}
-                        className={`text-lg ${star <= (combo.rating ?? 0) ? 'text-primary' : 'text-secondary/30'}`}
-                      />
+                      <span>★</span>
                     </button>
                   ))}
                 </div>
                 <button onClick={() => handleDelete(combo.id)} className="text-secondary/40 active:text-error/70 transition-colors">
-                  <Icon name="delete_outline" size={18} />
+                  <span>?</span>
                 </button>
               </div>
 
@@ -155,10 +150,10 @@ export function LayeringCombosScreen() {
       {/* FAB */}
       <button
         onClick={() => setAddOpen(true)}
-        className="fixed bottom-24 right-6 z-[var(--z-fab)] w-14 h-14 rounded-full gold-gradient shadow-xl flex items-center justify-center active:scale-90 transition-all ambient-glow"
+        className="fixed bottom-24 right-6 z-[var(--z-fab)] w-14 h-14 rounded-full gold-gradient shadow-xl flex items-center justify-center hover:opacity-80 transition-all ambient-glow"
         aria-label="Add combo"
       >
-        <Icon name="add" className="text-on-primary text-2xl" />
+        <span className="text-on-primary text-2xl">+</span>
       </button>
 
       {/* Add Combo Sheet */}
@@ -246,8 +241,8 @@ function AddComboSheet({ isOpen, onClose, userId, onAdded }: {
             <h2 className="text-2xl font-headline font-bold text-on-surface">New Combo</h2>
             <p className="text-[10px] uppercase tracking-widest text-primary font-bold mt-1">{stepLabel}</p>
           </div>
-          <button onClick={onClose} className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center active:scale-90 transition-transform">
-            <Icon name="close" size={20} />
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center hover:opacity-80 transition-transform">
+            <span>✕</span>
           </button>
         </header>
 
@@ -257,16 +252,16 @@ function AddComboSheet({ isOpen, onClose, userId, onAdded }: {
             <div className="flex items-center gap-3 mb-4 py-3 border-b border-outline-variant/10">
               {fragA && (
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <div className="w-8 h-8 rounded-lg overflow-hidden bg-surface-container-highest flex-shrink-0">
+                  <div className="w-8 h-8 rounded-sm overflow-hidden bg-surface-container-highest flex-shrink-0">
                     {fragA.image_url && <img src={fragA.image_url} alt="" className="w-full h-full object-cover" />}
                   </div>
                   <p className="text-xs text-on-surface truncate">{fragA.name}</p>
                 </div>
               )}
-              {fragA && fragB && <Icon name="add" className="text-primary/40" size={14} />}
+              {fragA && fragB && <span className="text-primary/40">+</span>}
               {fragB && (
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <div className="w-8 h-8 rounded-lg overflow-hidden bg-surface-container-highest flex-shrink-0">
+                  <div className="w-8 h-8 rounded-sm overflow-hidden bg-surface-container-highest flex-shrink-0">
                     {fragB.image_url && <img src={fragB.image_url} alt="" className="w-full h-full object-cover" />}
                   </div>
                   <p className="text-xs text-on-surface truncate">{fragB.name}</p>
@@ -278,8 +273,8 @@ function AddComboSheet({ isOpen, onClose, userId, onAdded }: {
           {/* Search (steps 1-2) */}
           {step < 3 && (
             <>
-              <div className="flex items-center bg-surface-container rounded-2xl px-4 py-3 focus-within:ring-1 ring-primary/30 transition-all mb-4">
-                <Icon name="search" className="text-secondary/50 mr-3" size={18} />
+              <div className="flex items-center bg-surface-container rounded-sm px-4 py-3 focus-within:ring-1 ring-primary/30 transition-all mb-4">
+                <span className="text-secondary/50 mr-3">⌕</span>
                 <input
                   className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-secondary/40 w-full text-sm"
                   placeholder="Search fragrances..."
@@ -289,7 +284,7 @@ function AddComboSheet({ isOpen, onClose, userId, onAdded }: {
                 />
               </div>
               {searching ? (
-                <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
+                <div className="flex justify-center py-8"><span className="text-[9px] uppercase tracking-wider text-primary animate-pulse">Loading…</span></div>
               ) : (
                 <div className="divide-y divide-outline-variant/10">
                   {results.map((f) => (
@@ -299,7 +294,7 @@ function AddComboSheet({ isOpen, onClose, userId, onAdded }: {
                       disabled={fragA?.id === f.id}
                       className="w-full flex items-center gap-3 py-3 text-left disabled:opacity-30 active:bg-surface-container-highest transition-colors"
                     >
-                      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                      <div className="w-10 h-10 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                         {f.image_url && <img src={f.image_url} alt="" className="w-full h-full object-cover" />}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -321,8 +316,8 @@ function AddComboSheet({ isOpen, onClose, userId, onAdded }: {
                 <p className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold mb-3">RATING</p>
                 <div className="flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <button key={star} onClick={() => setRating(star)} className="active:scale-110 transition-transform">
-                      <Icon name="star" filled={star <= rating} className={`text-2xl ${star <= rating ? 'text-primary' : 'text-secondary/30'}`} />
+                    <button key={star} onClick={() => setRating(star)} className="hover:opacity-80 transition-transform">
+                      <span>★</span>
                     </button>
                   ))}
                 </div>
@@ -352,7 +347,7 @@ function AddComboSheet({ isOpen, onClose, userId, onAdded }: {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="How do they work together?"
                   rows={3}
-                  className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-2xl px-4 py-3 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none resize-none"
+                  className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-sm px-4 py-3 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none resize-none"
                 />
               </div>
 
@@ -360,7 +355,7 @@ function AddComboSheet({ isOpen, onClose, userId, onAdded }: {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-2xl ambient-glow active:scale-[0.98] transition-all disabled:opacity-50"
+                className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-sm ambient-glow hover:opacity-80 transition-all disabled:opacity-50"
               >
                 {saving ? 'SAVING...' : 'SAVE COMBO'}
               </button>

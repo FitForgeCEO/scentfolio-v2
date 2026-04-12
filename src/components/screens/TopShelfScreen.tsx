@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useTopShelf, useTopShelfSearch } from '@/hooks/useTopShelf'
 
 export function TopShelfScreen() {
@@ -12,7 +11,7 @@ export function TopShelfScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -33,14 +32,14 @@ export function TopShelfScreen() {
       {items.length === 0 && !addMode ? (
         <div className="flex flex-col items-center justify-center py-16 gap-4">
           <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-            <Icon name="emoji_events" className="text-primary/40 text-4xl" />
+            <span className="text-primary/40 text-4xl">?</span>
           </div>
           <p className="text-sm text-secondary/50 text-center max-w-[260px]">
             Your top shelf is empty. Add your all-time favourite fragrances to showcase them.
           </p>
           <button
             onClick={() => setAddMode(true)}
-            className="gold-gradient text-on-primary-container px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all"
+            className="gold-gradient text-on-primary-container px-6 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all"
           >
             Add fragrances
           </button>
@@ -52,7 +51,7 @@ export function TopShelfScreen() {
             {items.map((item, index) => (
               <div
                 key={item.fragrance_id}
-                className="relative bg-surface-container rounded-2xl p-3 group"
+                className="relative bg-surface-container rounded-sm p-3 group"
               >
                 {/* Position badge */}
                 <div className="absolute -top-1.5 -left-1.5 w-6 h-6 rounded-full bg-primary flex items-center justify-center z-10">
@@ -62,21 +61,21 @@ export function TopShelfScreen() {
                 {/* Remove button */}
                 <button
                   onClick={() => removeFromShelf(item.fragrance_id)}
-                  className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-error/80 flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 active:opacity-100 transition-opacity"
+                  className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-error/80 flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 hover:opacity-80 transition-opacity"
                 >
-                  <Icon name="close" size={12} className="text-white" />
+                  <span className="text-white">✕</span>
                 </button>
 
                 {/* Fragrance image */}
                 <button
                   onClick={() => navigate(`/fragrance/${item.fragrance.id}`)}
-                  className="w-full aspect-square rounded-xl overflow-hidden bg-surface-container-highest mb-2 active:scale-95 transition-transform"
+                  className="w-full aspect-square rounded-sm overflow-hidden bg-surface-container-highest mb-2 hover:opacity-80 transition-transform"
                 >
                   {item.fragrance.image_url ? (
                     <img src={item.fragrance.image_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Icon name="water_drop" className="text-primary/20 text-2xl" />
+                      <span className="text-primary/20 text-2xl">?</span>
                     </div>
                   )}
                 </button>
@@ -90,17 +89,17 @@ export function TopShelfScreen() {
                   {index > 0 && (
                     <button
                       onClick={() => moveItem(index, index - 1)}
-                      className="flex-1 flex items-center justify-center py-1 rounded-lg bg-surface-container-highest/60 active:bg-surface-container-highest"
+                      className="flex-1 flex items-center justify-center py-1 rounded-sm bg-surface-container-highest/60 active:bg-surface-container-highest"
                     >
-                      <Icon name="arrow_back" size={12} className="text-secondary/40" />
+                      <span className="text-secondary/40">←</span>
                     </button>
                   )}
                   {index < items.length - 1 && (
                     <button
                       onClick={() => moveItem(index, index + 1)}
-                      className="flex-1 flex items-center justify-center py-1 rounded-lg bg-surface-container-highest/60 active:bg-surface-container-highest"
+                      className="flex-1 flex items-center justify-center py-1 rounded-sm bg-surface-container-highest/60 active:bg-surface-container-highest"
                     >
-                      <Icon name="arrow_forward" size={12} className="text-secondary/40" />
+                      <span className="text-secondary/40">→</span>
                     </button>
                   )}
                 </div>
@@ -111,9 +110,9 @@ export function TopShelfScreen() {
             {items.length < maxSlots && (
               <button
                 onClick={() => setAddMode(true)}
-                className="aspect-[3/4] rounded-2xl border-2 border-dashed border-primary/20 flex flex-col items-center justify-center gap-2 active:border-primary/40 transition-colors"
+                className="aspect-[3/4] rounded-sm border-2 border-dashed border-primary/20 flex flex-col items-center justify-center gap-2 active:border-primary/40 transition-colors"
               >
-                <Icon name="add" className="text-primary/30 text-2xl" />
+                <span className="text-primary/30 text-2xl">+</span>
                 <span className="text-[9px] text-secondary/40 uppercase tracking-wider">Add</span>
               </button>
             )}
@@ -123,9 +122,9 @@ export function TopShelfScreen() {
           {!addMode && items.length < maxSlots && (
             <button
               onClick={() => setAddMode(true)}
-              className="w-full bg-surface-container rounded-xl py-3.5 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform mb-4"
+              className="w-full bg-surface-container rounded-sm py-3.5 flex items-center justify-center gap-2 hover:opacity-80 transition-transform mb-4"
             >
-              <Icon name="add_circle" className="text-primary" size={18} />
+              <span className="text-primary">⊕</span>
               <span className="text-sm text-primary font-medium">Add to shelf</span>
             </button>
           )}
@@ -143,20 +142,20 @@ export function TopShelfScreen() {
           </div>
 
           <div className="relative mb-3">
-            <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/40" size={18} />
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/40">⌕</span>
             <input
               type="text"
               placeholder="Search your collection…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               autoFocus
-              className="w-full bg-surface-container rounded-xl pl-10 pr-4 py-3 text-sm text-on-surface placeholder:text-secondary/30 outline-none focus:ring-1 focus:ring-primary/30"
+              className="w-full bg-surface-container rounded-sm pl-10 pr-4 py-3 text-sm text-on-surface placeholder:text-secondary/30 outline-none focus:ring-1 focus:ring-primary/30"
             />
           </div>
 
           {searching && (
             <div className="flex justify-center py-4">
-              <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+              <span className="text-[9px] uppercase tracking-wider text-primary animate-pulse">Loading…</span>
             </div>
           )}
 
@@ -169,16 +168,16 @@ export function TopShelfScreen() {
                     key={f.id}
                     onClick={() => { if (!already) addToShelf(f) }}
                     disabled={already}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-colors ${
+                    className={`w-full flex items-center gap-3 p-3 rounded-sm text-left transition-colors ${
                       already ? 'opacity-40' : 'bg-surface-container active:bg-surface-container-highest'
                     }`}
                   >
-                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-container-highest flex-shrink-0">
+                    <div className="w-10 h-10 rounded-sm overflow-hidden bg-surface-container-highest flex-shrink-0">
                       {f.image_url ? (
                         <img src={f.image_url} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <Icon name="water_drop" className="text-secondary/20" size={16} />
+                          <span className="text-secondary/20">?</span>
                         </div>
                       )}
                     </div>
@@ -187,9 +186,9 @@ export function TopShelfScreen() {
                       <p className="text-[10px] text-secondary/50">{f.brand}</p>
                     </div>
                     {already ? (
-                      <Icon name="check_circle" className="text-primary/40" size={18} />
+                      <span className="text-primary/40">✓</span>
                     ) : (
-                      <Icon name="add_circle_outline" className="text-primary" size={18} />
+                      <span className="text-primary">?</span>
                     )}
                   </button>
                 )

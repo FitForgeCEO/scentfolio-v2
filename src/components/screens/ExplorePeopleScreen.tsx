@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { FollowButton } from '../ui/FollowButton'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
@@ -116,10 +115,10 @@ export function ExplorePeopleScreen() {
   }, [user])
 
   const renderUserRow = (u: UserCard) => (
-    <div key={u.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl">
+    <div key={u.id} className="flex items-center gap-3 px-3 py-2.5 rounded-sm">
       <button
         onClick={() => navigate(`/u/${u.id}`)}
-        className="flex items-center gap-3 flex-1 min-w-0 text-left active:opacity-70 transition-opacity"
+        className="flex items-center gap-3 flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
       >
         <div className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-surface-container-highest">
           {u.avatar_url ? (
@@ -159,20 +158,20 @@ export function ExplorePeopleScreen() {
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
       {/* Search bar */}
       <div className="relative mb-6">
-        <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/40" size={18} />
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary/40">⌕</span>
         <input
           type="text"
           value={query}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="Search by name..."
-          className="w-full bg-surface-container rounded-xl pl-10 pr-4 py-3 text-sm text-on-surface placeholder:text-secondary/30 focus:outline-none focus:ring-1 focus:ring-primary/30"
+          className="w-full bg-surface-container rounded-sm pl-10 pr-4 py-3 text-sm text-on-surface placeholder:text-secondary/30 focus:outline-none focus:ring-1 focus:ring-primary/30"
         />
         {query && (
           <button
             onClick={() => { setQuery(''); setResults([]) }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary/40 active:text-secondary"
           >
-            <Icon name="close" size={16} />
+            <span>✕</span>
           </button>
         )}
       </div>
@@ -182,11 +181,11 @@ export function ExplorePeopleScreen() {
         <section className="mb-8">
           {searching ? (
             <div className="flex items-center justify-center py-8">
-              <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+              <span className="text-[9px] uppercase tracking-wider text-primary animate-pulse">Loading…</span>
             </div>
           ) : results.length === 0 ? (
             <div className="py-8 text-center">
-              <Icon name="person_search" className="text-3xl text-secondary/20 mb-2" />
+              <span className="text-3xl text-secondary/20 mb-2">?</span>
               <p className="text-xs text-secondary/40">No users found for "{query}"</p>
             </div>
           ) : (
@@ -242,7 +241,7 @@ export function ExplorePeopleScreen() {
               {/* Empty state */}
               {suggested.length === 0 && active.length === 0 && (
                 <div className="py-16 text-center">
-                  <Icon name="group" className="text-5xl text-primary/15 mb-4" />
+                  <span className="text-5xl text-primary/15 mb-4">?</span>
                   <p className="text-sm text-secondary/50">No other collectors yet</p>
                   <p className="text-xs text-secondary/30 mt-1">Be the first to invite friends!</p>
                 </div>

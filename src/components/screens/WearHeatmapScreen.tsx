@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 
@@ -138,9 +137,9 @@ export function WearHeatmapScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center">
-        <Icon name="calendar_month" className="text-4xl text-primary/20 mb-4" />
+        <span className="text-4xl text-primary/20 mb-4">?</span>
         <h3 className="font-headline text-xl text-on-surface mb-2">Sign in to view your heatmap</h3>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg mt-4">SIGN IN</button>
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all shadow-lg mt-4">SIGN IN</button>
       </main>
     )
   }
@@ -148,12 +147,12 @@ export function WearHeatmapScreen() {
   return (
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen space-y-6">
       {/* Time range tabs */}
-      <div className="flex gap-2 bg-surface-container rounded-xl p-1">
+      <div className="flex gap-2 bg-surface-container rounded-sm p-1">
         {(['3m', '6m', '1y'] as TimeRange[]).map((r) => (
           <button
             key={r}
             onClick={() => setTimeRange(r)}
-            className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
+            className={`flex-1 py-2 rounded-sm text-xs font-bold uppercase tracking-widest transition-all ${
               timeRange === r ? 'bg-primary/15 text-primary' : 'text-secondary/50'
             }`}
           >
@@ -164,15 +163,15 @@ export function WearHeatmapScreen() {
 
       {/* Stats cards */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-surface-container rounded-xl p-3 text-center">
+        <div className="bg-surface-container rounded-sm p-3 text-center">
           <p className="text-xl font-headline text-primary font-bold">{stats.totalWears}</p>
           <p className="text-[9px] text-secondary/50 uppercase tracking-widest">Wears</p>
         </div>
-        <div className="bg-surface-container rounded-xl p-3 text-center">
+        <div className="bg-surface-container rounded-sm p-3 text-center">
           <p className="text-xl font-headline text-on-surface font-bold">{stats.activeDays}</p>
           <p className="text-[9px] text-secondary/50 uppercase tracking-widest">Active days</p>
         </div>
-        <div className="bg-surface-container rounded-xl p-3 text-center">
+        <div className="bg-surface-container rounded-sm p-3 text-center">
           <p className="text-xl font-headline text-primary font-bold">{stats.consistency}%</p>
           <p className="text-[9px] text-secondary/50 uppercase tracking-widest">Consistency</p>
         </div>
@@ -180,9 +179,9 @@ export function WearHeatmapScreen() {
 
       {/* Heatmap */}
       {loading ? (
-        <div className="bg-surface-container rounded-xl p-6 animate-pulse h-[180px]" />
+        <div className="bg-surface-container rounded-sm p-6 animate-pulse h-[180px]" />
       ) : (
-        <section className="bg-surface-container rounded-2xl p-4 overflow-x-auto scrollbar-hide">
+        <section className="bg-surface-container rounded-sm p-4 overflow-x-auto scrollbar-hide">
           <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary/60 mb-3">WEAR ACTIVITY</h3>
 
           {/* Month labels */}
@@ -244,7 +243,7 @@ export function WearHeatmapScreen() {
 
           {/* Tooltip */}
           {hoveredDay && hoveredDay.count > 0 && (
-            <div className="mt-3 bg-surface-container-highest rounded-xl px-3 py-2">
+            <div className="mt-3 bg-surface-container-highest rounded-sm px-3 py-2">
               <p className="text-xs text-on-surface font-medium">
                 {new Date(hoveredDay.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
                 {' — '}{hoveredDay.count} wear{hoveredDay.count !== 1 ? 's' : ''}
@@ -258,7 +257,7 @@ export function WearHeatmapScreen() {
       )}
 
       {/* Day of Week Distribution */}
-      <section className="bg-surface-container rounded-2xl p-4">
+      <section className="bg-surface-container rounded-sm p-4">
         <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary/60 mb-4">BUSIEST DAYS</h3>
         <div className="space-y-2">
           {DAYS.map((day, i) => (
@@ -283,16 +282,16 @@ export function WearHeatmapScreen() {
       <div className="flex gap-3">
         <button
           onClick={() => navigate('/calendar')}
-          className="flex-1 bg-surface-container rounded-xl px-4 py-3 flex items-center gap-2 active:scale-[0.98] transition-transform"
+          className="flex-1 bg-surface-container rounded-sm px-4 py-3 flex items-center gap-2 hover:opacity-80 transition-transform"
         >
-          <Icon name="calendar_month" className="text-primary" size={18} />
+          <span className="text-primary">?</span>
           <span className="text-xs text-on-surface font-medium">Calendar</span>
         </button>
         <button
           onClick={() => navigate('/stats')}
-          className="flex-1 bg-surface-container rounded-xl px-4 py-3 flex items-center gap-2 active:scale-[0.98] transition-transform"
+          className="flex-1 bg-surface-container rounded-sm px-4 py-3 flex items-center gap-2 hover:opacity-80 transition-transform"
         >
-          <Icon name="analytics" className="text-primary" size={18} />
+          <span className="text-primary">?</span>
           <span className="text-xs text-on-surface font-medium">Full Stats</span>
         </button>
       </div>
@@ -359,21 +358,21 @@ function CostPerWearSection({ userId }: { userId: string }) {
   if (loading || items.length === 0) return null
 
   return (
-    <section className="bg-surface-container rounded-2xl p-4">
+    <section className="bg-surface-container rounded-sm p-4">
       <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary/60 mb-4">COST PER WEAR</h3>
       <div className="space-y-2">
         {items.map((item, i) => (
           <button
             key={item.fragranceId}
             onClick={() => navigate(`/fragrance/${item.fragranceId}`)}
-            className="w-full flex items-center gap-3 active:bg-surface-container-highest/30 transition-colors rounded-lg px-1 py-1.5 text-left"
+            className="w-full flex items-center gap-3 active:bg-surface-container-highest/30 transition-colors rounded-sm px-1 py-1.5 text-left"
           >
             <span className="text-[10px] text-secondary/30 font-bold w-5 text-center">{i + 1}</span>
             <div className="w-8 h-8 rounded-md overflow-hidden bg-surface-container-highest flex-shrink-0">
               {item.image_url ? (
                 <img src={item.image_url} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center"><Icon name="water_drop" className="text-secondary/20" size={14} /></div>
+                <div className="w-full h-full flex items-center justify-center"><span className="text-secondary/20">?</span></div>
               )}
             </div>
             <div className="flex-1 min-w-0">

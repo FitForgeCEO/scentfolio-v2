@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
 import { awardXP } from '@/lib/xp'
 import type { Fragrance, UserCollection, WearLog } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 type CollectionItem = UserCollection & { fragrance: Fragrance }
 
@@ -136,11 +136,11 @@ export function RecommendScreen() {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center">
         <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5">
-          <Icon name="auto_awesome" className="text-3xl text-primary/40" />
+          <span className="text-3xl text-primary/40">?</span>
         </div>
         <h3 className="font-headline text-xl text-on-surface mb-2">Sign in for recommendations</h3>
         <p className="text-sm text-secondary/60 text-center mb-6">We'll pick from your collection based on season, occasion, and what you haven't worn recently.</p>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg">SIGN IN</button>
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all shadow-lg">SIGN IN</button>
       </main>
     )
   }
@@ -148,7 +148,7 @@ export function RecommendScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -157,11 +157,11 @@ export function RecommendScreen() {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center">
         <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center mb-6">
-          <Icon name="auto_awesome" className="text-primary/40 text-4xl" />
+          <span className="text-primary/40 text-4xl">?</span>
         </div>
         <h3 className="font-headline text-xl text-on-surface mb-2 text-center">No fragrances to pick from</h3>
         <p className="text-sm text-secondary/60 text-center mb-8 max-w-[280px]">Add some fragrances to your collection first, then we can recommend what to wear.</p>
-        <button onClick={() => navigate('/explore')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg">EXPLORE</button>
+        <button onClick={() => navigate('/explore')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all shadow-lg">EXPLORE</button>
       </main>
     )
   }
@@ -173,7 +173,7 @@ export function RecommendScreen() {
         <div className="space-y-8">
           <header className="text-center">
             <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-4">
-              <Icon name="auto_awesome" className="text-primary text-3xl" />
+              <span className="text-primary text-3xl">?</span>
             </div>
             <h2 className="font-headline text-3xl text-on-surface mb-2">What to wear?</h2>
             <p className="text-sm text-secondary/70">
@@ -188,21 +188,21 @@ export function RecommendScreen() {
                 <button
                   key={occ.value}
                   onClick={() => setSelectedOccasion(selectedOccasion === occ.value ? null : occ.value)}
-                  className={`flex items-center gap-3 p-4 rounded-xl transition-all active:scale-95 ${
+                  className={`flex items-center gap-3 p-4 rounded-sm transition-all hover:opacity-80 ${
                     selectedOccasion === occ.value
                       ? 'bg-primary/15 ring-1 ring-primary/40'
                       : 'bg-surface-container'
                   }`}
                 >
-                  <Icon name={occ.icon} className={selectedOccasion === occ.value ? 'text-primary' : 'text-secondary/50'} size={20} />
+                  <span>{getIconChar(occ.icon)}</span>
                   <span className={`text-sm font-medium ${selectedOccasion === occ.value ? 'text-primary' : 'text-on-surface'}`}>{occ.label}</span>
                 </button>
               ))}
             </div>
           </section>
 
-          <section className="bg-surface-container rounded-xl p-4 flex items-center gap-3">
-            <Icon name="thermostat" className="text-primary" />
+          <section className="bg-surface-container rounded-sm p-4 flex items-center gap-3">
+            <span className="text-primary">?</span>
             <div>
               <p className="text-sm text-on-surface font-medium">Current Season: {season.charAt(0) + season.slice(1).toLowerCase()}</p>
               <p className="text-[10px] text-secondary/50">Recommendations will favour {season.toLowerCase()}-appropriate scents</p>
@@ -211,7 +211,7 @@ export function RecommendScreen() {
 
           <button
             onClick={generateRecommendation}
-            className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-xl ambient-glow active:scale-[0.98] transition-all text-sm"
+            className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-sm ambient-glow hover:opacity-80 transition-all text-sm"
           >
             RECOMMEND A SCENT
           </button>
@@ -231,14 +231,14 @@ export function RecommendScreen() {
           {/* Main Recommendation */}
           <button
             onClick={() => navigate(`/fragrance/${recommendation.id}`)}
-            className="w-full bg-surface-container rounded-2xl overflow-hidden active:scale-[0.98] transition-transform"
+            className="w-full bg-surface-container rounded-sm overflow-hidden hover:opacity-80 transition-transform"
           >
             <div className="aspect-[4/5] relative">
               {recommendation.image_url ? (
                 <img src={recommendation.image_url} alt={recommendation.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-surface-container-highest flex items-center justify-center">
-                  <Icon name="water_drop" size={48} className="text-secondary/20" />
+                  <span className="text-secondary/20">?</span>
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
@@ -248,7 +248,7 @@ export function RecommendScreen() {
                 <div className="flex items-center gap-4">
                   {recommendation.rating && (
                     <span className="flex items-center gap-1">
-                      <Icon name="star" filled className="text-primary text-sm" />
+                      <span className="text-primary text-sm">★</span>
                       <span className="text-sm text-primary font-semibold">{Number(recommendation.rating).toFixed(1)}</span>
                     </span>
                   )}
@@ -265,22 +265,22 @@ export function RecommendScreen() {
             <button
               onClick={handleLogWear}
               disabled={loggingWear}
-              className="flex-1 py-3.5 gold-gradient text-on-primary font-bold uppercase tracking-[0.1em] rounded-xl ambient-glow active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-2"
+              className="flex-1 py-3.5 gold-gradient text-on-primary font-bold uppercase tracking-[0.1em] rounded-sm ambient-glow hover:opacity-80 transition-all text-sm flex items-center justify-center gap-2"
             >
               {loggingWear ? (
-                <div className="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin" />
+                <span className="text-[9px] uppercase tracking-wider animate-pulse">…</span>
               ) : (
                 <>
-                  <Icon name="check" size={18} />
+                  <span>✓</span>
                   LOG WEAR
                 </>
               )}
             </button>
             <button
               onClick={handleShuffle}
-              className="py-3.5 px-5 bg-surface-container rounded-xl active:scale-95 transition-transform flex items-center gap-2"
+              className="py-3.5 px-5 bg-surface-container rounded-sm hover:opacity-80 transition-transform flex items-center gap-2"
             >
-              <Icon name="refresh" className="text-primary" size={18} />
+              <span className="text-primary">?</span>
               <span className="text-sm text-on-surface font-medium">SHUFFLE</span>
             </button>
           </div>
@@ -294,9 +294,9 @@ export function RecommendScreen() {
                   <button
                     key={frag!.id}
                     onClick={() => navigate(`/fragrance/${frag!.id}`)}
-                    className="flex-1 flex items-center gap-3 bg-surface-container rounded-xl p-3 active:scale-95 transition-transform"
+                    className="flex-1 flex items-center gap-3 bg-surface-container rounded-sm p-3 hover:opacity-80 transition-transform"
                   >
-                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                    <div className="w-12 h-12 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                       {frag!.image_url && <img src={frag!.image_url} alt={frag!.name} className="w-full h-full object-cover" />}
                     </div>
                     <div className="min-w-0">

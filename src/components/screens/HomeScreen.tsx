@@ -302,7 +302,7 @@ export function HomeScreen() {
               <div className="flex justify-start">
                 <button
                   onClick={handleHeroAction}
-                  className="px-7 py-3.5 text-on-primary-container font-label text-[0.7rem] font-bold tracking-[0.2em] uppercase active:scale-95 transition-all"
+                  className="px-7 py-3.5 text-on-primary-container font-label text-[0.7rem] font-bold tracking-[0.2em] uppercase hover:opacity-80 transition-all"
                   style={{
                     background: 'linear-gradient(45deg, #e5c276 0%, #c4a35a 100%)',
                     boxShadow: '0 12px 32px rgba(25,18,16,0.6)',
@@ -319,7 +319,7 @@ export function HomeScreen() {
         <section className="relative flex flex-col md:flex-row gap-10 md:gap-16 items-start">
           <button
             onClick={() => navigate('/wear-history')}
-            className="text-left active:scale-[0.98] transition-transform"
+            className="text-left hover:opacity-80 transition-transform"
           >
             <p className="font-headline italic text-3xl md:text-4xl text-on-background mb-2 leading-tight">
               {streakHeadline(stats.streak)}
@@ -331,7 +331,7 @@ export function HomeScreen() {
           <div style={verticalHairline} className="self-stretch hidden md:block" />
           <button
             onClick={() => navigate('/wear-history')}
-            className="text-left active:scale-[0.98] transition-transform"
+            className="text-left hover:opacity-80 transition-transform"
           >
             <p className="font-headline italic text-3xl md:text-4xl text-on-background mb-2 leading-tight">
               {wearsHeadline(stats.monthWears)}
@@ -395,7 +395,7 @@ export function HomeScreen() {
             </div>
             <button
               onClick={() => navigate('/wishlist')}
-              className="p-6 bg-surface-container-low transition-colors hover:bg-surface-container rounded-sm text-left active:scale-[0.98]"
+              className="p-6 bg-surface-container-low transition-colors hover:bg-surface-container rounded-sm text-left hover:opacity-80"
             >
               <p className="font-label text-[0.65rem] uppercase tracking-[0.2em] text-secondary/50 mb-3">
                 WISHLIST
@@ -414,7 +414,7 @@ export function HomeScreen() {
             </div>
             <button
               onClick={() => navigate('/boards')}
-              className="p-6 bg-surface-container-low transition-colors hover:bg-surface-container rounded-sm text-left active:scale-[0.98]"
+              className="p-6 bg-surface-container-low transition-colors hover:bg-surface-container rounded-sm text-left hover:opacity-80"
             >
               <p className="font-label text-[0.65rem] uppercase tracking-[0.2em] text-secondary/50 mb-3">
                 BOARDS
@@ -448,7 +448,7 @@ export function HomeScreen() {
               <button
                 key={entry.index}
                 onClick={() => navigate(entry.to)}
-                className="group flex items-center justify-between py-5 md:py-6 text-left active:scale-[0.99] transition-transform"
+                className="group flex items-center justify-between py-5 md:py-6 text-left hover:opacity-80 transition-transform"
               >
                 <div className="flex items-center gap-6 md:gap-8">
                   <span className="font-headline italic text-primary text-lg w-6">
@@ -474,7 +474,7 @@ export function HomeScreen() {
             </h3>
             <button
               onClick={() => navigate('/community')}
-              className="font-label text-[0.65rem] uppercase tracking-[0.2em] text-primary hover:opacity-80 active:scale-95 transition"
+              className="font-label text-[0.65rem] uppercase tracking-[0.2em] text-primary hover:opacity-80 hover:opacity-80 transition"
             >
               the full wire &rarr;
             </button>
@@ -496,7 +496,7 @@ export function HomeScreen() {
                 <button
                   key={item.id}
                   onClick={() => navigate('/community')}
-                  className="block text-left w-full max-w-3xl active:scale-[0.995] transition-transform"
+                  className="block text-left w-full max-w-3xl hover:opacity-80 transition-transform"
                 >
                   <p className="font-body text-lg md:text-xl text-on-background/90 leading-relaxed">
                     <span className="italic">{item.user_name}</span>
@@ -520,7 +520,7 @@ export function HomeScreen() {
             <h3 className="font-headline italic text-3xl text-on-background">The Folio.</h3>
             <button
               onClick={() => navigate('/search')}
-              className="font-label text-[0.65rem] uppercase tracking-[0.2em] text-primary hover:opacity-80 active:scale-95 transition"
+              className="font-label text-[0.65rem] uppercase tracking-[0.2em] text-primary hover:opacity-80 hover:opacity-80 transition"
             >
               the full archive &rarr;
             </button>

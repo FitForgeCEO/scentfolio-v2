@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import { Icon } from './Icon'
 import { useChallengeSummary } from '@/hooks/useChallenges'
 import { useAuth } from '@/contexts/AuthContext'
+import { getIconChar } from '@/lib/iconUtils'
 
 export function ChallengesWidget() {
   const navigate = useNavigate()
@@ -21,7 +21,7 @@ export function ChallengesWidget() {
         <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary">CHALLENGES</h3>
         <button
           onClick={() => navigate('/challenges')}
-          className="text-[10px] text-primary font-bold uppercase tracking-wider active:scale-95 transition-transform"
+          className="text-[10px] text-primary font-bold uppercase tracking-wider hover:opacity-80 transition-transform"
         >
           {completed}/{total} done →
         </button>
@@ -31,13 +31,13 @@ export function ChallengesWidget() {
       {unclaimed > 0 && (
         <button
           onClick={() => navigate('/challenges')}
-          className="w-full flex items-center gap-3 bg-primary/10 rounded-xl px-4 py-3 active:scale-[0.98] transition-transform"
+          className="w-full flex items-center gap-3 bg-primary/10 rounded-sm px-4 py-3 hover:opacity-80 transition-transform"
         >
-          <Icon name="redeem" className="text-primary" size={20} />
+          <span className="text-primary">?</span>
           <span className="text-xs text-primary font-medium">
             {unclaimed} reward{unclaimed > 1 ? 's' : ''} to claim!
           </span>
-          <Icon name="chevron_right" className="text-primary/60 ml-auto" size={16} />
+          <span className="text-primary/60 ml-auto">?</span>
         </button>
       )}
 
@@ -48,10 +48,10 @@ export function ChallengesWidget() {
           <button
             key={ch.definition.id}
             onClick={() => navigate('/challenges')}
-            className="w-full flex items-center gap-3 bg-surface-container rounded-xl px-4 py-3 text-left active:scale-[0.98] transition-transform"
+            className="w-full flex items-center gap-3 bg-surface-container rounded-sm px-4 py-3 text-left hover:opacity-80 transition-transform"
           >
             <div className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center flex-shrink-0">
-              <Icon name={ch.definition.icon} className="text-primary/60" size={16} />
+              <span className="text-primary/60">{getIconChar(ch.definition.icon)}</span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-on-surface font-medium truncate">{ch.definition.title}</p>

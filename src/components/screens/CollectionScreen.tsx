@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { FragranceImage } from '../ui/FragranceImage'
 import { InlineError } from '../ui/InlineError'
 import { useUserCollection } from '@/hooks/useFragrances'
@@ -436,7 +435,7 @@ export function CollectionScreen() {
                   />
                   {selectMode && (
                     <div className={`absolute top-3 left-3 w-5 h-5 rounded-full flex items-center justify-center transition-all ${isSelected ? 'bg-primary' : 'bg-black/50 ring-1 ring-primary/40'}`}>
-                      {isSelected && <Icon name="check" className="text-on-primary" size={12} />}
+                      {isSelected && <span className="text-on-primary">✓</span>}
                     </div>
                   )}
                 </div>
@@ -627,7 +626,7 @@ export function CollectionScreen() {
       <section className="mb-16">
         <div className="relative group">
           <div className="flex items-center gap-4 py-4">
-            <Icon name="search" size={20} className="text-primary/60 flex-shrink-0" />
+            <span className="text-primary/60 flex-shrink-0">⌕</span>
             <input
               className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none font-headline italic text-xl text-on-background placeholder:text-secondary/40 placeholder:italic"
               placeholder="Request a title, a house, a note…"
@@ -1007,7 +1006,7 @@ export function CollectionScreen() {
             <div className="px-8 pb-4">
               <div className="relative group">
                 <div className="flex items-center gap-4 py-3">
-                  <Icon name="search" size={18} className="text-primary/60" />
+                  <span className="text-primary/60">⌕</span>
                   <input
                     className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none font-headline italic text-lg text-on-background placeholder:text-secondary/40"
                     placeholder="Request a title, a house…"

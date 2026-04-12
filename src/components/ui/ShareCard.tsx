@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react'
-import { Icon } from './Icon'
 import { useToast } from '@/contexts/ToastContext'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { Fragrance } from '@/types/database'
@@ -100,8 +99,8 @@ export function ShareCardSheet({ fragrance, personalRating, onClose }: ShareCard
         <div className="flex justify-center py-4"><div className="w-12 h-1 bg-surface-container-highest rounded-full" /></div>
         <header className="px-8 pb-4 flex justify-between items-center">
           <h2 className="text-xl font-headline font-bold text-on-surface">Share Card</h2>
-          <button onClick={onClose} className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform">
-            <Icon name="close" size={20} />
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant hover:opacity-80 transition-transform">
+            <span>✕</span>
           </button>
         </header>
 
@@ -109,12 +108,12 @@ export function ShareCardSheet({ fragrance, personalRating, onClose }: ShareCard
         <div className="flex-1 overflow-y-auto px-8 pb-6 space-y-6">
           <div
             ref={cardRef}
-            className="rounded-2xl overflow-hidden p-6"
+            className="rounded-sm overflow-hidden p-6"
             style={{ backgroundColor: style.bg, border: `1px solid ${style.border}` }}
           >
             {/* Card Content */}
             <div className="flex items-center gap-4 mb-5">
-              <div className="w-20 h-24 rounded-xl overflow-hidden flex-shrink-0" style={{ backgroundColor: `${style.accent}15` }}>
+              <div className="w-20 h-24 rounded-sm overflow-hidden flex-shrink-0" style={{ backgroundColor: `${style.accent}15` }}>
                 {fragrance.image_url ? (
                   <img src={fragrance.image_url} alt={fragrance.name} className="w-full h-full object-cover" crossOrigin="anonymous" />
                 ) : (
@@ -180,7 +179,7 @@ export function ShareCardSheet({ fragrance, personalRating, onClose }: ShareCard
                 <button
                   key={s.name}
                   onClick={() => setStyleIdx(i)}
-                  className={`flex-1 py-3 rounded-xl text-center text-xs font-medium transition-all ${
+                  className={`flex-1 py-3 rounded-sm text-center text-xs font-medium transition-all ${
                     i === styleIdx ? 'ring-2 ring-primary' : ''
                   }`}
                   style={{ backgroundColor: s.bg, color: s.text, border: `1px solid ${s.border}` }}
@@ -196,22 +195,22 @@ export function ShareCardSheet({ fragrance, personalRating, onClose }: ShareCard
             <button
               onClick={handleShare}
               disabled={sharing}
-              className="flex-1 py-3.5 gold-gradient text-on-primary font-bold uppercase tracking-[0.1em] rounded-xl ambient-glow active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-2"
+              className="flex-1 py-3.5 gold-gradient text-on-primary font-bold uppercase tracking-[0.1em] rounded-sm ambient-glow hover:opacity-80 transition-all text-sm flex items-center justify-center gap-2"
             >
               {sharing ? (
-                <div className="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin" />
+                <span className="text-[9px] uppercase tracking-wider animate-pulse">…</span>
               ) : (
                 <>
-                  <Icon name="share" size={18} />
+                  <span>↗</span>
                   SHARE
                 </>
               )}
             </button>
             <button
               onClick={handleCopyText}
-              className="py-3.5 px-5 bg-surface-container rounded-xl active:scale-95 transition-transform flex items-center gap-2"
+              className="py-3.5 px-5 bg-surface-container rounded-sm hover:opacity-80 transition-transform flex items-center gap-2"
             >
-              <Icon name="content_copy" className="text-primary" size={18} />
+              <span className="text-primary">?</span>
             </button>
           </div>
         </div>

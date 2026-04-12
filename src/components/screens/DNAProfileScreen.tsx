@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
@@ -183,7 +182,7 @@ export function DNAProfileScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="fingerprint" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to see your fragrance DNA</p>
       </main>
     )
@@ -192,7 +191,7 @@ export function DNAProfileScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -201,7 +200,7 @@ export function DNAProfileScreen() {
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
       <section className="text-center mb-6">
         <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-3">
-          <Icon name="fingerprint" filled className="text-3xl text-primary" />
+          <span className="text-3xl text-primary">?</span>
         </div>
         <h2 className="font-headline text-xl mb-1">Your Fragrance DNA</h2>
         <p className="text-[10px] text-secondary/50">Based on {totalOwned} fragrances in your collection</p>
@@ -209,7 +208,7 @@ export function DNAProfileScreen() {
 
       {axes.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16">
-          <Icon name="science" className="text-4xl text-secondary/20" />
+          <span className="text-4xl text-secondary/20">?</span>
           <p className="text-sm text-secondary/50">Add fragrances to generate your DNA profile</p>
         </div>
       ) : (
@@ -242,9 +241,9 @@ export function DNAProfileScreen() {
           {/* Share Button */}
           <button
             onClick={handleShare}
-            className="w-full gold-gradient text-on-primary-container py-3.5 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="w-full gold-gradient text-on-primary-container py-3.5 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all flex items-center justify-center gap-2"
           >
-            <Icon name="share" size={16} />
+            <span>↗</span>
             SHARE YOUR DNA
           </button>
         </>

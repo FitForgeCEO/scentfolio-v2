@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Icon } from '../ui/Icon'
 import { useMilestones } from '@/hooks/useMilestones'
 import type { Milestone } from '@/hooks/useMilestones'
+import { getIconChar } from '@/lib/iconUtils'
 
 const CATEGORY_LABELS: Record<string, { label: string; icon: string }> = {
   collection: { label: 'Collection', icon: 'collections_bookmark' },
@@ -18,7 +18,7 @@ export function MilestonesScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -79,7 +79,7 @@ export function MilestonesScreen() {
                 selectedCategory === cat ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary/60'
               }`}
             >
-              <Icon name={info?.icon ?? 'category'} size={12} />
+              <span>{getIconChar(info?.icon ?? 'category')}</span>
               {info?.label ?? cat}
             </button>
           )
@@ -121,20 +121,15 @@ function MilestoneCard({ milestone }: { milestone: Milestone }) {
   const progress = Math.min(100, Math.round((milestone.progress / milestone.threshold) * 100))
 
   return (
-    <div className={`bg-surface-container rounded-2xl p-4 transition-all ${
+    <div className={`bg-surface-container rounded-sm p-4 transition-all ${
       milestone.achieved ? 'ring-1 ring-primary/20' : 'opacity-70'
     }`}>
       <div className="flex items-center gap-3">
         {/* Icon */}
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
+        <div className={`w-11 h-11 rounded-sm flex items-center justify-center flex-shrink-0 ${
           milestone.achieved ? 'bg-primary/20' : 'bg-surface-container-highest'
         }`}>
-          <Icon
-            name={milestone.icon}
-            className={milestone.achieved ? 'text-primary' : 'text-secondary/30'}
-            size={22}
-            filled={milestone.achieved}
-          />
+          <span>{getIconChar(milestone.icon)}</span>
         </div>
 
         {/* Info */}
@@ -142,7 +137,7 @@ function MilestoneCard({ milestone }: { milestone: Milestone }) {
           <div className="flex items-center gap-2">
             <h4 className="text-sm text-on-surface font-medium">{milestone.title}</h4>
             {milestone.achieved && (
-              <Icon name="check_circle" filled size={14} className="text-primary" />
+              <span className="text-primary">✓</span>
             )}
           </div>
           <p className="text-[10px] text-secondary/50">{milestone.description}</p>

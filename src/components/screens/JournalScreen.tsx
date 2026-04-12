@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 interface JournalEntry {
   id: string
@@ -109,7 +109,7 @@ export function JournalScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="edit_note" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to write in your fragrance journal</p>
       </main>
     )
@@ -128,12 +128,12 @@ export function JournalScreen() {
       {/* Entries */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
         </div>
       ) : entries.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <Icon name="edit_note" className="text-3xl text-primary/40" />
+            <span className="text-3xl text-primary/40">?</span>
           </div>
           <h3 className="font-headline text-lg">Your journal is empty</h3>
           <p className="text-sm text-secondary/50 text-center max-w-[260px]">
@@ -145,11 +145,11 @@ export function JournalScreen() {
           {entries.map((entry) => {
             const date = new Date(entry.created_at)
             return (
-              <div key={entry.id} className="bg-surface-container rounded-xl p-4 space-y-3">
+              <div key={entry.id} className="bg-surface-container rounded-sm p-4 space-y-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
                     {entry.mood && MOOD_ICONS[entry.mood] && (
-                      <Icon name={MOOD_ICONS[entry.mood]} className="text-primary" size={16} />
+                      <span className="text-primary">{getIconChar(MOOD_ICONS[entry.mood])}</span>
                     )}
                     <div>
                       {entry.title && <p className="text-sm font-medium text-on-surface">{entry.title}</p>}
@@ -160,22 +160,22 @@ export function JournalScreen() {
                       </p>
                     </div>
                   </div>
-                  <button onClick={() => handleDelete(entry.id)} className="p-1 rounded active:scale-90">
-                    <Icon name="close" className="text-secondary/30" size={14} />
+                  <button onClick={() => handleDelete(entry.id)} className="p-1 rounded hover:opacity-80">
+                    <span className="text-secondary/30">✕</span>
                   </button>
                 </div>
 
                 {entry.fragrance && (
                   <button
                     onClick={() => entry.fragrance_id && navigate(`/fragrance/${entry.fragrance_id}`)}
-                    className="flex items-center gap-2 bg-primary/5 rounded-lg px-3 py-2 active:scale-[0.98] transition-transform"
+                    className="flex items-center gap-2 bg-primary/5 rounded-sm px-3 py-2 hover:opacity-80 transition-transform"
                   >
                     <div className="w-8 h-8 rounded overflow-hidden bg-surface-container-low flex-shrink-0">
                       {entry.fragrance.image_url ? (
                         <img src={entry.fragrance.image_url} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <Icon name="water_drop" className="text-secondary/20" size={12} />
+                          <span className="text-secondary/20">?</span>
                         </div>
                       )}
                     </div>
@@ -196,10 +196,10 @@ export function JournalScreen() {
       {/* FAB — New Entry */}
       <button
         onClick={() => setComposing(true)}
-        className="fixed bottom-24 right-6 z-[var(--z-fab)] w-14 h-14 rounded-full gold-gradient shadow-xl flex items-center justify-center active:scale-90 transition-all ambient-glow"
+        className="fixed bottom-24 right-6 z-[var(--z-fab)] w-14 h-14 rounded-full gold-gradient shadow-xl flex items-center justify-center hover:opacity-80 transition-all ambient-glow"
         aria-label="New journal entry"
       >
-        <Icon name="edit" className="text-on-primary text-2xl" />
+        <span className="text-on-primary text-2xl">✎</span>
       </button>
 
       {/* Compose Sheet */}
@@ -217,17 +217,17 @@ export function JournalScreen() {
                 placeholder="Title (optional)"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder-secondary/30 outline-none focus:ring-1 focus:ring-primary/30"
+                className="w-full bg-surface-container rounded-sm px-4 py-3 text-sm text-on-surface placeholder-secondary/30 outline-none focus:ring-1 focus:ring-primary/30"
               />
 
               {/* Fragrance Link */}
               <div>
                 {selectedFrag ? (
-                  <div className="flex items-center gap-2 bg-primary/10 rounded-xl px-4 py-2.5">
-                    <Icon name="water_drop" className="text-primary" size={16} />
+                  <div className="flex items-center gap-2 bg-primary/10 rounded-sm px-4 py-2.5">
+                    <span className="text-primary">?</span>
                     <span className="text-sm text-on-surface flex-1">{selectedFrag.brand} — {selectedFrag.name}</span>
                     <button onClick={() => setSelectedFrag(null)} className="p-1">
-                      <Icon name="close" className="text-secondary/50" size={14} />
+                      <span className="text-secondary/50">✕</span>
                     </button>
                   </div>
                 ) : (
@@ -237,10 +237,10 @@ export function JournalScreen() {
                       placeholder="Link a fragrance (optional)"
                       value={fragSearch}
                       onChange={(e) => setFragSearch(e.target.value)}
-                      className="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder-secondary/30 outline-none focus:ring-1 focus:ring-primary/30"
+                      className="w-full bg-surface-container rounded-sm px-4 py-3 text-sm text-on-surface placeholder-secondary/30 outline-none focus:ring-1 focus:ring-primary/30"
                     />
                     {fragResults.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-surface-container-highest rounded-xl shadow-xl z-10 overflow-hidden">
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-surface-container-highest rounded-sm shadow-xl z-10 overflow-hidden">
                         {fragResults.map((f) => (
                           <button
                             key={f.id}
@@ -265,11 +265,11 @@ export function JournalScreen() {
                     <button
                       key={key}
                       onClick={() => setMood(mood === key ? null : key)}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-medium transition-all active:scale-95 ${
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-sm text-[10px] font-medium transition-all hover:opacity-80 ${
                         mood === key ? 'bg-primary/15 text-primary' : 'bg-surface-container text-secondary/60'
                       }`}
                     >
-                      <Icon name={icon} size={14} />
+                      <span>{getIconChar(icon)}</span>
                       {key.charAt(0).toUpperCase() + key.slice(1)}
                     </button>
                   ))}
@@ -282,14 +282,14 @@ export function JournalScreen() {
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 rows={6}
-                className="w-full bg-surface-container rounded-xl px-4 py-3 text-sm text-on-surface placeholder-secondary/30 outline-none focus:ring-1 focus:ring-primary/30 resize-none leading-relaxed"
+                className="w-full bg-surface-container rounded-sm px-4 py-3 text-sm text-on-surface placeholder-secondary/30 outline-none focus:ring-1 focus:ring-primary/30 resize-none leading-relaxed"
               />
 
               {/* Save */}
               <button
                 onClick={handleSave}
                 disabled={!body.trim() || saving}
-                className="w-full gold-gradient text-on-primary-container py-3.5 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all disabled:opacity-50"
+                className="w-full gold-gradient text-on-primary-container py-3.5 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all disabled:opacity-50"
               >
                 {saving ? 'SAVING...' : 'SAVE ENTRY'}
               </button>

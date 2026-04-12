@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
+import { getIconChar } from '@/lib/iconUtils'
 
 interface DuplicateGroup {
   reason: string
@@ -165,7 +165,7 @@ export function DuplicateDetectorScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="find_replace" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to detect duplicates</p>
       </main>
     )
@@ -174,7 +174,7 @@ export function DuplicateDetectorScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -183,7 +183,7 @@ export function DuplicateDetectorScreen() {
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
       <section className="text-center mb-6">
         <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-3">
-          <Icon name="find_replace" filled className="text-3xl text-primary" />
+          <span className="text-3xl text-primary">?</span>
         </div>
         <h2 className="font-headline text-xl mb-1">Duplicate Detector</h2>
         <p className="text-[10px] text-secondary/50">Find duplicates and overlapping fragrances in your collection</p>
@@ -192,7 +192,7 @@ export function DuplicateDetectorScreen() {
       {groups.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <Icon name="check_circle" filled className="text-3xl text-primary" />
+            <span className="text-3xl text-primary">✓</span>
           </div>
           <p className="text-sm text-secondary/60 text-center">
             No duplicates found — your collection is clean!
@@ -200,8 +200,8 @@ export function DuplicateDetectorScreen() {
         </div>
       ) : (
         <>
-          <div className="bg-surface-container rounded-xl p-3 mb-6 flex items-center gap-3">
-            <Icon name="info" className="text-primary" size={18} />
+          <div className="bg-surface-container rounded-sm p-3 mb-6 flex items-center gap-3">
+            <span className="text-primary">ℹ</span>
             <p className="text-xs text-secondary/60">
               Found {groups.length} potential {groups.length === 1 ? 'issue' : 'issues'} in your collection
             </p>
@@ -211,10 +211,10 @@ export function DuplicateDetectorScreen() {
             {groups.map((group, idx) => {
               const cfg = severityConfig[group.severity]
               return (
-                <div key={idx} className="bg-surface-container rounded-xl overflow-hidden">
+                <div key={idx} className="bg-surface-container rounded-sm overflow-hidden">
                   {/* Header */}
                   <div className="px-4 py-2.5 flex items-center gap-2" style={{ backgroundColor: `${cfg.color}15` }}>
-                    <Icon name={cfg.icon} size={14} style={{ color: cfg.color }} />
+                    <span>{getIconChar(cfg.icon)}</span>
                     <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: cfg.color }}>
                       {cfg.label}
                     </span>
@@ -226,18 +226,18 @@ export function DuplicateDetectorScreen() {
                     {group.items.map((item) => (
                       <div
                         key={item.collectionId}
-                        className="flex items-center gap-3 bg-surface-container-low rounded-lg p-2.5"
+                        className="flex items-center gap-3 bg-surface-container-low rounded-sm p-2.5"
                       >
                         <button
                           onClick={() => navigate(`/fragrance/${item.fragrance.id}`)}
-                          className="flex items-center gap-3 flex-1 min-w-0 active:scale-[0.98] transition-transform"
+                          className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-transform"
                         >
-                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-container flex-shrink-0">
+                          <div className="w-10 h-10 rounded-sm overflow-hidden bg-surface-container flex-shrink-0">
                             {item.fragrance.image_url ? (
                               <img src={item.fragrance.image_url} alt="" className="w-full h-full object-cover" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <Icon name="water_drop" className="text-secondary/20" size={14} />
+                                <span className="text-secondary/20">?</span>
                               </div>
                             )}
                           </div>
@@ -253,9 +253,9 @@ export function DuplicateDetectorScreen() {
                           <button
                             onClick={() => handleRemove(item.collectionId)}
                             disabled={removing === item.collectionId}
-                            className="p-2 rounded-lg bg-error/10 text-error active:scale-95 transition-all disabled:opacity-50 flex-shrink-0"
+                            className="p-2 rounded-sm bg-error/10 text-error hover:opacity-80 transition-all disabled:opacity-50 flex-shrink-0"
                           >
-                            <Icon name="delete" size={16} />
+                            <span>✕</span>
                           </button>
                         )}
                       </div>

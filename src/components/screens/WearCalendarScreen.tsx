@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 
@@ -89,7 +88,7 @@ export function WearCalendarScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="calendar_month" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to see your wear calendar</p>
       </main>
     )
@@ -99,29 +98,29 @@ export function WearCalendarScreen() {
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
       {/* Month Navigation */}
       <div className="flex items-center justify-between mb-6">
-        <button onClick={goToPrevMonth} className="p-2 rounded-full active:scale-90 transition-transform">
-          <Icon name="chevron_left" className="text-on-surface" />
+        <button onClick={goToPrevMonth} className="p-2 rounded-full hover:opacity-80 transition-transform">
+          <span className="text-on-surface">?</span>
         </button>
         <div className="text-center">
           <h2 className="font-headline text-xl">{MONTHS[month]}</h2>
           <p className="text-[10px] text-secondary/50">{year}</p>
         </div>
-        <button onClick={goToNextMonth} className="p-2 rounded-full active:scale-90 transition-transform">
-          <Icon name="chevron_right" className="text-on-surface" />
+        <button onClick={goToNextMonth} className="p-2 rounded-full hover:opacity-80 transition-transform">
+          <span className="text-on-surface">?</span>
         </button>
       </div>
 
       {/* Stats Row */}
       <div className="flex gap-3 mb-6">
-        <div className="flex-1 bg-surface-container rounded-xl p-3 text-center">
+        <div className="flex-1 bg-surface-container rounded-sm p-3 text-center">
           <p className="font-headline text-lg text-primary">{totalWears}</p>
           <p className="text-[9px] text-secondary/50 uppercase tracking-wider">Total Wears</p>
         </div>
-        <div className="flex-1 bg-surface-container rounded-xl p-3 text-center">
+        <div className="flex-1 bg-surface-container rounded-sm p-3 text-center">
           <p className="font-headline text-lg text-primary">{daysWorn}</p>
           <p className="text-[9px] text-secondary/50 uppercase tracking-wider">Days Worn</p>
         </div>
-        <div className="flex-1 bg-surface-container rounded-xl p-3 text-center">
+        <div className="flex-1 bg-surface-container rounded-sm p-3 text-center">
           <p className="font-headline text-lg text-primary">
             {daysInMonth > 0 ? Math.round((daysWorn / daysInMonth) * 100) : 0}%
           </p>
@@ -132,7 +131,7 @@ export function WearCalendarScreen() {
       {/* Calendar Grid */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
         </div>
       ) : (
         <>
@@ -163,7 +162,7 @@ export function WearCalendarScreen() {
                 <button
                   key={day}
                   onClick={() => setSelectedDate(isSelected ? null : dateStr)}
-                  className={`aspect-square rounded-xl flex flex-col items-center justify-center relative transition-all active:scale-90 ${
+                  className={`aspect-square rounded-sm flex flex-col items-center justify-center relative transition-all hover:opacity-80 ${
                     isSelected ? 'bg-primary/20 ring-2 ring-primary' :
                     isToday ? 'bg-surface-container ring-1 ring-primary/40' :
                     'bg-surface-container/50'
@@ -194,13 +193,13 @@ export function WearCalendarScreen() {
       {selectedDate && (
         <section className="space-y-3 animate-fade-in">
           <div className="flex items-center gap-2">
-            <Icon name="event" className="text-primary" size={18} />
+            <span className="text-primary">?</span>
             <h3 className="text-sm font-medium text-on-surface">
               {new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
             </h3>
           </div>
           {selectedWears.length === 0 ? (
-            <div className="bg-surface-container rounded-xl p-6 text-center">
+            <div className="bg-surface-container rounded-sm p-6 text-center">
               <p className="text-sm text-secondary/50">No wears logged</p>
             </div>
           ) : (
@@ -208,14 +207,14 @@ export function WearCalendarScreen() {
               <button
                 key={i}
                 onClick={() => navigate(`/fragrance/${w.fragrance_id}`)}
-                className="w-full bg-surface-container rounded-xl p-4 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
+                className="w-full bg-surface-container rounded-sm p-4 flex items-center gap-4 hover:opacity-80 transition-transform text-left"
               >
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-surface-container-low flex-shrink-0">
+                <div className="w-12 h-12 rounded-sm overflow-hidden bg-surface-container-low flex-shrink-0">
                   {w.image_url ? (
                     <img src={w.image_url} alt={w.fragrance_name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Icon name="water_drop" className="text-secondary/20" size={20} />
+                      <span className="text-secondary/20">?</span>
                     </div>
                   )}
                 </div>
@@ -223,7 +222,7 @@ export function WearCalendarScreen() {
                   <p className="text-[9px] uppercase tracking-[0.1em] text-secondary/50">{w.fragrance_brand}</p>
                   <p className="text-sm text-on-surface font-medium truncate">{w.fragrance_name}</p>
                 </div>
-                <Icon name="chevron_right" className="text-secondary/30" size={18} />
+                <span className="text-secondary/30">?</span>
               </button>
             ))
           )}

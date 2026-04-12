@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useGiftRecommender, OCCASION_OPTIONS, VIBE_OPTIONS } from '@/hooks/useGiftRecommender'
 
 const GENDER_OPTIONS = [
@@ -44,7 +43,7 @@ export function GiftRecommenderScreen() {
             <button
               key={opt.value}
               onClick={() => updatePref('gender', opt.value)}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-medium transition-colors ${
+              className={`flex-1 py-2.5 rounded-sm text-xs font-medium transition-colors ${
                 prefs.gender === opt.value ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary/60'
               }`}
             >
@@ -62,7 +61,7 @@ export function GiftRecommenderScreen() {
             <button
               key={opt.value}
               onClick={() => updatePref('ageRange', opt.value)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-colors ${
+              className={`px-3.5 py-2 rounded-sm text-xs font-medium whitespace-nowrap transition-colors ${
                 prefs.ageRange === opt.value ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary/60'
               }`}
             >
@@ -98,7 +97,7 @@ export function GiftRecommenderScreen() {
             <button
               key={opt.value}
               onClick={() => updatePref('budget', opt.value)}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-medium transition-colors ${
+              className={`flex-1 py-2.5 rounded-sm text-xs font-medium transition-colors ${
                 prefs.budget === opt.value ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary/60'
               }`}
             >
@@ -132,13 +131,13 @@ export function GiftRecommenderScreen() {
       <button
         onClick={search}
         disabled={loading}
-        className="w-full gold-gradient text-on-primary-container py-3.5 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2 mb-8"
+        className="w-full gold-gradient text-on-primary-container py-3.5 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all flex items-center justify-center gap-2 mb-8"
       >
         {loading ? (
-          <div className="w-4 h-4 border-2 border-on-primary-container/30 border-t-on-primary-container rounded-full animate-spin" />
+          <span className="text-[9px] uppercase tracking-wider animate-pulse">…</span>
         ) : (
           <>
-            <Icon name="card_giftcard" size={16} />
+            <span>?</span>
             FIND GIFTS
           </>
         )}
@@ -147,7 +146,7 @@ export function GiftRecommenderScreen() {
       {/* Results */}
       {searched && !loading && results.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 gap-3">
-          <Icon name="search_off" className="text-4xl text-primary/20" />
+          <span className="text-4xl text-primary/20">?</span>
           <p className="text-sm text-secondary/50">No matches found. Try adjusting your preferences.</p>
         </div>
       )}
@@ -162,7 +161,7 @@ export function GiftRecommenderScreen() {
               <button
                 key={r.fragrance.id}
                 onClick={() => navigate(`/fragrance/${r.fragrance.id}`)}
-                className="w-full flex items-center gap-3 bg-surface-container rounded-2xl p-3 text-left active:scale-[0.98] transition-transform"
+                className="w-full flex items-center gap-3 bg-surface-container rounded-sm p-3 text-left hover:opacity-80 transition-transform"
               >
                 {/* Rank */}
                 <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -170,12 +169,12 @@ export function GiftRecommenderScreen() {
                 </div>
 
                 {/* Image */}
-                <div className="w-12 h-12 rounded-xl overflow-hidden bg-surface-container-highest flex-shrink-0">
+                <div className="w-12 h-12 rounded-sm overflow-hidden bg-surface-container-highest flex-shrink-0">
                   {r.fragrance.image_url ? (
                     <img src={r.fragrance.image_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Icon name="water_drop" className="text-secondary/20" />
+                      <span className="text-secondary/20">?</span>
                     </div>
                   )}
                 </div>
@@ -189,7 +188,7 @@ export function GiftRecommenderScreen() {
                   )}
                 </div>
 
-                <Icon name="chevron_right" className="text-secondary/30" size={16} />
+                <span className="text-secondary/30">?</span>
               </button>
             ))}
           </div>

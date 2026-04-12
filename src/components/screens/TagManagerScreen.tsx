@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { tagColour } from '../ui/TagInput'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/contexts/ToastContext'
+import { getIconChar } from '@/lib/iconUtils'
 
 interface TagGroup {
   tag: string
@@ -96,9 +96,9 @@ export function TagManagerScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center">
-        <Icon name="label" className="text-4xl text-primary/20 mb-4" />
+        <span className="text-4xl text-primary/20 mb-4">?</span>
         <h3 className="font-headline text-xl text-on-surface mb-2">Sign in to manage tags</h3>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg mt-4">SIGN IN</button>
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-all shadow-lg mt-4">SIGN IN</button>
       </main>
     )
   }
@@ -107,11 +107,11 @@ export function TagManagerScreen() {
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen space-y-6">
       {/* Header stats */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 bg-surface-container rounded-xl p-4 text-center">
+        <div className="flex-1 bg-surface-container rounded-sm p-4 text-center">
           <p className="text-2xl font-headline text-primary font-bold">{totalTags}</p>
           <p className="text-[10px] text-secondary/50 uppercase tracking-widest">Tags</p>
         </div>
-        <div className="flex-1 bg-surface-container rounded-xl p-4 text-center">
+        <div className="flex-1 bg-surface-container rounded-sm p-4 text-center">
           <p className="text-2xl font-headline text-on-surface font-bold">{totalUsages}</p>
           <p className="text-[10px] text-secondary/50 uppercase tracking-widest">Usages</p>
         </div>
@@ -124,9 +124,9 @@ export function TagManagerScreen() {
         </p>
         <button
           onClick={() => setSortMode(sortMode === 'count' ? 'alpha' : 'count')}
-          className="flex items-center gap-1 text-[10px] text-primary font-bold uppercase tracking-wider active:scale-95 transition-transform"
+          className="flex items-center gap-1 text-[10px] text-primary font-bold uppercase tracking-wider hover:opacity-80 transition-transform"
         >
-          <Icon name={sortMode === 'count' ? 'sort_by_alpha' : 'bar_chart'} size={14} />
+          <span>{getIconChar(sortMode === 'count' ? 'sort_by_alpha' : 'bar_chart')}</span>
           {sortMode === 'count' ? 'A–Z' : 'By count'}
         </button>
       </div>
@@ -135,19 +135,19 @@ export function TagManagerScreen() {
       {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-surface-container rounded-xl p-4 animate-pulse h-16" />
+            <div key={i} className="bg-surface-container rounded-sm p-4 animate-pulse h-16" />
           ))}
         </div>
       ) : sorted.length === 0 ? (
         <div className="py-16 text-center">
-          <Icon name="label_off" className="text-4xl text-secondary/15 mb-3 block mx-auto" />
+          <span className="text-4xl text-secondary/15 mb-3 block mx-auto">?</span>
           <p className="text-sm text-secondary/40 font-medium">No tags yet</p>
           <p className="text-[11px] text-secondary/25 mt-1">Add tags from any fragrance's detail page</p>
         </div>
       ) : (
         <div className="space-y-2">
           {sorted.map((group) => (
-            <div key={group.tag} className="bg-surface-container rounded-xl overflow-hidden">
+            <div key={group.tag} className="bg-surface-container rounded-sm overflow-hidden">
               {/* Tag header */}
               <button
                 onClick={() => setExpandedTag(expandedTag === group.tag ? null : group.tag)}
@@ -164,7 +164,7 @@ export function TagManagerScreen() {
                     className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-container-highest transition-colors"
                     aria-label="Rename tag"
                   >
-                    <Icon name="edit" size={14} className="text-secondary/40" />
+                    <span className="text-secondary/40">✎</span>
                   </button>
                   {/* Delete */}
                   <button
@@ -172,9 +172,9 @@ export function TagManagerScreen() {
                     className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-error/10 transition-colors"
                     aria-label="Delete tag"
                   >
-                    <Icon name="delete" size={14} className="text-error/40" />
+                    <span className="text-error/40">✕</span>
                   </button>
-                  <Icon name={expandedTag === group.tag ? 'expand_less' : 'expand_more'} size={18} className="text-secondary/30" />
+                  <span className="text-secondary/30">{getIconChar(expandedTag === group.tag ? 'expand_less' : 'expand_more')}</span>
                 </div>
               </button>
 
@@ -185,12 +185,12 @@ export function TagManagerScreen() {
                     type="text"
                     value={renameValue}
                     onChange={(e) => setRenameValue(e.target.value)}
-                    className="flex-1 bg-surface-container-highest text-on-surface text-xs rounded-lg px-3 py-2 border-none focus:ring-1 focus:ring-primary/30 focus:outline-none"
+                    className="flex-1 bg-surface-container-highest text-on-surface text-xs rounded-sm px-3 py-2 border-none focus:ring-1 focus:ring-primary/30 focus:outline-none"
                     autoFocus
                     onKeyDown={(e) => { if (e.key === 'Enter') handleRenameTag(group.tag); if (e.key === 'Escape') setRenamingTag(null) }}
                   />
-                  <button onClick={() => handleRenameTag(group.tag)} className="text-[10px] text-primary font-bold uppercase active:scale-95">Save</button>
-                  <button onClick={() => setRenamingTag(null)} className="text-[10px] text-secondary/40 font-bold uppercase active:scale-95">Cancel</button>
+                  <button onClick={() => handleRenameTag(group.tag)} className="text-[10px] text-primary font-bold uppercase hover:opacity-80">Save</button>
+                  <button onClick={() => setRenamingTag(null)} className="text-[10px] text-secondary/40 font-bold uppercase hover:opacity-80">Cancel</button>
                 </div>
               )}
 
@@ -207,14 +207,14 @@ export function TagManagerScreen() {
                         {f.image_url ? (
                           <img src={f.image_url} alt="" className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center"><Icon name="water_drop" className="text-secondary/20" size={14} /></div>
+                          <div className="w-full h-full flex items-center justify-center"><span className="text-secondary/20">?</span></div>
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs text-on-surface font-medium truncate">{f.name}</p>
                         <p className="text-[10px] text-secondary/40">{f.brand}</p>
                       </div>
-                      <Icon name="chevron_right" className="text-secondary/20" size={16} />
+                      <span className="text-secondary/20">?</span>
                     </button>
                   ))}
                 </div>

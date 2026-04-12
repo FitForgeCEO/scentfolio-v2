@@ -62,12 +62,10 @@ export function PullToRefresh({ onRefresh, children, disabled = false }: PullToR
           className="flex justify-center items-center overflow-hidden transition-[height] duration-200"
           style={{ height: refreshing ? 48 : pullDistance > 10 ? pullDistance : 0 }}
         >
-          <div
-            className={`w-6 h-6 border-2 border-primary/40 border-t-primary rounded-full ${
-              refreshing ? 'animate-spin' : ''
-            }`}
-            style={{ opacity: progress, transform: `rotate(${progress * 360}deg)` }}
-          />
+          <span
+            className={`text-primary text-sm ${refreshing ? 'animate-pulse' : ''}`}
+            style={{ opacity: progress }}
+          >↻</span>
         </div>
       )}
       {children}

@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, Fragment } from 'react'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
@@ -141,7 +140,7 @@ export function ProfileCardScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="badge" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30">?</span>
         <p className="text-secondary/60 text-sm">Sign in to create your collector card</p>
       </main>
     )
@@ -150,7 +149,7 @@ export function ProfileCardScreen() {
   if (loading || !stats) {
     return (
       <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col items-center gap-1.5">{[1,2,3].map(i => <div key={i} className="h-1 rounded-sm bg-primary/20 animate-pulse" style={{ width: `${60 - i * 14}px` }} />)}</div>
       </main>
     )
   }
@@ -181,7 +180,7 @@ export function ProfileCardScreen() {
       {/* The Collector Card — 9:16 shareable portrait */}
       <div
         ref={cardRef}
-        className="relative aspect-[9/16] w-full rounded-xl overflow-hidden flex flex-col"
+        className="relative aspect-[9/16] w-full rounded-sm overflow-hidden flex flex-col"
         style={{
           background: 'radial-gradient(circle at 50% 0%, #2a1f1a 0%, #191210 70%)',
           boxShadow: '0 32px 64px -12px rgba(25, 18, 16, 0.6)',
@@ -247,7 +246,7 @@ export function ProfileCardScreen() {
               stats.topThree.map((scent, i) => (
                 <div
                   key={i}
-                  className="flex-shrink-0 w-[120px] aspect-[2/3] rounded-lg overflow-hidden relative"
+                  className="flex-shrink-0 w-[120px] aspect-[2/3] rounded-sm overflow-hidden relative"
                 >
                   {scent.image_url ? (
                     <img src={scent.image_url} alt={scent.name} className="w-full h-full object-cover" />
@@ -264,7 +263,7 @@ export function ProfileCardScreen() {
               [0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="flex-shrink-0 w-[120px] aspect-[2/3] rounded-lg bg-surface-container-low/40"
+                  className="flex-shrink-0 w-[120px] aspect-[2/3] rounded-sm bg-surface-container-low/40"
                 />
               ))
             )}
@@ -324,10 +323,10 @@ export function ProfileCardScreen() {
         <button
           onClick={handleShare}
           disabled={sharing}
-          className="w-full gold-gradient py-4 rounded-xl text-xs tracking-[0.2em] font-bold text-on-primary-container flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-50"
+          className="w-full gold-gradient py-4 rounded-sm text-xs tracking-[0.2em] font-bold text-on-primary-container flex items-center justify-center gap-2 hover:opacity-80 transition-transform disabled:opacity-50"
           style={{ boxShadow: '0 24px 48px -16px rgba(25, 18, 16, 0.6)' }}
         >
-          <Icon name="share" size={18} />
+          <span>↗</span>
           {sharing ? 'GENERATING…' : 'SHARE CARD'}
         </button>
         <button onClick={handleCopyLink} className="relative group">

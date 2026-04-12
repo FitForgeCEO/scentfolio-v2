@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Icon } from '../ui/Icon'
 import { useChallenges, type ChallengeState, type ChallengeCategory } from '@/hooks/useChallenges'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
 import { hapticMedium } from '@/lib/haptics'
+import { getIconChar } from '@/lib/iconUtils'
 
 const CATEGORY_META: Record<ChallengeCategory, { label: string; icon: string }> = {
   collection: { label: 'Collection', icon: 'water_drop' },
@@ -27,7 +27,7 @@ export function ChallengesScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center gap-4">
-        <Icon name="emoji_events" className="text-5xl text-primary/20" />
+        <span className="text-5xl text-primary/20">?</span>
         <p className="text-sm text-secondary/50">Sign in to track challenges</p>
       </main>
     )
@@ -61,15 +61,15 @@ export function ChallengesScreen() {
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
       {/* Header stats */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-surface-container rounded-xl p-3 text-center">
+        <div className="bg-surface-container rounded-sm p-3 text-center">
           <p className="font-headline text-2xl text-primary">{completed.length}</p>
           <p className="text-[8px] text-secondary/40 uppercase tracking-wider">Completed</p>
         </div>
-        <div className="bg-surface-container rounded-xl p-3 text-center">
+        <div className="bg-surface-container rounded-sm p-3 text-center">
           <p className="font-headline text-2xl text-on-surface">{active.length}</p>
           <p className="text-[8px] text-secondary/40 uppercase tracking-wider">In Progress</p>
         </div>
-        <div className="bg-surface-container rounded-xl p-3 text-center">
+        <div className="bg-surface-container rounded-sm p-3 text-center">
           <p className="font-headline text-2xl text-primary">{totalXPEarned}</p>
           <p className="text-[8px] text-secondary/40 uppercase tracking-wider">XP Earned</p>
         </div>
@@ -104,13 +104,13 @@ export function ChallengesScreen() {
           <button
             key={cat}
             onClick={() => setFilter(cat)}
-            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95 ${
+            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all hover:opacity-80 ${
               filter === cat
                 ? 'bg-primary/15 text-primary'
                 : 'bg-surface-container text-secondary/40'
             }`}
           >
-            {cat !== 'all' && <Icon name={CATEGORY_META[cat].icon} size={12} />}
+            {cat !== 'all' && <span>{getIconChar(CATEGORY_META[cat].icon)}</span>}
             {cat === 'all' ? 'All' : CATEGORY_META[cat].label}
           </button>
         ))}
@@ -120,7 +120,7 @@ export function ChallengesScreen() {
       {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-surface-container rounded-xl p-4 animate-pulse">
+            <div key={i} className="bg-surface-container rounded-sm p-4 animate-pulse">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-surface-container-highest" />
                 <div className="flex-1">
@@ -133,7 +133,7 @@ export function ChallengesScreen() {
         </div>
       ) : displayed.length === 0 ? (
         <div className="py-12 text-center">
-          <Icon name={tab === 'active' ? 'emoji_events' : 'check_circle'} className="text-4xl text-primary/20 mb-3" />
+          <span className="text-4xl text-primary/20 mb-3">{getIconChar(tab === 'active' ? 'emoji_events' : 'check_circle')}</span>
           <p className="text-sm text-secondary/50">
             {tab === 'active' ? 'All challenges completed!' : 'No completed challenges yet'}
           </p>
@@ -170,17 +170,13 @@ function ChallengeCard({
   const isClaimable = ch.completed && !ch.claimed
 
   return (
-    <div className={`bg-surface-container rounded-xl p-4 transition-all ${isClaimable ? 'ring-1 ring-primary/30' : ''}`}>
+    <div className={`bg-surface-container rounded-sm p-4 transition-all ${isClaimable ? 'ring-1 ring-primary/30' : ''}`}>
       <div className="flex items-start gap-3">
         {/* Icon */}
         <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
           ch.completed ? 'bg-primary/15' : 'bg-surface-container-highest'
         }`}>
-          <Icon
-            name={ch.definition.icon}
-            className={ch.completed ? 'text-primary' : 'text-secondary/40'}
-            size={20}
-          />
+          <span>{getIconChar(ch.definition.icon)}</span>
         </div>
 
         {/* Content */}
@@ -214,7 +210,7 @@ function ChallengeCard({
           <button
             onClick={() => onClaim(ch.definition.id)}
             disabled={claiming}
-            className="flex-shrink-0 gold-gradient text-on-primary-container px-3 py-1.5 rounded-lg font-label text-[9px] font-bold uppercase tracking-widest active:scale-95 transition-all disabled:opacity-50"
+            className="flex-shrink-0 gold-gradient text-on-primary-container px-3 py-1.5 rounded-sm font-label text-[9px] font-bold uppercase tracking-widest hover:opacity-80 transition-all disabled:opacity-50"
           >
             {claiming ? '...' : 'CLAIM'}
           </button>
@@ -222,7 +218,7 @@ function ChallengeCard({
 
         {/* Claimed check */}
         {ch.claimed && (
-          <Icon name="check_circle" filled className="text-primary/60 flex-shrink-0" size={20} />
+          <span className="text-primary/60 flex-shrink-0">✓</span>
         )}
       </div>
     </div>
