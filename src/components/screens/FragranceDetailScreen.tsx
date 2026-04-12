@@ -200,8 +200,16 @@ export function FragranceDetailScreen() {
 
   if (loading || !frag) {
     return (
-      <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <main className="pt-24 pb-32 px-6 min-h-screen bg-background">
+        {/* Skeleton loading — editorial hairline rows, no spinner */}
+        <div className="space-y-8 max-w-[430px] mx-auto animate-pulse">
+          <div className="h-px w-3/4" style={{ background: 'linear-gradient(to right, rgba(229,194,118,0.3) 0%, transparent 60%)' }} />
+          <div className="h-4 w-1/3 bg-surface-container-highest/40 rounded-sm" />
+          <div className="h-8 w-2/3 bg-surface-container-highest/40 rounded-sm" />
+          <div className="h-px w-3/4" style={{ background: 'linear-gradient(to right, rgba(229,194,118,0.3) 0%, transparent 60%)' }} />
+          <div className="h-4 w-1/2 bg-surface-container-highest/40 rounded-sm" />
+          <div className="h-px w-3/4" style={{ background: 'linear-gradient(to right, rgba(229,194,118,0.3) 0%, transparent 60%)' }} />
+        </div>
       </main>
     )
   }
@@ -279,13 +287,13 @@ export function FragranceDetailScreen() {
           </span>
         </div>
 
-        {/* Back arrow, bare-bones */}
+        {/* Back — typographic, no icon, no rounded-full */}
         <button
           onClick={() => navigate(-1)}
           aria-label="Return"
-          className="absolute top-6 right-6 w-10 h-10 rounded-full bg-surface/50 backdrop-blur-xl flex items-center justify-center active:scale-90 transition-transform"
+          className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center bg-surface/40 backdrop-blur-xl rounded-sm transition-colors hover:bg-surface/60"
         >
-          <Icon name="arrow_back" className="text-on-background" />
+          <span className="font-headline text-on-background text-lg leading-none">←</span>
         </button>
       </section>
 
@@ -323,13 +331,13 @@ export function FragranceDetailScreen() {
 
       {/* ═══════════════════════════════════════════════════════
           DEPARTMENT 3 — THE DOSSIER
-          The action row — archive · log · review · share.
-          Add-to-shelf expands in place as a sub-row (not floating).
+          The action row — italic serif text only. No icons, no circles.
+          Add-to-shelf expands in place as a sub-row.
           ═══════════════════════════════════════════════════════ */}
       <section className="px-8 py-4 relative">
         <p className={kicker}>The Dossier</p>
 
-        <div className="mt-4 grid grid-cols-4 gap-3">
+        <div className="mt-4 flex items-baseline gap-6">
           {/* ARCHIVE — add to shelf */}
           <button
             onClick={() => {
@@ -338,30 +346,31 @@ export function FragranceDetailScreen() {
             }}
             disabled={saving}
             aria-label={collectionStatus ? `Shelf: ${collectionStatus}` : 'File on a shelf'}
-            className="flex flex-col items-center gap-2 group bg-transparent border-none active:scale-95 transition-transform"
+            className="group bg-transparent border-none"
           >
-            <div className="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-highest/60 backdrop-blur-sm">
-              <Icon
-                name={collectionStatus ? 'check' : 'archive'}
-                className={collectionStatus ? 'text-primary' : 'text-on-background/70'}
-              />
-            </div>
-            <span className={`text-[9px] tracking-[0.2em] uppercase font-label font-bold ${collectionStatus ? 'text-primary' : 'text-on-background/50'}`}>
-              {collectionStatus ? collectionStatus : 'Archive'}
+            <span className={`font-headline italic text-base transition-colors ${
+              collectionStatus
+                ? 'text-primary'
+                : 'text-on-background/60 group-hover:text-on-background'
+            }`}>
+              {collectionStatus ? collectionStatus : 'archive'}
             </span>
           </button>
+
+          <span className="text-primary/30 font-headline italic">·</span>
 
           {/* LOG */}
           <button
             onClick={() => setLogSheetOpen(true)}
-            className="flex flex-col items-center gap-2 group bg-transparent border-none active:scale-95 transition-transform"
+            className="group bg-transparent border-none"
             aria-label="Log a wear"
           >
-            <div className="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-highest/60 backdrop-blur-sm">
-              <Icon name="edit_calendar" className="text-on-background/70" />
-            </div>
-            <span className="text-[9px] tracking-[0.2em] uppercase font-label font-bold text-on-background/50">Log</span>
+            <span className="font-headline italic text-base text-on-background/60 group-hover:text-on-background transition-colors">
+              log
+            </span>
           </button>
+
+          <span className="text-primary/30 font-headline italic">·</span>
 
           {/* REVIEW */}
           <button
@@ -369,25 +378,25 @@ export function FragranceDetailScreen() {
               if (!user) { navigate('/profile'); return }
               setReviewSheetOpen(true)
             }}
-            className="flex flex-col items-center gap-2 group bg-transparent border-none active:scale-95 transition-transform"
+            className="group bg-transparent border-none"
             aria-label="Write an appreciation"
           >
-            <div className="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-highest/60 backdrop-blur-sm">
-              <Icon name="edit_note" className="text-on-background/70" />
-            </div>
-            <span className="text-[9px] tracking-[0.2em] uppercase font-label font-bold text-on-background/50">Appraise</span>
+            <span className="font-headline italic text-base text-on-background/60 group-hover:text-on-background transition-colors">
+              appraise
+            </span>
           </button>
+
+          <span className="text-primary/30 font-headline italic">·</span>
 
           {/* SHARE */}
           <button
             onClick={() => setShareCardOpen(true)}
-            className="flex flex-col items-center gap-2 group bg-transparent border-none active:scale-95 transition-transform"
+            className="group bg-transparent border-none"
             aria-label="Share card"
           >
-            <div className="w-11 h-11 flex items-center justify-center rounded-full bg-surface-container-highest/60 backdrop-blur-sm">
-              <Icon name="ios_share" className="text-on-background/70" />
-            </div>
-            <span className="text-[9px] tracking-[0.2em] uppercase font-label font-bold text-on-background/50">Share</span>
+            <span className="font-headline italic text-base text-on-background/60 group-hover:text-on-background transition-colors">
+              share
+            </span>
           </button>
         </div>
 
@@ -398,10 +407,10 @@ export function FragranceDetailScreen() {
               <button
                 key={status}
                 onClick={() => handleAddToCollection(status)}
-                className={`py-2.5 rounded-full text-[10px] font-label tracking-[0.15em] uppercase font-bold transition-all ${
+                className={`py-2.5 rounded-sm text-[10px] font-label tracking-[0.15em] uppercase font-bold transition-all ${
                   collectionStatus === status
                     ? 'bg-primary text-on-primary'
-                    : 'bg-surface-container-highest/60 text-on-background/70 active:scale-95'
+                    : 'bg-surface-container-highest/60 text-on-background/70 hover:text-on-background'
                 }`}
               >
                 {status}
@@ -479,7 +488,7 @@ export function FragranceDetailScreen() {
 
       {/* ═══════════════════════════════════════════════════════
           DEPARTMENT 6 — THE READINGS
-          Longevity & sillage: italic serif words, no 10-bar ladders.
+          Longevity & sillage: italic serif words, sharp-edge 2px bars.
           ═══════════════════════════════════════════════════════ */}
       {(frag.longevity != null || frag.sillage != null) && (
         <section className="px-8 py-8 relative">
@@ -492,8 +501,8 @@ export function FragranceDetailScreen() {
                 <p className="mt-2 font-headline italic text-2xl text-on-background leading-tight">
                   {longevityWord(frag.longevity)}
                 </p>
-                {/* Filled wedge — single gradient bar, no segments */}
-                <div className="mt-4 h-[2px] w-full bg-surface-container-highest/50 relative overflow-hidden rounded-full">
+                {/* Sharp-edge 2px bar — no rounded-full */}
+                <div className="mt-4 h-[2px] w-full bg-surface-container-highest/50 relative overflow-hidden">
                   <div
                     className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary/80 to-primary"
                     style={{ width: `${longevityPct}%` }}
@@ -507,7 +516,7 @@ export function FragranceDetailScreen() {
                 <p className="mt-2 font-headline italic text-2xl text-on-background leading-tight">
                   {sillageWord(frag.sillage)}
                 </p>
-                <div className="mt-4 h-[2px] w-full bg-surface-container-highest/50 relative overflow-hidden rounded-full">
+                <div className="mt-4 h-[2px] w-full bg-surface-container-highest/50 relative overflow-hidden">
                   <div
                     className="absolute left-0 top-0 h-full bg-gradient-to-r from-primary/80 to-primary"
                     style={{ width: `${sillagePct}%` }}
@@ -588,7 +597,7 @@ export function FragranceDetailScreen() {
 
       {/* ═══════════════════════════════════════════════════════
           DEPARTMENT 9 — FILED BY THE KEEPER
-          User's personal tags — inline italic serif input, no chips.
+          User's personal tags — inline italic serif input, gradient hairline.
           ═══════════════════════════════════════════════════════ */}
       {user && collectionStatus && (
         <section className="px-8 py-8 relative">
@@ -633,7 +642,15 @@ export function FragranceDetailScreen() {
               value={tagDraft}
               onChange={(e) => setTagDraft(e.target.value)}
               placeholder="a word of your own…"
-              className="flex-1 bg-transparent border-0 border-b border-primary/20 py-1 font-headline italic text-lg text-on-background placeholder:text-on-background/30 focus:outline-none focus:border-primary/60 transition-colors"
+              className="flex-1 bg-transparent py-1 font-headline italic text-lg text-on-background placeholder:text-on-background/30 focus:outline-none transition-colors"
+              style={{
+                border: 'none',
+                borderBottom: 'none',
+                backgroundImage: 'linear-gradient(to right, rgba(229,194,118,0.25) 0%, rgba(229,194,118,0.08) 50%, transparent 100%)',
+                backgroundSize: '100% 1px',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'bottom',
+              }}
               maxLength={30}
             />
           </form>
@@ -659,7 +676,7 @@ export function FragranceDetailScreen() {
               <button
                 key={sr.fragrance.id}
                 onClick={() => navigate(`/fragrance/${sr.fragrance.id}`)}
-                className="flex-shrink-0 w-[140px] text-left active:scale-95 transition-transform group"
+                className="flex-shrink-0 w-[140px] text-left transition-opacity hover:opacity-80 group"
               >
                 <div className="relative aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-low mb-3">
                   <FragranceImage
@@ -736,7 +753,7 @@ export function FragranceDetailScreen() {
                     className="absolute -top-6 -left-3 font-headline italic text-primary/20 select-none pointer-events-none"
                     style={{ fontSize: '72px', lineHeight: 1 }}
                   >
-                    "
+                    &ldquo;
                   </span>
 
                   {review.content && (
