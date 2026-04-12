@@ -111,7 +111,7 @@ function WelcomeStep({
             {[
               { numeral: 'i.', label: 'The Intent', body: 'We do not document fragrances to fill a list. We archive them to preserve the memory of a place, a person, or a season that once was.' },
               { numeral: 'ii.', label: 'The Ritual', body: 'Treat the act of sampling as a slow conversation. Let the heart notes speak before you form your final verdict.' },
-              { numeral: 'iii.', label: 'The Curation', body: 'Your journal is personal. There are no right notes, only the ones that resonate with your own olfactory narrative.' },
+              { numeral: 'iii.', label: 'The Curation', body: 'Your journal is personal. There are no right notes, only the ones that speak to you.' },
             ].map(entry => (
               <div key={entry.numeral} className="flex items-start gap-6">
                 <span className="font-headline text-primary text-2xl pt-1 flex-shrink-0">{entry.numeral}</span>

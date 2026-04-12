@@ -42,7 +42,7 @@ export function BlindBuyScreen() {
       {/* Header */}
       <section className="mb-6">
         <h1 className="font-headline text-2xl text-on-surface mb-1">Blind Buys</h1>
-        <p className="text-xs text-secondary/50">Track your unsniffed purchases</p>
+        <p className="text-xs text-secondary/50">Track fragrances you bought without trying first</p>
       </section>
 
       {/* Stats row */}
@@ -164,7 +164,7 @@ export function BlindBuyScreen() {
             <span className="text-primary/40 text-4xl">?</span>
           </div>
           <p className="text-sm text-secondary/50 text-center max-w-[260px]">
-            No blind buys logged yet. Track your unsniffed purchases and see how they turn out!
+            No blind buys logged yet. Track fragrances you bought without trying first and see how they turn out!
           </p>
         </div>
       ) : (

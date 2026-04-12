@@ -135,7 +135,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
           className="font-label text-[0.65rem] tracking-[0.3em] uppercase mb-3"
           style={{ color: 'rgba(229,194,118,0.6)' }}
         >
-          THE PROPRIETOR'S STUDY
+          YOUR PROFILE
         </p>
         <h1 className="font-headline italic text-5xl md:text-6xl leading-tight text-on-background mb-2">
           {displayName}.
@@ -246,7 +246,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
           {[
             { value: collectionCount, label: 'bottles archived' },
             { value: wearCount, label: 'sessions recorded' },
-            { value: reviewCount, label: 'appraisals offered' },
+            { value: reviewCount, label: 'reviews written' },
           ].map(stat => (
             <div key={stat.label}>
               <p className="font-headline italic text-3xl text-on-background mb-1">
@@ -270,21 +270,21 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
           className="font-label text-[0.65rem] tracking-[0.3em] uppercase mb-6"
           style={{ color: 'rgba(229,194,118,0.6)' }}
         >
-          THE PROPRIETOR'S INTERESTS
+          YOUR COLLECTION
         </p>
         <div className="grid grid-cols-2 gap-x-8 gap-y-6">
           {([
-            ['/dna', 'Olfactory fingerprint', 'your scent radar'],
-            ['/profile-card', 'Calling card', 'share your taste'],
-            ['/stats', 'Taste decoded', 'your numbers, revealed'],
-            ['/achievements', 'Distinctions', 'honours & milestones'],
-            ['/challenges', 'Pursuits', 'goals & rewards'],
-            ['/collection-insights', 'Archive decoded', 'collection intelligence'],
-            ['/collection-health', 'Archive condition', 'rate your archive'],
-            ['/brands', 'Houses', 'browse by house'],
-            ['/families', 'Accords', 'browse by accord'],
-            ['/top-shelf', 'Treasured bottles', 'your all-time favourites'],
-            ['/milestones', 'Milestones', 'trace the journey'],
+            ['/dna', 'Scent profile', 'your fragrance preferences'],
+            ['/profile-card', 'Profile card', 'share your taste'],
+            ['/stats', 'Your stats', 'numbers & insights'],
+            ['/achievements', 'Achievements', 'honours & milestones'],
+            ['/challenges', 'Challenges', 'goals & rewards'],
+            ['/collection-insights', 'Collection insights', 'patterns & trends'],
+            ['/collection-health', 'Collection health', 'rate your collection'],
+            ['/brands', 'Brands', 'browse by brand'],
+            ['/families', 'Scent families', 'browse by family'],
+            ['/top-shelf', 'Top shelf', 'your all-time favourites'],
+            ['/milestones', 'Milestones', 'your fragrance journey'],
           ] as [string, string, string][]).map(([path, name, desc]) => (
             <button
               key={path}
@@ -316,20 +316,20 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
           className="font-label text-[0.65rem] tracking-[0.3em] uppercase mb-6"
           style={{ color: 'rgba(229,194,118,0.6)' }}
         >
-          INSTRUMENTS & RECORDS
+          TOOLS & FEATURES
         </p>
         <div className="space-y-0">
           {([
-            ['/activity', 'Correspondence', 'your recent notices'],
-            ['/scent-quiz', 'Olfactory assessment', 'discover your profile'],
-            ['/gift-finder', 'Gift consultation', 'find the perfect gift'],
-            ['/dupes', 'Alternatives', 'similar scents & substitutes'],
-            ['/blind-buys', 'Unsniffed acquisitions', 'bottles bought on faith'],
-            ['/wear-predictions', "Today's recommendation", 'what to wear today'],
-            ['/journal', 'Private journal', 'your fragrance diary'],
-            ['/calendar', 'Diary', 'monthly wear overview'],
-            ['/heatmap', 'Wear atlas', 'activity map & cost per wear'],
-            ['/timeline', 'Chronology', 'your fragrance journey'],
+            ['/activity', 'Activity', 'your recent updates'],
+            ['/scent-quiz', 'Scent quiz', 'discover your preferences'],
+            ['/gift-finder', 'Gift finder', 'find the perfect gift'],
+            ['/dupes', 'Alternatives', 'similar scents & dupes'],
+            ['/blind-buys', 'Blind buys', 'bottles bought unsmelled'],
+            ['/wear-predictions', "Today's pick", 'what to wear today'],
+            ['/journal', 'Journal', 'your fragrance diary'],
+            ['/calendar', 'Calendar', 'monthly wear overview'],
+            ['/heatmap', 'Wear map', 'activity & cost per wear'],
+            ['/timeline', 'Timeline', 'your fragrance journey'],
           ] as [string, string, string][]).map(([path, name, desc]) => (
             <div key={path}>
               <button
@@ -359,7 +359,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
           className="font-label text-[0.65rem] tracking-[0.3em] uppercase mb-6"
           style={{ color: 'rgba(229,194,118,0.6)' }}
         >
-          SALON & SOCIETY
+          SOCIAL & SHARING
         </p>
 
         {/* full-width lead item */}
@@ -368,7 +368,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
           className="w-full text-left py-4 group"
         >
           <p className="font-headline italic text-base text-on-background group-hover:text-primary transition-colors">
-            The salon
+            Community feed
           </p>
           <p
             className="font-headline italic text-sm mt-0.5"
@@ -382,10 +382,10 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
         {/* 2-col sub-grid */}
         <div className="grid grid-cols-2 gap-x-8 gap-y-6 mt-6">
           {([
-            ['/share-collection', 'Presentation cards', 'wrapped-style cards'],
-            ['/year-wrapped', 'Annual review', 'the year in scent'],
-            ['/month-review', 'Monthly précis', 'highlights of the month'],
-            ['/badges', 'Distinctions earned', 'shareable proof'],
+            ['/share-collection', 'Share cards', 'wrapped-style cards'],
+            ['/year-wrapped', 'Year in review', 'the year in scent'],
+            ['/month-review', 'Monthly recap', 'highlights of the month'],
+            ['/badges', 'Badges earned', 'shareable proof'],
           ] as [string, string, string][]).map(([path, name, desc]) => (
             <button
               key={path}
@@ -417,13 +417,13 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
           className="font-label text-[0.65rem] tracking-[0.3em] uppercase mb-6"
           style={{ color: 'rgba(229,194,118,0.6)' }}
         >
-          PRIVATE AFFAIRS
+          ACCOUNT
         </p>
         <div className="space-y-0">
           {([
-            [() => setEditSheetOpen(true), 'Amend the register', 'name, bio, house signature & accords'],
-            [() => navigate('/settings'), 'Preferences', 'preferences, data export, currency'],
-            [() => navigate('/blocked'), 'Barred persons', 'manage barred accounts'],
+            [() => setEditSheetOpen(true), 'Edit profile', 'name, bio, signature scent & families'],
+            [() => navigate('/settings'), 'Settings', 'preferences, data export, currency'],
+            [() => navigate('/blocked'), 'Blocked users', 'manage blocked accounts'],
           ] as [() => void, string, string][]).map(([action, name, desc]) => (
             <div key={name}>
               <button
@@ -461,7 +461,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
             className="font-headline italic text-lg tracking-wide group-hover:text-on-background transition-colors"
             style={{ color: 'rgba(168,154,145,0.5)' }}
           >
-            Take one&apos;s leave
+            Sign out
           </span>
         </button>
       </div>

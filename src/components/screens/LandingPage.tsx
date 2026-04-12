@@ -256,7 +256,7 @@ export function LandingPage() {
               ScentFolio
             </h1>
             <p className="font-headline italic text-xl md:text-2xl text-secondary max-w-xl mx-auto opacity-80">
-              A curated digital archive for the olfactory avant-garde.
+              A curated digital archive for fragrance lovers.
             </p>
             <div className="mt-16 flex flex-col items-center gap-4">
               <button
@@ -339,7 +339,7 @@ export function LandingPage() {
                 <FeatureEntry
                   numeral="III."
                   title="Scent Mapping"
-                  description="Visualise your olfactory preferences through a dynamic radar of notes, families and concentrations."
+                  description="Visualise your fragrance preferences through a dynamic radar of notes, families and concentrations."
                   delay={200}
                 />
                 <FeatureEntry
@@ -443,7 +443,7 @@ export function LandingPage() {
               <Blockquote
                 quote="The mapping feature revealed biases in my collection I never knew I had. My curation is now purposeful."
                 name="Elara K."
-                role="Sommelier"
+                role="Fragrance Collector"
                 align="right"
               />
             </div>

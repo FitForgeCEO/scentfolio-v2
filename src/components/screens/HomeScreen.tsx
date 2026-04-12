@@ -226,7 +226,7 @@ export function HomeScreen() {
   const concierge: Array<{ index: string; label: string; to: string }> = [
     { index: 'i', label: "Today's suggestion.", to: '/daily' },
     { index: 'ii', label: 'Weather pairing.', to: '/weather' },
-    { index: 'iii', label: 'Quick appraisal.', to: '/quick-rate' },
+    { index: 'iii', label: 'Quick rating.', to: '/quick-rate' },
     { index: 'iv', label: 'The keeper\u2019s picks.', to: '/wear-predictions' },
   ]
 
@@ -451,7 +451,7 @@ export function HomeScreen() {
                 className="group flex items-center justify-between py-5 md:py-6 text-left hover:opacity-80 transition-transform"
               >
                 <div className="flex items-center gap-6 md:gap-8">
-                  <span className="font-headline italic text-primary text-lg w-6">
+                  <span className="font-headline italic text-primary text-lg w-6" style={{ fontVariantLigatures: 'none' }}>
                     {entry.index}
                   </span>
                   <span className="font-headline italic text-xl md:text-2xl text-on-background">
