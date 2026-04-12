@@ -120,11 +120,11 @@ function ScentCard({ frag, showRating, dimmed, onClick }: ScentCardProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex-shrink-0 w-[180px] text-left active:scale-[0.98] transition-transform ${
+      className={`flex-shrink-0 w-[180px] text-left transition-opacity hover:opacity-80 ${
         dimmed ? 'opacity-75' : ''
       }`}
     >
-      <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-surface-container-low">
+      <div className="relative aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-low">
         {frag.image_url ? (
           <img
             src={frag.image_url}
@@ -175,7 +175,7 @@ function EmptyWell({ count = 3, tall }: EmptyWellProps) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className={`flex-shrink-0 w-[180px] rounded-lg bg-surface-container-low animate-pulse ${
+          className={`flex-shrink-0 w-[180px] rounded-sm bg-surface-container-low animate-pulse ${
             tall ? 'aspect-[3/4]' : 'aspect-square'
           }`}
         />
@@ -238,7 +238,7 @@ function IndexCard({
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-start gap-4 px-6 py-5 text-left active:scale-[0.99] transition-transform group"
+      className="w-full flex items-start gap-4 px-6 py-5 text-left transition-opacity hover:opacity-80 group"
     >
       <span className="font-headline italic text-primary/50 text-xs tracking-widest flex-shrink-0 pt-1">
         {numeral}
@@ -481,7 +481,7 @@ export function DiscoverScreen() {
                       <button
                         key={f}
                         onClick={() => setSelectedFamily(f)}
-                        className="flex-shrink-0 pb-2 active:scale-95 transition-transform"
+                        className="flex-shrink-0 pb-2 transition-opacity hover:opacity-80"
                       >
                         <span
                           className={`font-headline italic text-lg transition-colors ${
@@ -511,7 +511,7 @@ export function DiscoverScreen() {
                       <button
                         key={frag.id}
                         onClick={() => navigate(`/fragrance/${frag.id}`)}
-                        className="relative aspect-square overflow-hidden bg-surface active:scale-[0.98] transition-transform"
+                        className="relative aspect-square overflow-hidden bg-surface transition-opacity hover:opacity-80"
                       >
                         {frag.image_url ? (
                           <img
