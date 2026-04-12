@@ -39,7 +39,7 @@ function NoteIcon({ note }: { note: string }) {
           src={iconPath}
           alt={note}
           className="w-14 h-14 object-contain relative z-10 drop-shadow-sm"
-          style={{ filter: 'brightness(1.15) contrast(1.1)' }}
+          style={{ filter: 'brightness(0.92) saturate(1.15)' }}
           loading="lazy"
           onError={(e) => {
             ;(e.target as HTMLImageElement).src = '/note-icons/water-drop.png'
