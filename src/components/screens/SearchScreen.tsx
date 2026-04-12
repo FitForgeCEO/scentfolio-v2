@@ -7,22 +7,27 @@ import type { Fragrance } from '@/types/database'
 import { getRecentlyViewed, clearRecentlyViewed } from '@/lib/recentlyViewed'
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 
-const POPULAR_SEARCHES = [
+/* ── constants ───────────────────────────────────────────────── */
+
+const DISTINGUISHED_HOUSES = [
   'Dior', 'Chanel', 'Tom Ford', 'Creed', 'Le Labo',
   'Maison Margiela', 'Jo Malone', 'Byredo', 'Versace', 'YSL',
 ]
 
 const NOTE_FAMILIES = [
-  'Woody', 'Floral', 'Oriental', 'Fresh', 'Citrus', 'Aromatic', 'Gourmand', 'Aquatic', 'Spicy', 'Leather', 'Musk', 'Green',
+  'Woody', 'Floral', 'Oriental', 'Fresh', 'Citrus', 'Aromatic',
+  'Gourmand', 'Aquatic', 'Spicy', 'Leather', 'Musk', 'Green',
 ]
 
 const CONCENTRATIONS = [
   'Eau de Parfum', 'Eau de Toilette', 'Parfum', 'Eau de Cologne', 'Extrait',
 ]
 
-const GENDERS = ['Unisex', 'Male', 'Female']
+const CHARACTERS = ['Unisex', 'Male', 'Female']
 
 type SortOption = 'rating' | 'name' | 'brand'
+
+/* ── recent-enquiry helpers (localStorage) ───────────────────── */
 
 const MAX_RECENT = 8
 const STORAGE_KEY = 'scentfolio-recent-searches'
@@ -42,13 +47,51 @@ function saveRecentSearch(query: string) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
 }
 
-function clearRecentSearches() {
+function clearRecentSearchesStorage() {
   localStorage.removeItem(STORAGE_KEY)
 }
+
+/* ── voice helpers ───────────────────────────────────────────── */
+
+const WORDS = [
+  'zero','one','two','three','four','five','six','seven','eight','nine',
+  'ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen',
+  'seventeen','eighteen','nineteen','twenty',
+]
+
+function numberToWord(n: number): string {
+  if (n >= 0 && n <= 20) return WORDS[n]
+  return String(n)
+}
+
+function capitalise(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+/* ── noir style constants ────────────────────────────────────── */
+
+const hairline = 'linear-gradient(to right, rgba(229,194,118,0.4) 0%, rgba(229,194,118,0.1) 40%, transparent 100%)'
+
+function ambientGlow(top: string, left: string) {
+  return {
+    position: 'absolute' as const,
+    top,
+    left,
+    width: '300px',
+    height: '300px',
+    background: 'radial-gradient(circle, rgba(229,194,118,0.07) 0%, transparent 70%)',
+    filter: 'blur(80px)',
+    pointerEvents: 'none' as const,
+  }
+}
+
+/* ── component ───────────────────────────────────────────────── */
 
 export function SearchScreen() {
   const navigate = useNavigate()
   const inputRef = useRef<HTMLInputElement>(null)
+
+  /* state */
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Fragrance[]>([])
   const [loading, setLoading] = useState(false)
@@ -56,22 +99,34 @@ export function SearchScreen() {
   const [recentlyViewed, setRecentlyViewed] = useState(getRecentlyViewed)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  // Filters
-  const [showFilters, setShowFilters] = useState(false)
+  /* refinements */
   const [filterFamily, setFilterFamily] = useState<string | null>(null)
   const [filterConcentration, setFilterConcentration] = useState<string | null>(null)
-  const [filterGender, setFilterGender] = useState<string | null>(null)
+  const [filterCharacter, setFilterCharacter] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<SortOption>('rating')
 
-  const hasActiveFilters = filterFamily !== null || filterConcentration !== null || filterGender !== null
-  const activeFilterCount = [filterFamily, filterConcentration, filterGender].filter(Boolean).length
+  /* dropdown visibility */
+  const [showFamilyList, setShowFamilyList] = useState(false)
+  const [showConcList, setShowConcList] = useState(false)
+  const [showCharList, setShowCharList] = useState(false)
+  const [showSortList, setShowSortList] = useState(false)
 
-  // Auto-focus on mount
+  const hasActiveFilters = filterFamily !== null || filterConcentration !== null || filterCharacter !== null
+
+  /* auto-focus */
   useEffect(() => { inputRef.current?.focus() }, [])
 
-  // Debounced search
-  const search = useCallback((q: string, family?: string | null, conc?: string | null, gender?: string | null, sort?: SortOption) => {
-    if (q.length < 2 && !family && !conc && !gender) { setResults([]); setLoading(false); return }
+  /* debounced search */
+  const search = useCallback((
+    q: string,
+    family?: string | null,
+    conc?: string | null,
+    character?: string | null,
+    sort?: SortOption,
+  ) => {
+    if (q.length < 2 && !family && !conc && !character) {
+      setResults([]); setLoading(false); return
+    }
     setLoading(true)
 
     let qb = supabase
@@ -84,7 +139,7 @@ export function SearchScreen() {
     }
     if (family) qb = qb.eq('note_family', family)
     if (conc) qb = qb.eq('concentration', conc)
-    if (gender) qb = qb.eq('gender', gender)
+    if (character) qb = qb.eq('gender', character)
 
     const s = sort ?? 'rating'
     if (s === 'rating') {
@@ -104,264 +159,383 @@ export function SearchScreen() {
 
   useEffect(() => {
     clearTimeout(debounceRef.current)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (query.length < 2 && !hasActiveFilters) { setResults([]); return }
-    debounceRef.current = setTimeout(() => search(query, filterFamily, filterConcentration, filterGender, sortBy), 250)
+    debounceRef.current = setTimeout(
+      () => search(query, filterFamily, filterConcentration, filterCharacter, sortBy),
+      250,
+    )
     return () => clearTimeout(debounceRef.current)
-  }, [query, search, filterFamily, filterConcentration, filterGender, sortBy, hasActiveFilters])
+  }, [query, search, filterFamily, filterConcentration, filterCharacter, sortBy, hasActiveFilters])
 
+  /* handlers */
   const handleSelect = (frag: Fragrance) => {
     saveRecentSearch(`${frag.brand} ${frag.name}`)
     navigate(`/fragrance/${frag.id}`)
   }
 
-  const handleRecentTap = (term: string) => {
-    setQuery(term)
-    search(term)
-  }
-
-  const handlePopularTap = (brand: string) => {
-    setQuery(brand)
-    search(brand)
-  }
+  const handleRecentTap = (term: string) => { setQuery(term); search(term) }
+  const handleHouseTap = (brand: string) => { setQuery(brand); search(brand) }
 
   const handleClearRecent = () => {
-    clearRecentSearches()
+    clearRecentSearchesStorage()
     setRecentSearches([])
   }
 
   const clearAllFilters = () => {
     setFilterFamily(null)
     setFilterConcentration(null)
-    setFilterGender(null)
+    setFilterCharacter(null)
     setSortBy('rating')
+  }
+
+  const closeAllDropdowns = () => {
+    setShowFamilyList(false)
+    setShowConcList(false)
+    setShowCharList(false)
+    setShowSortList(false)
   }
 
   const isSearching = query.length >= 2 || hasActiveFilters
   const showLanding = !isSearching && results.length === 0
 
+  /* sort label */
+  const sortLabel = sortBy === 'rating' ? 'most appreciated'
+    : sortBy === 'name' ? 'by name, a to z' : 'by house, a to z'
+
+  /* ── render ────────────────────────────────────────────────── */
+
   return (
-    <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
-      {/* Search Input */}
-      <div className="relative flex items-center bg-surface-container rounded-2xl px-4 py-4 focus-within:ring-1 ring-primary/30 transition-all mb-6">
-        <Icon name="search" className="text-primary mr-3" />
+    <main
+      className="relative pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen overflow-hidden"
+      onClick={() => closeAllDropdowns()}
+    >
+      {/* ── ambient gold lifts ─────────────────────────────── */}
+      <div aria-hidden style={ambientGlow('-5%', '-10%')} />
+      <div aria-hidden style={ambientGlow('40%', '70%')} />
+      <div aria-hidden style={ambientGlow('80%', '-15%')} />
+
+      {/* ── I. THE FRONTISPIECE ────────────────────────────── */}
+      <header className="mb-10">
+        <p
+          className="font-label text-[0.65rem] tracking-[0.3em] uppercase mb-3"
+          style={{ color: 'rgba(229,194,118,0.6)' }}
+        >
+          THE READING ROOM · CATALOGUE DESK
+        </p>
+        <h1 className="font-headline italic text-5xl md:text-6xl leading-tight text-on-background mb-3">
+          Request a title.
+        </h1>
+        <p className="font-headline italic text-base md:text-lg" style={{ color: 'rgba(168,154,145,0.7)' }}>
+          Consult our catalogue of over two thousand titles by name, house, or note.
+        </p>
+        <div className="mt-6" style={{ height: '1px', background: hairline }} />
+      </header>
+
+      {/* ── II. THE REQUEST SLIP ───────────────────────────── */}
+      <div className="relative flex items-center mb-2 group">
+        <Icon name="search" className="mr-3 flex-shrink-0" style={{ color: 'rgba(229,194,118,0.6)' }} />
         <input
           ref={inputRef}
-          className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-secondary/40 w-full text-base"
-          placeholder="Search 2,700+ fragrances..."
+          className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none w-full font-headline italic text-xl text-on-background placeholder:font-headline placeholder:italic"
+          style={{ caretColor: '#e5c276' }}
+          placeholder="A name, a house, a note…"
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          aria-label="Search fragrances"
+          aria-label="Request a title"
         />
         {query && (
-          <button onClick={() => { setQuery(''); setResults([]) }} aria-label="Clear search" className="text-secondary/60 active:scale-90 transition-transform">
-            <Icon name="close" size={20} />
+          <button
+            onClick={() => { setQuery(''); setResults([]) }}
+            className="font-headline italic text-sm transition-colors ml-3 flex-shrink-0"
+            style={{ color: 'rgba(168,154,145,0.5)' }}
+          >
+            clear
           </button>
         )}
       </div>
+      <div
+        className="transition-opacity duration-300"
+        style={{
+          height: '1px',
+          background: hairline,
+          opacity: query ? 1 : 0.4,
+        }}
+      />
 
-      {/* Filter toggle + active filter pills */}
-      <div className="flex items-center gap-2 mb-4">
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium transition-all active:scale-95 ${
-            hasActiveFilters ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary'
-          }`}
-        >
-          <Icon name="tune" size={16} />
-          <span>Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}</span>
-        </button>
-
-        {/* Active filter pills */}
-        {filterFamily && (
-          <button onClick={() => setFilterFamily(null)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary/15 text-primary text-[10px] font-medium active:scale-95">
-            {filterFamily} <Icon name="close" size={12} />
-          </button>
-        )}
-        {filterConcentration && (
-          <button onClick={() => setFilterConcentration(null)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary/15 text-primary text-[10px] font-medium active:scale-95">
-            {filterConcentration} <Icon name="close" size={12} />
-          </button>
-        )}
-        {filterGender && (
-          <button onClick={() => setFilterGender(null)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-primary/15 text-primary text-[10px] font-medium active:scale-95">
-            {filterGender} <Icon name="close" size={12} />
-          </button>
-        )}
-        {hasActiveFilters && (
-          <button onClick={clearAllFilters} className="text-[10px] text-error/60 font-bold ml-auto active:scale-95">
-            Clear
-          </button>
-        )}
-      </div>
-
-      {/* Filter panel */}
-      {showFilters && (
-        <div className="bg-surface-container rounded-2xl p-4 mb-4 space-y-4 animate-slide-up">
-          {/* Note Family */}
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.15em] text-secondary font-bold mb-2">Note Family</p>
-            <div className="flex flex-wrap gap-1.5">
-              {NOTE_FAMILIES.map(f => (
-                <button
-                  key={f}
-                  onClick={() => setFilterFamily(filterFamily === f ? null : f)}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all active:scale-95 ${
-                    filterFamily === f ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-secondary'
-                  }`}
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Concentration */}
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.15em] text-secondary font-bold mb-2">Concentration</p>
-            <div className="flex flex-wrap gap-1.5">
-              {CONCENTRATIONS.map(c => (
-                <button
-                  key={c}
-                  onClick={() => setFilterConcentration(filterConcentration === c ? null : c)}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all active:scale-95 ${
-                    filterConcentration === c ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-secondary'
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Gender */}
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.15em] text-secondary font-bold mb-2">Gender</p>
-            <div className="flex flex-wrap gap-1.5">
-              {GENDERS.map(g => (
-                <button
-                  key={g}
-                  onClick={() => setFilterGender(filterGender === g ? null : g)}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all active:scale-95 ${
-                    filterGender === g ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-secondary'
-                  }`}
-                >
-                  {g}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Sort */}
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.15em] text-secondary font-bold mb-2">Sort By</p>
-            <div className="flex gap-1.5">
-              {([['rating', 'Top Rated'], ['name', 'Name A-Z'], ['brand', 'Brand A-Z']] as [SortOption, string][]).map(([val, label]) => (
-                <button
-                  key={val}
-                  onClick={() => setSortBy(val)}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-all active:scale-95 ${
-                    sortBy === val ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-secondary'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Loading indicator */}
-      {loading && (
-        <div className="flex justify-center py-8">
-          <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-        </div>
-      )}
-
-      {/* Search Results */}
-      {!loading && isSearching && results.length > 0 && (
-        <section>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-secondary/50 font-bold mb-4">
-            {results.length} RESULT{results.length !== 1 ? 'S' : ''}
-          </p>
-          <div className="space-y-1">
-            {results.map((frag) => (
-              <button
-                key={frag.id}
-                onClick={() => handleSelect(frag)}
-                className="w-full flex items-center gap-3.5 py-3 px-3 rounded-xl text-left active:bg-surface-container-highest transition-colors"
+      {/* ── III. THE REFINEMENTS ───────────────────────────── */}
+      <div className="mt-5 mb-2">
+        <p className="font-headline italic text-sm" style={{ color: 'rgba(168,154,145,0.6)' }}>
+          Refine by{' '}
+          {/* note family trigger */}
+          <span className="relative inline-block">
+            <button
+              onClick={(e) => { e.stopPropagation(); closeAllDropdowns(); setShowFamilyList(!showFamilyList) }}
+              className="font-headline italic underline underline-offset-2 transition-colors"
+              style={{ color: filterFamily ? '#e5c276' : 'rgba(168,154,145,0.6)' }}
+            >
+              {filterFamily ? filterFamily.toLowerCase() : 'note family'}
+            </button>
+            {showFamilyList && (
+              <ul
+                className="absolute left-0 top-full mt-1 z-50 py-2 px-1 min-w-[160px]"
+                style={{ background: '#261e1b' }}
+                onClick={(e) => e.stopPropagation()}
               >
-                <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
-                  <FragranceImage src={frag.image_url} alt={frag.name} noteFamily={frag.note_family} size="sm" className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[9px] uppercase tracking-[0.15em] text-primary/70 font-bold">{frag.brand}</p>
-                  <p className="text-sm text-on-surface truncate">{frag.name}</p>
+                {NOTE_FAMILIES.map(f => (
+                  <li key={f}>
+                    <button
+                      onClick={() => { setFilterFamily(filterFamily === f ? null : f); setShowFamilyList(false) }}
+                      className="w-full text-left font-headline italic text-sm px-3 py-1.5 transition-colors"
+                      style={{ color: filterFamily === f ? '#e5c276' : 'rgba(168,154,145,0.5)' }}
+                    >
+                      {f.toLowerCase()}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </span>
+          ,{' '}
+          {/* concentration trigger */}
+          <span className="relative inline-block">
+            <button
+              onClick={(e) => { e.stopPropagation(); closeAllDropdowns(); setShowConcList(!showConcList) }}
+              className="font-headline italic underline underline-offset-2 transition-colors"
+              style={{ color: filterConcentration ? '#e5c276' : 'rgba(168,154,145,0.6)' }}
+            >
+              {filterConcentration ? filterConcentration.toLowerCase() : 'concentration'}
+            </button>
+            {showConcList && (
+              <ul
+                className="absolute left-0 top-full mt-1 z-50 py-2 px-1 min-w-[180px]"
+                style={{ background: '#261e1b' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {CONCENTRATIONS.map(c => (
+                  <li key={c}>
+                    <button
+                      onClick={() => { setFilterConcentration(filterConcentration === c ? null : c); setShowConcList(false) }}
+                      className="w-full text-left font-headline italic text-sm px-3 py-1.5 transition-colors"
+                      style={{ color: filterConcentration === c ? '#e5c276' : 'rgba(168,154,145,0.5)' }}
+                    >
+                      {c.toLowerCase()}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </span>
+          , or{' '}
+          {/* character trigger */}
+          <span className="relative inline-block">
+            <button
+              onClick={(e) => { e.stopPropagation(); closeAllDropdowns(); setShowCharList(!showCharList) }}
+              className="font-headline italic underline underline-offset-2 transition-colors"
+              style={{ color: filterCharacter ? '#e5c276' : 'rgba(168,154,145,0.6)' }}
+            >
+              {filterCharacter ? filterCharacter.toLowerCase() : 'character'}
+            </button>
+            {showCharList && (
+              <ul
+                className="absolute left-0 top-full mt-1 z-50 py-2 px-1 min-w-[120px]"
+                style={{ background: '#261e1b' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {CHARACTERS.map(g => (
+                  <li key={g}>
+                    <button
+                      onClick={() => { setFilterCharacter(filterCharacter === g ? null : g); setShowCharList(false) }}
+                      className="w-full text-left font-headline italic text-sm px-3 py-1.5 transition-colors"
+                      style={{ color: filterCharacter === g ? '#e5c276' : 'rgba(168,154,145,0.5)' }}
+                    >
+                      {g.toLowerCase()}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </span>
+          .
+          {hasActiveFilters && (
+            <>
+              {' '}
+              <button
+                onClick={clearAllFilters}
+                className="font-headline italic text-sm transition-colors"
+                style={{ color: 'rgba(168,154,145,0.5)' }}
+              >
+                clear refinements
+              </button>
+            </>
+          )}
+        </p>
+
+        {/* sort sentence */}
+        <p className="font-headline italic text-sm mt-2" style={{ color: 'rgba(168,154,145,0.6)' }}>
+          Arranged by{' '}
+          <span className="relative inline-block">
+            <button
+              onClick={(e) => { e.stopPropagation(); closeAllDropdowns(); setShowSortList(!showSortList) }}
+              className="font-headline italic underline underline-offset-2 transition-colors"
+              style={{ color: 'rgba(168,154,145,0.6)' }}
+            >
+              {sortLabel}
+            </button>
+            {showSortList && (
+              <ul
+                className="absolute left-0 top-full mt-1 z-50 py-2 px-1 min-w-[180px]"
+                style={{ background: '#261e1b' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {([
+                  ['rating', 'most appreciated'],
+                  ['name', 'by name, a to z'],
+                  ['brand', 'by house, a to z'],
+                ] as [SortOption, string][]).map(([val, label]) => (
+                  <li key={val}>
+                    <button
+                      onClick={() => { setSortBy(val); setShowSortList(false) }}
+                      className="w-full text-left font-headline italic text-sm px-3 py-1.5 transition-colors"
+                      style={{ color: sortBy === val ? '#e5c276' : 'rgba(168,154,145,0.5)' }}
+                    >
+                      {label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </span>
+          .
+        </p>
+      </div>
+
+      {/* ── IV. THE RESULTS ────────────────────────────────── */}
+      {!loading && isSearching && results.length > 0 && (
+        <section className="mt-8">
+          <p className="font-headline italic text-base mb-6" style={{ color: 'rgba(168,154,145,0.7)' }}>
+            <em>{capitalise(numberToWord(results.length))}</em>{' '}
+            {results.length === 1 ? 'title matched' : 'titles matched'} your request.
+          </p>
+          <div className="grid grid-cols-[64px_1fr] md:grid-cols-[96px_1fr] gap-y-6 md:gap-y-8">
+            {results.map((frag) => (
+              <div key={frag.id} className="group contents">
+                {/* portrait */}
+                <button
+                  onClick={() => handleSelect(frag)}
+                  className="aspect-[3/4] rounded-sm overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700"
+                  style={{ background: '#3c3330' }}
+                >
+                  <FragranceImage
+                    src={frag.image_url}
+                    alt={frag.name}
+                    noteFamily={frag.note_family}
+                    size="sm"
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+                {/* meta */}
+                <div className="flex flex-col justify-center pl-4">
+                  <p
+                    className="font-label text-[0.6rem] tracking-[0.15em] uppercase"
+                    style={{ color: 'rgba(229,194,118,0.7)' }}
+                  >
+                    {frag.brand}
+                  </p>
+                  <button
+                    onClick={() => handleSelect(frag)}
+                    className="font-headline italic text-lg text-on-background text-left leading-snug mt-0.5"
+                  >
+                    {frag.name}
+                  </button>
                   {frag.concentration && (
-                    <p className="text-[10px] text-secondary/50">{frag.concentration}</p>
+                    <p
+                      className="font-headline italic text-sm mt-0.5"
+                      style={{ color: 'rgba(168,154,145,0.5)' }}
+                    >
+                      {frag.concentration.toLowerCase()}
+                    </p>
                   )}
                 </div>
-                {frag.rating && (
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <Icon name="star" filled className="text-[11px] text-primary" />
-                    <span className="text-[10px] text-primary font-semibold">{Number(frag.rating).toFixed(1)}</span>
-                  </div>
-                )}
-              </button>
+                {/* hairline spans full grid */}
+                <div className="col-span-2 mt-1" style={{ height: '1px', background: hairline }} />
+              </div>
             ))}
           </div>
         </section>
       )}
 
-      {/* No results */}
+      {/* ── V. THE EMPTY CATALOGUE ─────────────────────────── */}
       {!loading && isSearching && results.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16">
-          <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5">
-            <Icon name="search_off" className="text-3xl text-primary/40" />
-          </div>
-          <h4 className="font-headline text-xl text-on-surface mb-2">No results found</h4>
-          <p className="text-sm text-secondary/60 text-center max-w-[260px]">
-            We couldn't find anything matching "{query}". Try a different name or brand.
+        <div className="flex items-center justify-center py-20">
+          <p
+            className="font-headline italic text-base text-center max-w-md"
+            style={{ color: 'rgba(168,154,145,0.6)' }}
+          >
+            No titles in the catalogue match your request.
           </p>
         </div>
       )}
 
-      {/* Landing — Recent + Popular */}
+      {/* ── VI. THE LANDING ────────────────────────────────── */}
       {showLanding && (
-        <div className="space-y-10">
-          {/* Recent Searches */}
+        <div className="mt-10 space-y-10">
+          {/* a) Recent Enquiries */}
           {recentSearches.length > 0 && (
             <section>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">RECENT SEARCHES</h3>
-                <button onClick={handleClearRecent} className="text-[10px] uppercase tracking-widest text-error/60 font-bold">CLEAR</button>
+              <div className="flex justify-between items-center mb-3">
+                <p
+                  className="font-label text-[0.65rem] tracking-[0.3em] uppercase"
+                  style={{ color: 'rgba(229,194,118,0.6)' }}
+                >
+                  RECENT ENQUIRIES
+                </p>
+                <button
+                  onClick={handleClearRecent}
+                  className="font-headline italic text-sm transition-colors"
+                  style={{ color: 'rgba(168,154,145,0.5)' }}
+                >
+                  clear
+                </button>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {recentSearches.map((term) => (
-                  <button
-                    key={term}
-                    onClick={() => handleRecentTap(term)}
-                    className="flex items-center gap-2 bg-surface-container px-4 py-2.5 rounded-full active:scale-95 transition-transform"
-                  >
-                    <Icon name="history" className="text-secondary/40" size={14} />
-                    <span className="text-xs text-on-surface">{term}</span>
-                  </button>
+              <p className="font-headline italic text-base leading-relaxed">
+                {recentSearches.map((term, i) => (
+                  <span key={term}>
+                    <button
+                      onClick={() => handleRecentTap(term)}
+                      className="font-headline italic transition-colors"
+                      style={{ color: 'rgba(168,154,145,0.5)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = '#f0dfdb' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(168,154,145,0.5)' }}
+                    >
+                      {term}
+                    </button>
+                    {i < recentSearches.length - 1 && (
+                      <span className="mx-2" style={{ color: 'rgba(229,194,118,0.3)' }}>·</span>
+                    )}
+                  </span>
                 ))}
-              </div>
+              </p>
             </section>
           )}
 
-          {/* Recently Viewed */}
+          {/* b) Recently Consulted */}
           {recentlyViewed.length > 0 && (
             <section>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">RECENTLY VIEWED</h3>
+              <div className="flex justify-between items-center mb-3">
+                <p
+                  className="font-label text-[0.65rem] tracking-[0.3em] uppercase"
+                  style={{ color: 'rgba(229,194,118,0.6)' }}
+                >
+                  RECENTLY CONSULTED
+                </p>
                 <button
                   onClick={() => { clearRecentlyViewed(); setRecentlyViewed([]) }}
-                  className="text-[10px] uppercase tracking-widest text-error/60 font-bold"
+                  className="font-headline italic text-sm transition-colors"
+                  style={{ color: 'rgba(168,154,145,0.5)' }}
                 >
-                  CLEAR
+                  clear
                 </button>
               </div>
               <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-2">
@@ -369,54 +543,86 @@ export function SearchScreen() {
                   <button
                     key={item.id}
                     onClick={() => navigate(`/fragrance/${item.id}`)}
-                    className="flex-shrink-0 w-20 flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+                    className="flex-shrink-0 flex flex-col items-center gap-1.5 group"
+                    style={{ minWidth: '80px' }}
                   >
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-surface-container-highest">
+                    <div
+                      className="w-full aspect-[3/4] rounded-sm overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700"
+                      style={{ background: '#3c3330' }}
+                    >
                       {item.image_url ? (
-                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                        <img
+                          src={item.image_url}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Icon name="water_drop" className="text-secondary/30" size={20} />
-                        </div>
+                        <div className="w-full h-full" style={{ background: '#3c3330' }} />
                       )}
                     </div>
-                    <span className="text-[9px] text-on-surface text-center line-clamp-2 leading-tight">{item.name}</span>
+                    <span
+                      className="font-headline italic text-center line-clamp-2 leading-tight"
+                      style={{ fontSize: '0.65rem', color: 'rgba(168,154,145,0.6)' }}
+                    >
+                      {item.name}
+                    </span>
                   </button>
                 ))}
               </div>
             </section>
           )}
 
-          {/* Popular Brands */}
+          {/* c) Distinguished Houses */}
           <section>
-            <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold mb-4">POPULAR BRANDS</h3>
-            <div className="flex flex-wrap gap-2">
-              {POPULAR_SEARCHES.map((brand) => (
-                <button
-                  key={brand}
-                  onClick={() => handlePopularTap(brand)}
-                  className="flex items-center gap-2 bg-surface-container-high px-4 py-2.5 rounded-full active:scale-95 transition-transform"
-                >
-                  <Icon name="trending_up" className="text-primary/50" size={14} />
-                  <span className="text-xs text-on-surface font-medium">{brand}</span>
-                </button>
+            <p
+              className="font-label text-[0.65rem] tracking-[0.3em] uppercase mb-3"
+              style={{ color: 'rgba(229,194,118,0.6)' }}
+            >
+              DISTINGUISHED HOUSES
+            </p>
+            <p className="font-headline italic text-base leading-relaxed">
+              {DISTINGUISHED_HOUSES.map((house, i) => (
+                <span key={house}>
+                  <button
+                    onClick={() => handleHouseTap(house)}
+                    className="font-headline italic transition-colors"
+                    style={{ color: 'rgba(168,154,145,0.5)' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#f0dfdb' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(168,154,145,0.5)' }}
+                  >
+                    {house}
+                  </button>
+                  {i < DISTINGUISHED_HOUSES.length - 1 && (
+                    <span className="mx-2" style={{ color: 'rgba(229,194,118,0.3)' }}>·</span>
+                  )}
+                </span>
               ))}
-            </div>
-          </section>
-
-          {/* Quick Stats */}
-          <section className="bg-surface-container rounded-xl p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <Icon name="auto_awesome" className="text-primary" />
-              <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">SEARCH TIPS</h3>
-            </div>
-            <ul className="space-y-2 text-sm text-secondary/70">
-              <li>Search by fragrance name, e.g. "Aventus"</li>
-              <li>Search by brand, e.g. "Tom Ford"</li>
-              <li>Try partial matches, e.g. "oud" or "rose"</li>
-            </ul>
+            </p>
           </section>
         </div>
+      )}
+
+      {/* ── VII. THE LOADING STATE ─────────────────────────── */}
+      {loading && (
+        <section className="mt-8">
+          <div className="grid grid-cols-[64px_1fr] md:grid-cols-[96px_1fr] gap-y-6 md:gap-y-8">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="contents">
+                <div
+                  className="aspect-[3/4] rounded-sm animate-pulse"
+                  style={{ background: '#3c3330' }}
+                />
+                <div className="flex flex-col justify-center pl-4 gap-2">
+                  <div className="h-2 w-16 rounded-sm animate-pulse" style={{ background: '#3c3330' }} />
+                  <div className="h-4 w-32 rounded-sm animate-pulse" style={{ background: '#3c3330' }} />
+                  <div className="h-2.5 w-24 rounded-sm animate-pulse" style={{ background: '#3c3330' }} />
+                </div>
+                <div className="col-span-2 mt-1" style={{ height: '1px', background: hairline }} />
+              </div>
+            ))}
+          </div>
+        </section>
       )}
     </main>
   )
