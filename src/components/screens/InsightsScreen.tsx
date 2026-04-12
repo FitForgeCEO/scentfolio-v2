@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { InlineError } from '../ui/InlineError'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
@@ -58,12 +57,12 @@ export function InsightsScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center">
-        <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5">
-          <Icon name="insights" className="text-3xl text-primary/40" />
+        <div className="w-16 h-16 rounded-sm bg-surface-container flex items-center justify-center mb-5">
+          <span className="text-3xl text-primary/40 font-serif italic">I</span>
         </div>
         <h3 className="font-headline text-xl text-on-surface mb-2">Sign in to see insights</h3>
         <p className="text-sm text-secondary/60 text-center mb-6">Get a deep breakdown of your fragrance collection.</p>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg">SIGN IN</button>
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest transition-opacity hover:opacity-90 ambient-glow">SIGN IN</button>
       </main>
     )
   }
@@ -75,7 +74,7 @@ export function InsightsScreen() {
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
         <div className="space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-24 rounded-xl bg-surface-container animate-pulse" />
+            <div key={i} className="h-24 rounded-sm bg-surface-container animate-pulse" />
           ))}
         </div>
       </main>
@@ -86,12 +85,12 @@ export function InsightsScreen() {
   if (collection.length === 0) {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center">
-        <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center mb-6">
-          <Icon name="insights" className="text-primary/40 text-4xl" />
+        <div className="w-20 h-20 rounded-sm bg-surface-container flex items-center justify-center mb-6">
+          <span className="text-primary/40 text-4xl font-serif italic">I</span>
         </div>
         <h3 className="font-headline text-xl text-on-surface mb-2 text-center">No insights yet</h3>
         <p className="text-sm text-secondary/60 text-center mb-8 max-w-[280px]">Add fragrances to your collection to see your taste profile, wearing patterns, and more.</p>
-        <button onClick={() => navigate('/explore')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg">EXPLORE</button>
+        <button onClick={() => navigate('/explore')} className="gold-gradient text-on-primary px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest transition-opacity hover:opacity-90 ambient-glow">EXPLORE</button>
       </main>
     )
   }
@@ -185,23 +184,20 @@ export function InsightsScreen() {
 
       {/* Quick Stats */}
       <section className="grid grid-cols-3 gap-3">
-        <StatCard icon="shelves" label="OWNED" value={totalOwned.toString()} />
-        <StatCard icon="star" label="AVG RATING" value={avgRating.toFixed(1)} />
-        <StatCard icon="local_fire_department" label="TOTAL WEARS" value={totalWears.toString()} />
+        <StatCard label="OWNED" value={totalOwned.toString()} />
+        <StatCard label="AVG RATING" value={avgRating.toFixed(1)} />
+        <StatCard label="TOTAL WEARS" value={totalWears.toString()} />
       </section>
 
       <section className="grid grid-cols-2 gap-3">
-        <StatCard icon="water_drop" label="UNIQUE WORN" value={`${uniqueWorn}/${totalOwned}`} />
-        <StatCard icon="trending_up" label="BOTTLES / WEAR" value={costPerWear} />
+        <StatCard label="UNIQUE WORN" value={`${uniqueWorn}/${totalOwned}`} />
+        <StatCard label="BOTTLES / WEAR" value={costPerWear} />
       </section>
 
       {/* Top Brands */}
       {brands.length > 0 && (
-        <section className="bg-surface-container rounded-xl p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <Icon name="storefront" className="text-primary" size={18} />
-            <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">TOP BRANDS</h3>
-          </div>
+        <section className="bg-surface-container rounded-sm p-5 space-y-4">
+          <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">TOP BRANDS</h3>
           <div className="space-y-3">
             {brands.map((b) => (
               <div key={b.brand}>
@@ -209,8 +205,8 @@ export function InsightsScreen() {
                   <span className="text-sm text-on-surface">{b.brand}</span>
                   <span className="text-[10px] text-secondary/60">{b.count} ({b.percentage}%)</span>
                 </div>
-                <div className="h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
-                  <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${b.percentage}%` }} />
+                <div className="h-1.5 bg-surface-container-highest overflow-hidden">
+                  <div className="h-full bg-primary transition-all duration-500" style={{ width: `${b.percentage}%` }} />
                 </div>
               </div>
             ))}
@@ -220,14 +216,11 @@ export function InsightsScreen() {
 
       {/* Note Family Breakdown */}
       {families.length > 0 && (
-        <section className="bg-surface-container rounded-xl p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <Icon name="spa" className="text-primary" size={18} />
-            <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">SCENT PROFILE</h3>
-          </div>
+        <section className="bg-surface-container rounded-sm p-5 space-y-4">
+          <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">SCENT PROFILE</h3>
           <div className="flex flex-wrap gap-2">
             {families.map((f) => (
-              <span key={f.family} className="flex items-center gap-1.5 bg-surface-container-highest px-3 py-2 rounded-full">
+              <span key={f.family} className="flex items-center gap-1.5 bg-surface-container-highest px-3 py-2 rounded-sm">
                 <span className="text-xs text-on-surface font-medium">{f.family}</span>
                 <span className="text-[10px] text-primary font-bold">{f.percentage}%</span>
               </span>
@@ -238,11 +231,8 @@ export function InsightsScreen() {
 
       {/* Concentration Breakdown */}
       {concentrations.length > 0 && (
-        <section className="bg-surface-container rounded-xl p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <Icon name="science" className="text-primary" size={18} />
-            <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">CONCENTRATION</h3>
-          </div>
+        <section className="bg-surface-container rounded-sm p-5 space-y-4">
+          <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">CONCENTRATION</h3>
           <div className="space-y-3">
             {concentrations.map((c) => (
               <div key={c.type}>
@@ -250,8 +240,8 @@ export function InsightsScreen() {
                   <span className="text-sm text-on-surface">{c.type}</span>
                   <span className="text-[10px] text-secondary/60">{c.count} ({c.percentage}%)</span>
                 </div>
-                <div className="h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
-                  <div className="h-full bg-tertiary rounded-full transition-all duration-500" style={{ width: `${c.percentage}%` }} />
+                <div className="h-1.5 bg-surface-container-highest overflow-hidden">
+                  <div className="h-full bg-tertiary transition-all duration-500" style={{ width: `${c.percentage}%` }} />
                 </div>
               </div>
             ))}
@@ -261,14 +251,11 @@ export function InsightsScreen() {
 
       {/* Season Affinity */}
       {seasons.length > 0 && (
-        <section className="bg-surface-container rounded-xl p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <Icon name="thermostat" className="text-primary" size={18} />
-            <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">SEASON AFFINITY</h3>
-          </div>
+        <section className="bg-surface-container rounded-sm p-5 space-y-4">
+          <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">SEASON AFFINITY</h3>
           <div className="grid grid-cols-2 gap-3">
             {seasons.map((s) => (
-              <div key={s.season} className="bg-surface-container-highest rounded-lg p-3 text-center">
+              <div key={s.season} className="bg-surface-container-highest rounded-sm p-3 text-center">
                 <p className="text-[10px] uppercase tracking-widest text-secondary/60 mb-1">{s.season}</p>
                 <p className="text-xl font-headline text-on-surface font-bold">{(s.score * 100).toFixed(0)}%</p>
               </div>
@@ -279,20 +266,17 @@ export function InsightsScreen() {
 
       {/* Most Worn */}
       {wornRanking.length > 0 && (
-        <section className="bg-surface-container rounded-xl p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <Icon name="local_fire_department" className="text-primary" size={18} />
-            <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">MOST WORN</h3>
-          </div>
+        <section className="bg-surface-container rounded-sm p-5 space-y-4">
+          <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">MOST WORN</h3>
           <div className="space-y-3">
             {wornRanking.map((w, i) => (
               <button
                 key={w.fragrance!.id}
                 onClick={() => navigate(`/fragrance/${w.fragrance!.id}`)}
-                className="w-full flex items-center gap-3 py-1 text-left active:opacity-70 transition-opacity"
+                className="w-full flex items-center gap-3 py-1 text-left transition-opacity hover:opacity-80"
               >
                 <span className="text-lg font-headline text-primary/40 w-6 text-center">{i + 1}</span>
-                <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                <div className="w-10 h-10 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                   {w.fragrance!.image_url && (
                     <img src={w.fragrance!.image_url} alt={w.fragrance!.name} className="w-full h-full object-cover" />
                   )}
@@ -310,19 +294,16 @@ export function InsightsScreen() {
 
       {/* Most Neglected */}
       {neglected.length > 0 && (
-        <section className="bg-surface-container rounded-xl p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <Icon name="hourglass_empty" className="text-error/60" size={18} />
-            <h3 className="text-[10px] uppercase tracking-[0.2em] text-error/60 font-bold">MOST NEGLECTED</h3>
-          </div>
+        <section className="bg-surface-container rounded-sm p-5 space-y-4">
+          <h3 className="text-[10px] uppercase tracking-[0.2em] text-error/60 font-bold">MOST NEGLECTED</h3>
           <div className="space-y-3">
             {neglected.map((n) => (
               <button
                 key={n.item.id}
                 onClick={() => navigate(`/fragrance/${n.item.fragrance.id}`)}
-                className="w-full flex items-center gap-3 py-1 text-left active:opacity-70 transition-opacity"
+                className="w-full flex items-center gap-3 py-1 text-left transition-opacity hover:opacity-80"
               >
-                <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                <div className="w-10 h-10 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                   {n.item.fragrance.image_url && (
                     <img src={n.item.fragrance.image_url} alt={n.item.fragrance.name} className="w-full h-full object-cover" />
                   )}
@@ -346,10 +327,9 @@ export function InsightsScreen() {
   )
 }
 
-function StatCard({ icon, label, value }: { icon: string; label: string; value: string }) {
+function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-surface-container rounded-xl p-4 flex flex-col items-center justify-center text-center">
-      <Icon name={icon} className="text-primary mb-1" size={18} />
+    <div className="bg-surface-container rounded-sm p-4 flex flex-col items-center justify-center text-center">
       <p className="text-xl font-headline text-on-surface font-bold">{value}</p>
       <p className="text-[8px] uppercase tracking-[0.2em] text-secondary/50 font-bold mt-0.5">{label}</p>
     </div>

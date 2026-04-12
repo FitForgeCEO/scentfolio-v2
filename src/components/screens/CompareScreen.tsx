@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import { Icon } from '../ui/Icon'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
@@ -44,12 +43,12 @@ export function CompareScreen() {
           const frag = selected[i]
           return frag ? (
             <div key={i} className="relative flex flex-col items-center">
-              <div className="w-full aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-2">
+              <div className="w-full aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-low mb-2">
                 {frag.image_url ? (
                   <img src={frag.image_url} alt={frag.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-surface-container">
-                    <Icon name="water_drop" className="text-secondary/30" size={32} />
+                    <span className="text-secondary/30 text-xs italic">—</span>
                   </div>
                 )}
               </div>
@@ -57,20 +56,20 @@ export function CompareScreen() {
               <p className="text-[11px] text-on-surface font-medium text-center line-clamp-2">{frag.name}</p>
               <button
                 onClick={() => handleRemove(i)}
-                className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-error/80 flex items-center justify-center"
+                className="absolute -top-1 -right-1 w-6 h-6 rounded-sm bg-error/80 flex items-center justify-center transition-opacity hover:opacity-80"
                 aria-label={`Remove ${frag.name}`}
               >
-                <Icon name="close" size={14} className="text-on-error" />
+                <span className="text-on-error text-xs">×</span>
               </button>
             </div>
           ) : (
             <button
               key={i}
               onClick={() => handleOpenPicker(i)}
-              className="w-full aspect-[3/4] rounded-xl border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
+              className="w-full aspect-[3/4] rounded-sm border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center gap-2 transition-opacity hover:opacity-80"
             >
-              <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center">
-                <Icon name="add" className="text-primary" />
+              <div className="w-10 h-10 rounded-sm bg-surface-container flex items-center justify-center">
+                <span className="text-primary text-lg">+</span>
               </div>
               <span className="text-[10px] text-secondary/50 font-bold uppercase tracking-wider">
                 {i === 0 ? 'ADD FIRST' : i === 1 ? 'ADD SECOND' : 'ADD THIRD'}
@@ -83,8 +82,7 @@ export function CompareScreen() {
       {/* Comparison Table */}
       {hasComparison && (
         <div className="space-y-6">
-          {/* Rating */}
-          <CompareRow label="RATING" icon="star">
+          <CompareRow label="RATING">
             {selected.map((f) => (
               <div key={f.id} className="flex-1 text-center">
                 <span className="text-lg font-headline text-on-surface font-bold">{f.rating ? Number(f.rating).toFixed(1) : '—'}</span>
@@ -92,8 +90,7 @@ export function CompareScreen() {
             ))}
           </CompareRow>
 
-          {/* Concentration */}
-          <CompareRow label="CONCENTRATION" icon="science">
+          <CompareRow label="CONCENTRATION">
             {selected.map((f) => (
               <div key={f.id} className="flex-1 text-center">
                 <span className="text-xs text-on-surface">{f.concentration ?? '—'}</span>
@@ -101,8 +98,7 @@ export function CompareScreen() {
             ))}
           </CompareRow>
 
-          {/* Longevity */}
-          <CompareRow label="LONGEVITY" icon="schedule">
+          <CompareRow label="LONGEVITY">
             {selected.map((f) => (
               <div key={f.id} className="flex-1 text-center">
                 <span className="text-lg font-headline text-on-surface font-bold">{f.longevity ?? '—'}</span>
@@ -111,8 +107,7 @@ export function CompareScreen() {
             ))}
           </CompareRow>
 
-          {/* Sillage */}
-          <CompareRow label="SILLAGE" icon="air">
+          <CompareRow label="SILLAGE">
             {selected.map((f) => (
               <div key={f.id} className="flex-1 text-center">
                 <span className="text-lg font-headline text-on-surface font-bold">{f.sillage ?? '—'}</span>
@@ -121,8 +116,7 @@ export function CompareScreen() {
             ))}
           </CompareRow>
 
-          {/* Gender */}
-          <CompareRow label="GENDER" icon="person">
+          <CompareRow label="GENDER">
             {selected.map((f) => (
               <div key={f.id} className="flex-1 text-center">
                 <span className="text-xs text-on-surface">{f.gender ?? '—'}</span>
@@ -130,8 +124,7 @@ export function CompareScreen() {
             ))}
           </CompareRow>
 
-          {/* Note Family */}
-          <CompareRow label="NOTE FAMILY" icon="spa">
+          <CompareRow label="NOTE FAMILY">
             {selected.map((f) => (
               <div key={f.id} className="flex-1 text-center">
                 <span className="text-xs text-on-surface">{f.note_family ?? '—'}</span>
@@ -139,8 +132,7 @@ export function CompareScreen() {
             ))}
           </CompareRow>
 
-          {/* Year */}
-          <CompareRow label="YEAR" icon="calendar_month">
+          <CompareRow label="YEAR">
             {selected.map((f) => (
               <div key={f.id} className="flex-1 text-center">
                 <span className="text-xs text-on-surface">{f.year_released ?? '—'}</span>
@@ -148,8 +140,7 @@ export function CompareScreen() {
             ))}
           </CompareRow>
 
-          {/* Price */}
-          <CompareRow label="PRICE" icon="payments">
+          <CompareRow label="PRICE">
             {selected.map((f) => (
               <div key={f.id} className="flex-1 text-center">
                 <span className="text-xs text-on-surface">{f.price ?? '—'}</span>
@@ -158,9 +149,8 @@ export function CompareScreen() {
           </CompareRow>
 
           {/* Top Accords */}
-          <section className="bg-surface-container rounded-xl p-5 space-y-4">
+          <section className="bg-surface-container rounded-sm p-5 space-y-4">
             <div className="flex items-center gap-2 mb-2">
-              <Icon name="palette" className="text-primary" size={18} />
               <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">TOP ACCORDS</h3>
             </div>
             <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${selected.length}, 1fr)` }}>
@@ -174,8 +164,8 @@ export function CompareScreen() {
                       .map(([accord, pct]) => (
                         <div key={accord}>
                           <p className="text-[9px] text-secondary/60 truncate">{accord}</p>
-                          <div className="h-1 bg-surface-container-highest rounded-full overflow-hidden">
-                            <div className="h-full bg-primary rounded-full" style={{ width: `${parseFloat(pct as string)}%` }} />
+                          <div className="h-1 bg-surface-container-highest overflow-hidden">
+                            <div className="h-full bg-primary" style={{ width: `${parseFloat(pct as string)}%` }} />
                           </div>
                         </div>
                       ))
@@ -188,9 +178,8 @@ export function CompareScreen() {
           </section>
 
           {/* Season Comparison */}
-          <section className="bg-surface-container rounded-xl p-5 space-y-4">
+          <section className="bg-surface-container rounded-sm p-5 space-y-4">
             <div className="flex items-center gap-2 mb-2">
-              <Icon name="thermostat" className="text-primary" size={18} />
               <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">SEASON FIT</h3>
             </div>
             {['SPRING', 'SUMMER', 'FALL', 'WINTER'].map((season) => (
@@ -202,9 +191,9 @@ export function CompareScreen() {
                   const score = f.season_ranking?.find((s) => s.name.toUpperCase() === season)?.score ?? 0
                   return (
                     <div key={f.id} className="flex-1">
-                      <div className="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                      <div className="h-2 bg-surface-container-highest overflow-hidden">
                         <div
-                          className="h-full bg-primary rounded-full transition-all duration-500"
+                          className="h-full bg-primary transition-all duration-500"
                           style={{ width: `${score * 100}%` }}
                         />
                       </div>
@@ -216,9 +205,8 @@ export function CompareScreen() {
           </section>
 
           {/* Notes Comparison */}
-          <section className="bg-surface-container rounded-xl p-5 space-y-4">
+          <section className="bg-surface-container rounded-sm p-5 space-y-4">
             <div className="flex items-center gap-2 mb-2">
-              <Icon name="music_note" className="text-primary" size={18} />
               <h3 className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">NOTES</h3>
             </div>
             {(['notes_top', 'notes_heart', 'notes_base'] as const).map((layer) => {
@@ -230,7 +218,7 @@ export function CompareScreen() {
                     {selected.map((f) => (
                       <div key={f.id} className="flex flex-wrap gap-1">
                         {(f[layer] ?? []).slice(0, 5).map((note) => (
-                          <span key={note} className="text-[9px] bg-surface-container-highest px-2 py-0.5 rounded-full text-on-surface-variant">{note}</span>
+                          <span key={note} className="text-[9px] bg-surface-container-highest px-2 py-0.5 rounded-sm text-on-surface-variant">{note}</span>
                         ))}
                         {(!f[layer] || f[layer]!.length === 0) && <span className="text-[9px] text-secondary/30">—</span>}
                       </div>
@@ -245,8 +233,8 @@ export function CompareScreen() {
 
       {!hasComparison && (
         <div className="flex flex-col items-center justify-center py-12">
-          <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5">
-            <Icon name="compare_arrows" className="text-3xl text-primary/40" />
+          <div className="w-16 h-16 rounded-sm bg-surface-container flex items-center justify-center mb-5">
+            <span className="text-3xl text-primary/40 font-serif italic">⇔</span>
           </div>
           <p className="text-sm text-secondary/60 text-center max-w-[260px]">
             Select at least 2 fragrances above to see a detailed side-by-side comparison.
@@ -265,11 +253,10 @@ export function CompareScreen() {
   )
 }
 
-function CompareRow({ label, icon, children }: { label: string; icon: string; children: React.ReactNode }) {
+function CompareRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="bg-surface-container rounded-xl p-4">
+    <div className="bg-surface-container rounded-sm p-4">
       <div className="flex items-center gap-2 mb-3">
-        <Icon name={icon} className="text-primary" size={16} />
         <span className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">{label}</span>
       </div>
       <div className="flex gap-2">
@@ -321,13 +308,13 @@ function FragrancePickerSheet({
         <div className="flex justify-center py-4"><div className="w-12 h-1 bg-surface-container-highest rounded-full" /></div>
         <header className="px-8 pb-4 flex justify-between items-center">
           <h2 className="text-2xl font-headline font-bold text-on-surface">Pick a Fragrance</h2>
-          <button onClick={onClose} className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform">
-            <Icon name="close" size={20} />
+          <button onClick={onClose} className="w-10 h-10 rounded-sm bg-surface-container-highest flex items-center justify-center text-on-surface-variant transition-opacity hover:opacity-80">
+            <span className="text-sm">×</span>
           </button>
         </header>
         <div className="px-8 pb-4">
-          <div className="flex items-center bg-surface-container rounded-2xl px-4 py-3 focus-within:ring-1 ring-primary/30 transition-all">
-            <Icon name="search" className="text-secondary/50 mr-3" size={18} />
+          <div className="flex items-center bg-surface-container rounded-sm px-4 py-3 focus-within:ring-1 ring-primary/30 transition-all">
+            <span className="text-secondary/40 mr-2 text-xs italic">search</span>
             <input
               className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-secondary/40 w-full text-sm"
               placeholder="Search fragrances..."
@@ -339,22 +326,24 @@ function FragrancePickerSheet({
         </div>
         <div className="flex-1 overflow-y-auto px-8 pb-8">
           {searching ? (
-            <div className="flex justify-center py-12">
-              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="flex flex-col gap-2 py-8 px-2">
+              {[1,2,3].map(i => (
+                <div key={i} className="h-3 rounded-sm bg-surface-container-highest/40 animate-pulse" style={{ width: `${90 - i * 15}%` }} />
+              ))}
             </div>
           ) : query.length >= 2 && results.length === 0 ? (
             <p className="text-center text-sm text-secondary/50 py-12">No fragrances found</p>
           ) : (
-            <div className="divide-y divide-outline-variant/10">
+            <div className="space-y-1">
               {results.map((f) => (
                 <button
                   key={f.id}
                   onClick={() => onSelect(f)}
-                  className="w-full flex items-center gap-3 py-3 text-left active:bg-surface-container-highest transition-colors"
+                  className="w-full flex items-center gap-3 py-3 text-left hover:bg-surface-container-highest transition-opacity"
                 >
-                  <div className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                  <div className="w-11 h-11 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                     {f.image_url ? <img src={f.image_url} alt={f.name} className="w-full h-full object-cover" /> : (
-                      <div className="w-full h-full flex items-center justify-center"><Icon name="water_drop" className="text-secondary/30" size={16} /></div>
+                      <div className="w-full h-full flex items-center justify-center"><span className="text-secondary/30 text-[9px] italic">—</span></div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -362,10 +351,7 @@ function FragrancePickerSheet({
                     <p className="text-sm text-on-surface truncate">{f.name}</p>
                   </div>
                   {f.rating && (
-                    <div className="flex items-center gap-1">
-                      <Icon name="star" filled className="text-[11px] text-primary" />
-                      <span className="text-[10px] text-primary font-semibold">{Number(f.rating).toFixed(1)}</span>
-                    </div>
+                    <span className="text-[10px] text-primary font-semibold">{Number(f.rating).toFixed(1)}</span>
                   )}
                 </button>
               ))}

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Icon } from '../ui/Icon'
 import { ShareStackCard } from '../fragrance/ShareStackCard'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -33,14 +32,14 @@ type ScreenState = 'select' | 'loading' | 'results' | 'error'
 // ── Preset vibes ─────────────────────────────────────────────
 
 const PRESET_VIBES = [
-  { label: 'Date Night', icon: 'favorite' },
-  { label: 'Cozy Evening', icon: 'local_fire_department' },
-  { label: 'Fresh & Clean', icon: 'water_drop' },
-  { label: 'Office Power', icon: 'work' },
-  { label: 'Weekend Brunch', icon: 'wb_sunny' },
-  { label: 'Night Out', icon: 'nightlife' },
-  { label: 'Mysterious', icon: 'visibility_off' },
-  { label: 'Sophisticated', icon: 'diamond' },
+  'Date Night',
+  'Cosy Evening',
+  'Fresh & Clean',
+  'Office Power',
+  'Weekend Brunch',
+  'Night Out',
+  'Mysterious',
+  'Sophisticated',
 ]
 
 const LOADING_MESSAGES = [
@@ -113,17 +112,18 @@ function FragranceSearch({
     <div className="space-y-4">
       {/* Search input */}
       <div className="relative">
-        <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/60" size={18} />
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-secondary/40 text-xs italic">search</span>
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search fragrances..."
-          className="w-full h-12 pl-11 pr-4 bg-surface-container-highest rounded-xl text-sm text-on-surface placeholder:text-secondary/30 outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+          className="w-full h-12 pl-16 pr-4 bg-surface-container-highest rounded-sm text-sm text-on-surface placeholder:text-secondary/30 outline-none focus:ring-1 focus:ring-primary/30 transition-all"
         />
         {searching && (
-          <div className="absolute right-4 top-1/2 -translate-y-1/2">
-            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-1">
+            <div className="h-1.5 w-6 rounded-sm bg-primary/30 animate-pulse" />
+            <div className="h-1.5 w-4 rounded-sm bg-primary/20 animate-pulse" />
           </div>
         )}
       </div>
@@ -137,13 +137,13 @@ function FragranceSearch({
               <button
                 key={f.id}
                 onClick={() => onSelect(f)}
-                className="flex items-center gap-3 p-3 bg-surface-container rounded-xl text-left active:scale-[0.97] transition-transform"
+                className="flex items-center gap-3 p-3 bg-surface-container rounded-sm text-left transition-opacity hover:opacity-80"
               >
                 {f.image_url ? (
-                  <img src={f.image_url} alt={f.name} className="w-10 h-12 object-cover rounded-lg shrink-0" />
+                  <img src={f.image_url} alt={f.name} className="w-10 h-12 object-cover rounded-sm shrink-0" />
                 ) : (
-                  <div className="w-10 h-12 bg-surface-container-highest rounded-lg flex items-center justify-center shrink-0">
-                    <Icon name="water_drop" className="text-secondary/20" size={16} />
+                  <div className="w-10 h-12 bg-surface-container-highest rounded-sm flex items-center justify-center shrink-0">
+                    <span className="text-secondary/20 text-[9px] italic">—</span>
                   </div>
                 )}
                 <div className="min-w-0">
@@ -163,22 +163,19 @@ function FragranceSearch({
             <button
               key={f.id}
               onClick={() => onSelect(f)}
-              className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container active:scale-[0.98] transition-all text-left"
+              className="w-full flex items-center gap-3 p-3 rounded-sm hover:bg-surface-container transition-opacity text-left"
             >
               {f.image_url ? (
-                <img src={f.image_url} alt={f.name} className="w-10 h-12 object-cover rounded-lg shrink-0" />
+                <img src={f.image_url} alt={f.name} className="w-10 h-12 object-cover rounded-sm shrink-0" />
               ) : (
-                <div className="w-10 h-12 bg-surface-container-highest rounded-lg shrink-0" />
+                <div className="w-10 h-12 bg-surface-container-highest rounded-sm shrink-0" />
               )}
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-on-surface truncate">{f.name}</p>
                 <p className="text-[10px] tracking-wider text-secondary/50 uppercase truncate">{f.brand}</p>
               </div>
               {f.rating && (
-                <div className="ml-auto flex items-center gap-1 shrink-0">
-                  <Icon name="star" filled className="text-primary text-xs" />
-                  <span className="text-xs text-primary font-bold">{Number(f.rating).toFixed(1)}</span>
-                </div>
+                <span className="ml-auto text-xs text-primary font-bold shrink-0">{Number(f.rating).toFixed(1)}</span>
               )}
             </button>
           ))}
@@ -306,7 +303,7 @@ export function LayeringLabScreen() {
       <main className="pt-24 pb-32 px-6 max-w-[375px] mx-auto">
         {/* Header */}
         <div className="flex items-center justify-center gap-2 mb-2">
-          <Icon name="auto_awesome" filled className="text-primary" />
+          <span className="text-primary text-sm italic">✦</span>
           <h1 className="font-headline text-xl text-primary tracking-wide">AI Layering Lab</h1>
         </div>
         <p className="text-center text-xs text-secondary/50 mb-10">
@@ -316,23 +313,23 @@ export function LayeringLabScreen() {
         {/* Step 1: Choose fragrance */}
         <section className="mb-10">
           <div className="flex items-center gap-2 mb-4">
-            <span className="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center text-[10px] font-bold text-primary">1</span>
+            <span className="w-6 h-6 rounded-sm bg-primary/15 flex items-center justify-center text-[10px] font-bold text-primary">1</span>
             <h2 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase">CHOOSE FRAGRANCE</h2>
           </div>
 
           {selectedFragrance ? (
-            <div className="flex items-center gap-4 p-4 bg-surface-container rounded-xl">
+            <div className="flex items-center gap-4 p-4 bg-surface-container rounded-sm">
               {selectedFragrance.image_url ? (
-                <img src={selectedFragrance.image_url} alt={selectedFragrance.name} className="w-12 h-16 object-cover rounded-lg" />
+                <img src={selectedFragrance.image_url} alt={selectedFragrance.name} className="w-12 h-16 object-cover rounded-sm" />
               ) : (
-                <div className="w-12 h-16 bg-surface-container-highest rounded-lg" />
+                <div className="w-12 h-16 bg-surface-container-highest rounded-sm" />
               )}
               <div className="flex-1 min-w-0">
                 <p className="font-headline text-lg text-on-surface truncate">{selectedFragrance.name}</p>
                 <p className="text-[10px] tracking-wider text-secondary/50 uppercase">{selectedFragrance.brand}</p>
               </div>
-              <button onClick={() => setSelectedFragrance(null)} aria-label="Remove fragrance" className="p-2 active:scale-90 transition-transform">
-                <Icon name="close" className="text-secondary/60" size={18} />
+              <button onClick={() => setSelectedFragrance(null)} aria-label="Remove fragrance" className="p-2 transition-opacity hover:opacity-80">
+                <span className="text-secondary/60 text-sm">×</span>
               </button>
             </div>
           ) : (
@@ -343,22 +340,21 @@ export function LayeringLabScreen() {
         {/* Step 2: Choose vibe */}
         <section className="mb-12">
           <div className="flex items-center gap-2 mb-4">
-            <span className="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center text-[10px] font-bold text-primary">2</span>
+            <span className="w-6 h-6 rounded-sm bg-primary/15 flex items-center justify-center text-[10px] font-bold text-primary">2</span>
             <h2 className="text-[11px] font-bold tracking-[0.15em] text-primary uppercase">CHOOSE VIBE</h2>
           </div>
 
           <div className="flex flex-wrap gap-2 mb-4">
-            {PRESET_VIBES.map(({ label, icon }) => (
+            {PRESET_VIBES.map((label) => (
               <button
                 key={label}
                 onClick={() => { setSelectedVibe(label); setCustomVibe('') }}
-                className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[11px] font-semibold tracking-wide transition-all active:scale-95 ${
+                className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-sm text-[11px] font-semibold tracking-wide transition-opacity hover:opacity-80 ${
                   selectedVibe === label
                     ? 'bg-primary/20 text-primary'
-                    : 'bg-surface-container text-secondary/70 hover:text-on-surface'
+                    : 'bg-surface-container text-secondary/70'
                 }`}
               >
-                <Icon name={icon} size={14} />
                 {label}
               </button>
             ))}
@@ -370,7 +366,7 @@ export function LayeringLabScreen() {
               value={customVibe}
               onChange={(e) => { setCustomVibe(e.target.value); setSelectedVibe(null) }}
               placeholder="Or describe your own vibe..."
-              className="w-full h-12 px-4 bg-surface-container-highest rounded-xl text-sm text-on-surface placeholder:text-secondary/30 outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+              className="w-full h-12 px-4 bg-surface-container-highest rounded-sm text-sm text-on-surface placeholder:text-secondary/30 outline-none focus:ring-1 focus:ring-primary/30 transition-all"
             />
           </div>
         </section>
@@ -379,9 +375,9 @@ export function LayeringLabScreen() {
         <button
           onClick={handleGenerate}
           disabled={!selectedFragrance || !activeVibe}
-          className="w-full h-16 gold-gradient rounded-xl font-label text-xs font-bold tracking-[0.2em] uppercase text-on-primary active:opacity-70 transition-all flex items-center justify-center gap-3 shadow-lg shadow-black/40 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-full h-16 gold-gradient rounded-sm font-label text-xs font-bold tracking-[0.2em] uppercase text-on-primary transition-opacity hover:opacity-90 flex items-center justify-center gap-3 ambient-glow disabled:opacity-30 disabled:cursor-not-allowed"
         >
-          <Icon name="auto_awesome" filled />
+          <span className="italic">✦</span>
           Generate Layering Stack
         </button>
       </main>
@@ -393,7 +389,7 @@ export function LayeringLabScreen() {
   if (screen === 'loading') {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen">
-        <Icon name="auto_awesome" filled className="text-primary text-4xl mb-6 animate-pulse" />
+        <span className="text-primary text-4xl mb-6 animate-pulse italic">✦</span>
         <p className="font-headline italic text-lg text-primary mb-3">Crafting your stack...</p>
         <p className="text-sm text-secondary/50 animate-pulse">{loadingMsg}</p>
       </main>
@@ -405,12 +401,12 @@ export function LayeringLabScreen() {
   if (screen === 'error') {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen text-center">
-        <Icon name="error_outline" className="text-error text-4xl mb-4" />
+        <span className="text-error text-3xl mb-4">⚠</span>
         <p className="text-sm text-on-surface mb-2">Something went wrong</p>
         <p className="text-xs text-secondary/50 mb-8 max-w-[280px]">{errorMsg}</p>
         <button
           onClick={handleReset}
-          className="px-8 py-3 bg-surface-container rounded-xl text-sm font-bold text-on-surface active:scale-95 transition-transform"
+          className="px-8 py-3 bg-surface-container rounded-sm text-sm font-bold text-on-surface transition-opacity hover:opacity-80"
         >
           Try Again
         </button>
@@ -436,7 +432,7 @@ export function LayeringLabScreen() {
       {/* Step Cards */}
       <section className="space-y-6">
         {/* STEP 1 — Body Prep */}
-        <div className="bg-surface-container rounded-xl overflow-hidden p-6">
+        <div className="bg-surface-container rounded-sm overflow-hidden p-6">
           <span className="font-label text-[10px] tracking-[0.15em] text-secondary-fixed-dim block mb-3">
             STEP 1 · BODY PREP
           </span>
@@ -447,7 +443,7 @@ export function LayeringLabScreen() {
               {result.bodyPrep.notes.split(',').map((note) => (
                 <span
                   key={note.trim()}
-                  className="text-[10px] font-semibold text-primary uppercase tracking-widest bg-primary/5 px-2 py-1 rounded"
+                  className="text-[10px] font-semibold text-primary uppercase tracking-widest bg-primary/5 px-2 py-1 rounded-sm"
                 >
                   {note.trim()}
                 </span>
@@ -458,9 +454,9 @@ export function LayeringLabScreen() {
         </div>
 
         {/* STEP 2 — Base Layer (user's selected fragrance) */}
-        <div className="bg-surface-container rounded-xl overflow-hidden p-6 border-l-2 border-primary/30 flex gap-4">
+        <div className="bg-surface-container rounded-sm overflow-hidden p-6 flex gap-4" style={{ borderLeft: '2px solid rgba(229, 194, 118, 0.3)' }}>
           {selectedFragrance.image_url && (
-            <div className="w-16 h-20 bg-surface-container-highest rounded-lg overflow-hidden flex-shrink-0">
+            <div className="w-16 h-20 bg-surface-container-highest rounded-sm overflow-hidden flex-shrink-0">
               <img
                 src={selectedFragrance.image_url}
                 alt={selectedFragrance.name}
@@ -479,13 +475,13 @@ export function LayeringLabScreen() {
         </div>
 
         {/* STEP 3 — Top Layer (AI recommendation) */}
-        <div className="bg-surface-container rounded-xl overflow-hidden p-6">
+        <div className="bg-surface-container rounded-sm overflow-hidden p-6">
           <div className="flex justify-between items-start mb-3">
             <span className="font-label text-[10px] tracking-[0.15em] text-secondary-fixed-dim">
               STEP 3 · TOP LAYER
             </span>
             {result.layeringFragrance.fromCollection && (
-              <span className="bg-primary/15 text-primary text-[9px] font-bold px-2 py-0.5 rounded tracking-tighter uppercase">
+              <span className="bg-primary/15 text-primary text-[9px] font-bold px-2 py-0.5 rounded-sm tracking-tighter uppercase">
                 IN YOUR COLLECTION
               </span>
             )}
@@ -506,9 +502,8 @@ export function LayeringLabScreen() {
 
         {/* Why It Works */}
         {result.whyItWorks && (
-          <div className="bg-surface-container rounded-xl p-6 border border-primary/10">
+          <div className="bg-surface-container rounded-sm p-6" style={{ borderLeft: '1px solid rgba(229, 194, 118, 0.1)' }}>
             <div className="flex items-center gap-2 mb-3">
-              <Icon name="lightbulb" className="text-primary text-lg" />
               <span className="font-label text-[10px] font-bold tracking-[0.2em] text-primary">WHY THIS WORKS</span>
             </div>
             <p className="text-sm text-on-surface-variant leading-relaxed italic">{result.whyItWorks}</p>
@@ -517,8 +512,8 @@ export function LayeringLabScreen() {
 
         {/* Pro Tip */}
         {result.proBonusTip && (
-          <div className="bg-primary/5 rounded-xl p-5 flex gap-4 items-start">
-            <Icon name="auto_awesome" filled className="text-primary shrink-0" />
+          <div className="bg-primary/5 rounded-sm p-5 flex gap-4 items-start">
+            <span className="text-primary shrink-0 italic">✦</span>
             <div>
               <span className="font-label text-[10px] font-bold tracking-[0.2em] text-primary block mb-1">PRO TIP</span>
               <p className="text-xs text-on-surface leading-normal">{result.proBonusTip}</p>
@@ -532,28 +527,27 @@ export function LayeringLabScreen() {
         <div className="flex gap-3">
           <button
             onClick={handleTryAnotherVibe}
-            className="flex-1 h-14 bg-surface-container rounded-xl font-label text-[11px] font-bold tracking-widest uppercase text-on-surface active:opacity-70 transition-all"
+            className="flex-1 h-14 bg-surface-container rounded-sm font-label text-[11px] font-bold tracking-widest uppercase text-on-surface transition-opacity hover:opacity-80"
           >
             Try Another Vibe
           </button>
           <button
             onClick={handleShare}
-            className="flex-1 h-14 gold-gradient rounded-xl font-label text-[11px] font-bold tracking-widest uppercase text-on-primary active:opacity-70 transition-all flex items-center justify-center gap-2"
+            className="flex-1 h-14 gold-gradient rounded-sm font-label text-[11px] font-bold tracking-widest uppercase text-on-primary transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
           >
-            <Icon name="share" size={16} />
             Share Stack
           </button>
         </div>
         <button
           onClick={saved ? undefined : handleSaveStack}
           disabled={saved || !user}
-          className={`w-full h-16 rounded-xl font-label text-xs font-bold tracking-[0.2em] uppercase transition-all flex items-center justify-center gap-3 ${
+          className={`w-full h-16 rounded-sm font-label text-xs font-bold tracking-[0.2em] uppercase transition-opacity flex items-center justify-center gap-3 ${
             saved
               ? 'bg-surface-container text-primary'
-              : 'gold-gradient text-on-primary active:opacity-70 shadow-lg shadow-black/40'
+              : 'gold-gradient text-on-primary hover:opacity-90 ambient-glow'
           } disabled:opacity-60`}
         >
-          <Icon name={saved ? 'bookmark_added' : 'auto_awesome'} filled />
+          <span className="italic">{saved ? '✓' : '✦'}</span>
           {saved ? 'Saved' : 'Save This Stack'}
         </button>
         {!user && (

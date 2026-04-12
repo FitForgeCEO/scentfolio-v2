@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { InlineError } from '../ui/InlineError'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/contexts/ToastContext'
@@ -11,11 +10,11 @@ import type { Decant } from '@/hooks/useDecants'
 import type { Fragrance } from '@/types/database'
 
 const SIZE_TYPES = [
-  { value: 'full', label: 'Full Bottle', icon: 'local_bar', defaultMl: 100 },
-  { value: 'travel', label: 'Travel Size', icon: 'luggage', defaultMl: 10 },
-  { value: 'decant', label: 'Decant', icon: 'science', defaultMl: 5 },
-  { value: 'sample', label: 'Sample', icon: 'colorize', defaultMl: 2 },
-  { value: 'discovery', label: 'Discovery Set', icon: 'grid_view', defaultMl: 1.5 },
+  { value: 'full', label: 'Full Bottle', defaultMl: 100 },
+  { value: 'travel', label: 'Travel Size', defaultMl: 10 },
+  { value: 'decant', label: 'Decant', defaultMl: 5 },
+  { value: 'sample', label: 'Sample', defaultMl: 2 },
+  { value: 'discovery', label: 'Discovery Set', defaultMl: 1.5 },
 ] as const
 
 const SIZE_COLORS: Record<string, string> = {
@@ -48,12 +47,12 @@ export function DecantsScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center">
-        <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5">
-          <Icon name="science" className="text-3xl text-primary/40" />
+        <div className="w-16 h-16 rounded-sm bg-surface-container flex items-center justify-center mb-5">
+          <span className="text-3xl text-primary/40 font-serif italic">D</span>
         </div>
         <h3 className="font-headline text-xl text-on-surface mb-2">Sign in to track decants</h3>
         <p className="text-sm text-secondary/60 text-center mb-6">Track your full bottles, decants, samples, and discovery sets.</p>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg">SIGN IN</button>
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest transition-opacity hover:opacity-90 ambient-glow">SIGN IN</button>
       </main>
     )
   }
@@ -81,19 +80,19 @@ export function DecantsScreen() {
       ) : loading ? (
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-20 rounded-xl bg-surface-container animate-pulse" />
+            <div key={i} className="h-20 rounded-sm bg-surface-container animate-pulse" />
           ))}
         </div>
       ) : decants.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16">
-          <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center mb-6">
-            <Icon name="science" className="text-primary/40 text-4xl" />
+          <div className="w-20 h-20 rounded-sm bg-surface-container flex items-center justify-center mb-6">
+            <span className="text-primary/40 text-4xl font-serif italic">D</span>
           </div>
           <h3 className="font-headline text-xl text-on-surface mb-2 text-center">No decants yet</h3>
           <p className="text-sm text-secondary/60 text-center mb-8 max-w-[280px]">
             Track your full bottles, travel sizes, decants, and samples all in one place.
           </p>
-          <button onClick={() => setAddSheetOpen(true)} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg">
+          <button onClick={() => setAddSheetOpen(true)} className="gold-gradient text-on-primary px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest transition-opacity hover:opacity-90 ambient-glow">
             ADD FIRST ITEM
           </button>
         </div>
@@ -101,15 +100,15 @@ export function DecantsScreen() {
         <>
           {/* Summary Cards */}
           <section className="grid grid-cols-3 gap-3 mb-6">
-            <div className="bg-surface-container rounded-xl p-3 text-center">
+            <div className="bg-surface-container rounded-sm p-3 text-center">
               <p className="text-xl font-headline text-on-surface font-bold">{totalItems}</p>
               <p className="text-[8px] uppercase tracking-[0.2em] text-secondary/50 font-bold">ITEMS</p>
             </div>
-            <div className="bg-surface-container rounded-xl p-3 text-center">
+            <div className="bg-surface-container rounded-sm p-3 text-center">
               <p className="text-xl font-headline text-on-surface font-bold">{totalMl.toFixed(0)}<span className="text-xs text-secondary/50">ml</span></p>
               <p className="text-[8px] uppercase tracking-[0.2em] text-secondary/50 font-bold">TOTAL ML</p>
             </div>
-            <div className="bg-surface-container rounded-xl p-3 text-center">
+            <div className="bg-surface-container rounded-sm p-3 text-center">
               <p className="text-xl font-headline text-on-surface font-bold">{totalValue > 0 ? `£${totalValue.toFixed(0)}` : '—'}</p>
               <p className="text-[8px] uppercase tracking-[0.2em] text-secondary/50 font-bold">VALUE</p>
             </div>
@@ -119,8 +118,7 @@ export function DecantsScreen() {
           {typeBreakdown.length > 1 && (
             <div className="flex flex-wrap gap-2 mb-6">
               {typeBreakdown.map((t) => (
-                <span key={t.value} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase ${SIZE_COLORS[t.value] || 'bg-surface-container-highest text-secondary'}`}>
-                  <Icon name={t.icon} size={12} />
+                <span key={t.value} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-[10px] font-bold tracking-wider uppercase ${SIZE_COLORS[t.value] || 'bg-surface-container-highest text-secondary'}`}>
                   {t.label} ({t.count})
                 </span>
               ))}
@@ -146,10 +144,10 @@ export function DecantsScreen() {
       {user && (
         <button
           onClick={() => setAddSheetOpen(true)}
-          className="fixed bottom-24 right-6 z-[var(--z-fab)] w-14 h-14 rounded-full gold-gradient shadow-xl flex items-center justify-center active:scale-90 transition-all ambient-glow"
+          className="fixed bottom-24 right-6 z-[var(--z-fab)] w-14 h-14 rounded-sm gold-gradient shadow-xl flex items-center justify-center transition-opacity hover:opacity-90 ambient-glow"
           aria-label="Add decant"
         >
-          <Icon name="add" className="text-on-primary text-2xl" />
+          <span className="text-on-primary text-2xl">+</span>
         </button>
       )}
 
@@ -183,20 +181,20 @@ function DecantCard({
   const sizeInfo = SIZE_TYPES.find((s) => s.value === decant.size_type)
 
   return (
-    <div className="bg-surface-container rounded-xl overflow-hidden">
-      <button onClick={onTap} className="w-full flex items-center gap-3.5 p-4 text-left active:bg-surface-container-high transition-colors">
-        <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+    <div className="bg-surface-container rounded-sm overflow-hidden">
+      <button onClick={onTap} className="w-full flex items-center gap-3.5 p-4 text-left hover:bg-surface-container-highest transition-opacity">
+        <div className="w-14 h-14 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
           {frag.image_url ? (
             <img src={frag.image_url} alt={frag.name} className="w-full h-full object-cover" loading="lazy" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Icon name="water_drop" className="text-secondary/30" />
+              <span className="text-secondary/30 text-xs italic">—</span>
             </div>
           )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
-            <span className={`text-[8px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full ${SIZE_COLORS[decant.size_type] || 'bg-surface-container-highest text-secondary'}`}>
+            <span className={`text-[8px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-sm ${SIZE_COLORS[decant.size_type] || 'bg-surface-container-highest text-secondary'}`}>
               {sizeInfo?.label || decant.size_type}
             </span>
           </div>
@@ -206,9 +204,9 @@ function DecantCard({
           {/* Remaining bar */}
           {sizeMl > 0 && (
             <div className="mt-2 flex items-center gap-2">
-              <div className="flex-1 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+              <div className="flex-1 h-1.5 bg-surface-container-highest overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${
+                  className={`h-full transition-all duration-500 ${
                     percentage > 50 ? 'bg-tertiary' : percentage > 20 ? 'bg-primary' : 'bg-error'
                   }`}
                   style={{ width: `${percentage}%` }}
@@ -220,10 +218,10 @@ function DecantCard({
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); setExpanded(!expanded) }}
-          className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform"
+          className="w-8 h-8 rounded-sm bg-surface-container-highest flex items-center justify-center flex-shrink-0 transition-opacity hover:opacity-80"
           aria-label="More actions"
         >
-          <Icon name={expanded ? 'expand_less' : 'more_vert'} size={18} className="text-secondary/60" />
+          <span className="text-secondary/60 text-xs">{expanded ? '‹' : '›'}</span>
         </button>
       </button>
 
@@ -238,14 +236,14 @@ function DecantCard({
                   <button
                     key={amt}
                     onClick={() => onUpdateRemaining(Math.max(0, remainingMl - amt))}
-                    className="px-3 py-1.5 rounded-lg bg-surface-container-highest text-[10px] font-bold text-secondary active:scale-90 transition-transform"
+                    className="px-3 py-1.5 rounded-sm bg-surface-container-highest text-[10px] font-bold text-secondary transition-opacity hover:opacity-80"
                   >
                     -{amt}ml
                   </button>
                 ))}
                 <button
                   onClick={() => onUpdateRemaining(sizeMl)}
-                  className="px-3 py-1.5 rounded-lg bg-primary/10 text-[10px] font-bold text-primary active:scale-90 transition-transform"
+                  className="px-3 py-1.5 rounded-sm bg-primary/10 text-[10px] font-bold text-primary transition-opacity hover:opacity-80"
                 >
                   REFILL
                 </button>
@@ -266,9 +264,9 @@ function DecantCard({
 
           <button
             onClick={onDelete}
-            className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-error/60 uppercase active:scale-95 transition-transform"
+            className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-error/60 uppercase transition-opacity hover:opacity-80"
           >
-            <Icon name="delete_outline" size={14} />
+            <span>✕</span>
             DELETE
           </button>
         </div>
@@ -373,16 +371,16 @@ function AddDecantSheet({
               <p className="text-xs text-secondary/60 mt-0.5">{selectedFrag.brand} — {selectedFrag.name}</p>
             )}
           </div>
-          <button onClick={onClose} className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform">
-            <Icon name="close" size={20} />
+          <button onClick={onClose} className="w-10 h-10 rounded-sm bg-surface-container-highest flex items-center justify-center text-on-surface-variant transition-opacity hover:opacity-80">
+            <span className="text-sm">×</span>
           </button>
         </header>
 
         <div className="flex-1 overflow-y-auto px-8 pb-8">
           {step === 'search' ? (
             <>
-              <div className="flex items-center bg-surface-container rounded-2xl px-4 py-3 focus-within:ring-1 ring-primary/30 transition-all mb-4">
-                <Icon name="search" className="text-secondary/50 mr-3" size={18} />
+              <div className="flex items-center bg-surface-container rounded-sm px-4 py-3 focus-within:ring-1 ring-primary/30 transition-all mb-4">
+                <span className="text-secondary/40 mr-2 text-xs italic">search</span>
                 <input
                   className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-secondary/40 w-full text-sm"
                   placeholder="Search fragrances..."
@@ -392,20 +390,22 @@ function AddDecantSheet({
                 />
               </div>
               {searching ? (
-                <div className="flex justify-center py-12">
-                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <div className="flex flex-col gap-2 py-8 px-2">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="h-3 rounded-sm bg-surface-container-highest/40 animate-pulse" style={{ width: `${90 - i * 15}%` }} />
+                  ))}
                 </div>
               ) : (
-                <div className="divide-y divide-outline-variant/10">
+                <div className="space-y-1">
                   {results.map((f) => (
                     <button
                       key={f.id}
                       onClick={() => handleSelectFragrance(f)}
-                      className="w-full flex items-center gap-3 py-3 text-left active:bg-surface-container-highest transition-colors"
+                      className="w-full flex items-center gap-3 py-3 text-left hover:bg-surface-container-highest transition-opacity"
                     >
-                      <div className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                      <div className="w-11 h-11 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                         {f.image_url ? <img src={f.image_url} alt={f.name} className="w-full h-full object-cover" /> : (
-                          <div className="w-full h-full flex items-center justify-center"><Icon name="water_drop" className="text-secondary/30" size={16} /></div>
+                          <div className="w-full h-full flex items-center justify-center"><span className="text-secondary/30 text-[9px] italic">—</span></div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -427,11 +427,10 @@ function AddDecantSheet({
                     <button
                       key={st.value}
                       onClick={() => handleSizeTypeChange(st.value)}
-                      className={`flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs transition-colors ${
+                      className={`flex items-center gap-1.5 px-4 py-2.5 rounded-sm text-xs transition-colors ${
                         sizeType === st.value ? 'bg-primary text-on-primary font-semibold' : 'bg-surface-container-highest text-on-surface-variant'
                       }`}
                     >
-                      <Icon name={st.icon} size={14} />
                       {st.label}
                     </button>
                   ))}
@@ -445,7 +444,7 @@ function AddDecantSheet({
                   type="number"
                   value={sizeMl}
                   onChange={(e) => setSizeMl(e.target.value)}
-                  className="w-full bg-surface-container rounded-xl px-4 py-3 text-on-surface text-sm focus:ring-1 ring-primary/30 focus:outline-none border-none"
+                  className="w-full bg-surface-container rounded-sm px-4 py-3 text-on-surface text-sm focus:ring-1 ring-primary/30 focus:outline-none border-none"
                   placeholder="e.g. 100"
                 />
               </div>
@@ -457,7 +456,7 @@ function AddDecantSheet({
                   type="number"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="w-full bg-surface-container rounded-xl px-4 py-3 text-on-surface text-sm focus:ring-1 ring-primary/30 focus:outline-none border-none"
+                  className="w-full bg-surface-container rounded-sm px-4 py-3 text-on-surface text-sm focus:ring-1 ring-primary/30 focus:outline-none border-none"
                   placeholder="Optional"
                 />
               </div>
@@ -469,7 +468,7 @@ function AddDecantSheet({
                   type="text"
                   value={source}
                   onChange={(e) => setSource(e.target.value)}
-                  className="w-full bg-surface-container rounded-xl px-4 py-3 text-on-surface text-sm focus:ring-1 ring-primary/30 focus:outline-none border-none"
+                  className="w-full bg-surface-container rounded-sm px-4 py-3 text-on-surface text-sm focus:ring-1 ring-primary/30 focus:outline-none border-none"
                   placeholder="e.g. FragranceX, r/fragranceswap"
                 />
               </div>
@@ -481,24 +480,22 @@ function AddDecantSheet({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={2}
-                  className="w-full bg-surface-container rounded-xl px-4 py-3 text-on-surface text-sm focus:ring-1 ring-primary/30 focus:outline-none border-none resize-none"
+                  className="w-full bg-surface-container rounded-sm px-4 py-3 text-on-surface text-sm focus:ring-1 ring-primary/30 focus:outline-none border-none resize-none"
                   placeholder="Any notes about this item..."
                 />
               </div>
 
               {/* Actions */}
               <div className="flex gap-3 pt-2">
-                <button onClick={() => setStep('search')} className="flex-1 py-3.5 rounded-xl bg-surface-container text-sm font-medium text-on-surface active:scale-95 transition-transform">
+                <button onClick={() => setStep('search')} className="flex-1 py-3.5 rounded-sm bg-surface-container text-sm font-medium text-on-surface transition-opacity hover:opacity-80">
                   BACK
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex-1 py-3.5 gold-gradient text-on-primary font-bold uppercase tracking-[0.1em] rounded-xl ambient-glow active:scale-[0.98] transition-all text-sm flex items-center justify-center gap-2"
+                  className="flex-1 py-3.5 gold-gradient text-on-primary font-bold uppercase tracking-[0.1em] rounded-sm ambient-glow transition-opacity hover:opacity-90 text-sm flex items-center justify-center gap-2"
                 >
-                  {saving ? (
-                    <div className="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin" />
-                  ) : 'SAVE'}
+                  {saving ? 'SAVING...' : 'SAVE'}
                 </button>
               </div>
             </div>

@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { FragranceImage } from '../ui/FragranceImage'
 import { InlineError } from '../ui/InlineError'
 import { useFragranceSearch } from '@/hooks/useFragrances'
@@ -129,56 +128,49 @@ export function ExploreScreen() {
         </p>
       </header>
 
-      {/* Discover Section */}
+      {/* Discover Section — text-only editorial chips */}
       <section className="mb-8">
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-6 px-6 scrollbar-hide">
           <button
             onClick={() => navigate('/discover')}
-            className="flex items-center gap-2 bg-primary/15 min-h-[44px] px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
+            className="flex items-center gap-2 bg-primary/15 min-h-[44px] px-4 py-3 rounded-sm flex-shrink-0 transition-opacity hover:opacity-80"
           >
-            <Icon name="explore" className="text-primary" size={18} />
             <span className="text-xs font-medium text-primary whitespace-nowrap">Discover</span>
           </button>
           <button
             onClick={() => navigate('/community')}
-            className="flex items-center gap-2 bg-surface-container min-h-[44px] px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
+            className="flex items-center gap-2 bg-surface-container min-h-[44px] px-4 py-3 rounded-sm flex-shrink-0 transition-opacity hover:opacity-80"
           >
-            <Icon name="forum" className="text-primary" size={18} />
             <span className="text-xs font-medium text-on-surface whitespace-nowrap">Reviews Feed</span>
           </button>
           <button
             onClick={() => navigate('/leaderboard')}
-            className="flex items-center gap-2 bg-surface-container min-h-[44px] px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
+            className="flex items-center gap-2 bg-surface-container min-h-[44px] px-4 py-3 rounded-sm flex-shrink-0 transition-opacity hover:opacity-80"
           >
-            <Icon name="leaderboard" className="text-primary" size={18} />
             <span className="text-xs font-medium text-on-surface whitespace-nowrap">Trending</span>
           </button>
           <button
             onClick={() => navigate('/smart-recs')}
-            className="flex items-center gap-2 bg-surface-container min-h-[44px] px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
+            className="flex items-center gap-2 bg-surface-container min-h-[44px] px-4 py-3 rounded-sm flex-shrink-0 transition-opacity hover:opacity-80"
           >
-            <Icon name="auto_awesome" className="text-primary" size={18} />
             <span className="text-xs font-medium text-on-surface whitespace-nowrap">For You</span>
           </button>
           <button
             onClick={() => navigate('/notes')}
-            className="flex items-center gap-2 bg-surface-container min-h-[44px] px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
+            className="flex items-center gap-2 bg-surface-container min-h-[44px] px-4 py-3 rounded-sm flex-shrink-0 transition-opacity hover:opacity-80"
           >
-            <Icon name="spa" className="text-primary" size={18} />
             <span className="text-xs font-medium text-on-surface whitespace-nowrap">Notes</span>
           </button>
           <button
             onClick={() => navigate('/seasonal')}
-            className="flex items-center gap-2 bg-surface-container min-h-[44px] px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
+            className="flex items-center gap-2 bg-surface-container min-h-[44px] px-4 py-3 rounded-sm flex-shrink-0 transition-opacity hover:opacity-80"
           >
-            <Icon name="eco" className="text-primary" size={18} />
             <span className="text-xs font-medium text-on-surface whitespace-nowrap">Seasonal</span>
           </button>
           <button
             onClick={() => navigate('/layering')}
-            className="flex items-center gap-2 bg-surface-container min-h-[44px] px-4 py-3 rounded-xl flex-shrink-0 active:scale-95 transition-transform"
+            className="flex items-center gap-2 bg-surface-container min-h-[44px] px-4 py-3 rounded-sm flex-shrink-0 transition-opacity hover:opacity-80"
           >
-            <Icon name="layers" className="text-primary" size={18} />
             <span className="text-xs font-medium text-on-surface whitespace-nowrap">Layering</span>
           </button>
         </div>
@@ -186,8 +178,8 @@ export function ExploreScreen() {
 
       {/* Search + Filter Row */}
       <section className="mb-6 space-y-3">
-        <div className="relative flex items-center bg-surface-container rounded-xl px-4 py-3.5 focus-within:ring-1 ring-primary/30 transition-all">
-          <Icon name="search" className="text-secondary opacity-50 mr-3" />
+        <div className="relative flex items-center bg-surface-container rounded-sm px-4 py-3.5 focus-within:ring-1 ring-primary/30 transition-all">
+          <span className="text-secondary/50 mr-3 text-xs italic">search</span>
           <input
             className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-secondary/40 w-full text-sm"
             placeholder="Search by name or brand..."
@@ -196,19 +188,18 @@ export function ExploreScreen() {
             onChange={(e) => setQuery(e.target.value)}
           />
           {query && (
-            <button onClick={() => setQuery('')} aria-label="Clear search" className="text-secondary/60 active:scale-90 transition-transform">
-              <Icon name="close" size={18} />
+            <button onClick={() => setQuery('')} aria-label="Clear search" className="text-secondary/60 transition-opacity hover:opacity-80">
+              <span className="text-sm">×</span>
             </button>
           )}
         </div>
 
         <button
           onClick={() => setFilterSheetOpen(true)}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-full active:scale-95 transition-transform ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-sm transition-opacity hover:opacity-80 ${
             hasActiveFilters(filters) ? 'bg-primary/15 ring-1 ring-primary/30' : 'bg-surface-container'
           }`}
         >
-          <Icon name="tune" className={`text-sm ${hasActiveFilters(filters) ? 'text-primary' : 'text-secondary/60'}`} />
           <span className={`text-[10px] font-bold tracking-widest uppercase ${hasActiveFilters(filters) ? 'text-primary' : 'text-secondary/60'}`}>
             FILTERS{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
           </span>
@@ -233,16 +224,16 @@ export function ExploreScreen() {
         <div className="grid grid-cols-2 gap-x-4 gap-y-8">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="flex flex-col">
-              <div className="aspect-[3/4] rounded-xl bg-surface-container animate-pulse mb-3" />
-              <div className="h-3 w-16 bg-surface-container rounded animate-pulse mb-1" />
-              <div className="h-4 w-24 bg-surface-container rounded animate-pulse" />
+              <div className="aspect-[3/4] rounded-sm bg-surface-container animate-pulse mb-3" />
+              <div className="h-3 w-16 bg-surface-container rounded-sm animate-pulse mb-1" />
+              <div className="h-4 w-24 bg-surface-container rounded-sm animate-pulse" />
             </div>
           ))}
         </div>
       ) : fragrances.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 px-4">
-          <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5">
-            <Icon name="search_off" className="text-3xl text-primary/40" />
+          <div className="w-16 h-16 rounded-sm bg-surface-container flex items-center justify-center mb-5">
+            <span className="text-2xl text-primary/40 italic font-serif">?</span>
           </div>
           <h4 className="font-headline text-xl text-on-surface mb-2">No results found</h4>
           <p className="text-sm text-secondary/60 text-center max-w-[260px]">
@@ -265,7 +256,7 @@ export function ExploreScreen() {
                 onClick={() => navigate(`/fragrance/${frag.id}`)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/fragrance/${frag.id}`) } }}
               >
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-surface-container-low mb-3">
+                <div className="relative aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-low mb-3">
                   <FragranceImage
                     src={frag.image_url}
                     alt={frag.name}
@@ -279,7 +270,6 @@ export function ExploreScreen() {
                 <h3 className="font-body text-sm font-medium text-on-surface line-clamp-1 mb-1">{frag.name}</h3>
                 {frag.rating && (
                   <div className="flex items-center gap-1">
-                    <Icon name="star" filled className="text-[12px] text-primary" />
                     <span className="font-body text-[10px] text-primary font-semibold">{Number(frag.rating).toFixed(1)}</span>
                   </div>
                 )}
@@ -291,10 +281,14 @@ export function ExploreScreen() {
           {!isSearching && (
             <div ref={sentinelRef} className="flex justify-center py-6">
               {browseLoadingMore && (
-                <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <div className="flex flex-col gap-2 items-center">
+                  {[1,2].map(i => (
+                    <div key={i} className="h-2 rounded-sm bg-surface-container-highest/40 animate-pulse" style={{ width: `${60 - i * 15}px` }} />
+                  ))}
+                </div>
               )}
               {!hasMore && browseResults.length > 0 && (
-                <p className="text-[10px] text-secondary/40 uppercase tracking-widest">You've seen them all</p>
+                <p className="text-[10px] text-secondary/40 uppercase tracking-widest italic">You've seen them all</p>
               )}
             </div>
           )}
@@ -315,10 +309,10 @@ export function ExploreScreen() {
 
 function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="flex items-center gap-1.5 bg-primary/10 px-3 py-1.5 rounded-full">
+    <span className="flex items-center gap-1.5 bg-primary/10 px-3 py-1.5 rounded-sm">
       <span className="text-[10px] font-bold tracking-wider text-primary uppercase">{label}</span>
-      <button onClick={onRemove} aria-label={`Remove ${label} filter`} className="text-primary/60 active:scale-90 transition-transform">
-        <Icon name="close" size={12} />
+      <button onClick={onRemove} aria-label={`Remove ${label} filter`} className="text-primary/60 transition-opacity hover:opacity-80">
+        <span className="text-xs">×</span>
       </button>
     </span>
   )
@@ -339,8 +333,8 @@ function FilterSheet({ filters, onApply, onClose }: { filters: Filters; onApply:
         <div className="flex justify-center py-4"><div className="w-12 h-1 bg-surface-container-highest rounded-full" /></div>
         <header className="px-8 pb-4 flex justify-between items-start">
           <h1 className="text-2xl font-headline font-bold text-on-surface">Filters</h1>
-          <button onClick={onClose} aria-label="Close" className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform">
-            <Icon name="close" size={20} />
+          <button onClick={onClose} aria-label="Close" className="w-10 h-10 rounded-sm bg-surface-container-highest flex items-center justify-center text-on-surface-variant transition-opacity hover:opacity-80">
+            <span className="text-sm">×</span>
           </button>
         </header>
 
@@ -349,7 +343,7 @@ function FilterSheet({ filters, onApply, onClose }: { filters: Filters; onApply:
             <label className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">CONCENTRATION</label>
             <div className="flex flex-wrap gap-2">
               {CONCENTRATION_OPTIONS.map((opt) => (
-                <button key={opt} onClick={() => toggleOption('concentration', opt)} className={`px-4 py-2.5 rounded-full text-xs transition-colors ${local.concentration === opt ? 'bg-primary text-on-primary font-semibold' : 'bg-surface-container-highest text-on-surface-variant'}`}>{opt}</button>
+                <button key={opt} onClick={() => toggleOption('concentration', opt)} className={`px-4 py-2.5 rounded-sm text-xs transition-colors ${local.concentration === opt ? 'bg-primary text-on-primary font-semibold' : 'bg-surface-container-highest text-on-surface-variant'}`}>{opt}</button>
               ))}
             </div>
           </div>
@@ -358,7 +352,7 @@ function FilterSheet({ filters, onApply, onClose }: { filters: Filters; onApply:
             <label className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">GENDER</label>
             <div className="flex flex-wrap gap-2">
               {GENDER_OPTIONS.map((opt) => (
-                <button key={opt} onClick={() => toggleOption('gender', opt)} className={`px-4 py-2.5 rounded-full text-xs transition-colors ${local.gender === opt ? 'bg-primary text-on-primary font-semibold' : 'bg-surface-container-highest text-on-surface-variant'}`}>{opt}</button>
+                <button key={opt} onClick={() => toggleOption('gender', opt)} className={`px-4 py-2.5 rounded-sm text-xs transition-colors ${local.gender === opt ? 'bg-primary text-on-primary font-semibold' : 'bg-surface-container-highest text-on-surface-variant'}`}>{opt}</button>
               ))}
             </div>
           </div>
@@ -367,7 +361,7 @@ function FilterSheet({ filters, onApply, onClose }: { filters: Filters; onApply:
             <label className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">NOTE FAMILY</label>
             <div className="flex flex-wrap gap-2">
               {NOTE_FAMILY_OPTIONS.map((opt) => (
-                <button key={opt} onClick={() => toggleOption('noteFamily', opt)} className={`px-4 py-2.5 rounded-full text-xs transition-colors ${local.noteFamily === opt ? 'bg-primary text-on-primary font-semibold' : 'bg-surface-container-highest text-on-surface-variant'}`}>{opt}</button>
+                <button key={opt} onClick={() => toggleOption('noteFamily', opt)} className={`px-4 py-2.5 rounded-sm text-xs transition-colors ${local.noteFamily === opt ? 'bg-primary text-on-primary font-semibold' : 'bg-surface-container-highest text-on-surface-variant'}`}>{opt}</button>
               ))}
             </div>
           </div>
@@ -376,7 +370,7 @@ function FilterSheet({ filters, onApply, onClose }: { filters: Filters; onApply:
             <label className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">BEST SEASON</label>
             <div className="flex flex-wrap gap-2">
               {SEASON_OPTIONS.map((opt) => (
-                <button key={opt} onClick={() => toggleOption('season', opt)} className={`px-4 py-2.5 rounded-full text-xs transition-colors ${local.season === opt ? 'bg-primary text-on-primary font-semibold' : 'bg-surface-container-highest text-on-surface-variant'}`}>{opt.charAt(0) + opt.slice(1).toLowerCase()}</button>
+                <button key={opt} onClick={() => toggleOption('season', opt)} className={`px-4 py-2.5 rounded-sm text-xs transition-colors ${local.season === opt ? 'bg-primary text-on-primary font-semibold' : 'bg-surface-container-highest text-on-surface-variant'}`}>{opt.charAt(0) + opt.slice(1).toLowerCase()}</button>
               ))}
             </div>
           </div>
@@ -385,17 +379,17 @@ function FilterSheet({ filters, onApply, onClose }: { filters: Filters; onApply:
             <label className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">MINIMUM RATING</label>
             <div className="flex gap-2">
               {[3, 3.5, 4, 4.5].map((r) => (
-                <button key={r} onClick={() => toggleOption('minRating', r)} className={`flex items-center gap-1 px-4 py-2.5 rounded-full text-xs transition-colors ${local.minRating === r ? 'bg-primary text-on-primary font-semibold' : 'bg-surface-container-highest text-on-surface-variant'}`}>
-                  <Icon name="star" filled className="text-[11px]" />{r}+
+                <button key={r} onClick={() => toggleOption('minRating', r)} className={`flex items-center gap-1 px-4 py-2.5 rounded-sm text-xs transition-colors ${local.minRating === r ? 'bg-primary text-on-primary font-semibold' : 'bg-surface-container-highest text-on-surface-variant'}`}>
+                  {r}+
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="px-8 py-4 flex gap-3 border-t border-outline-variant/10">
-          <button onClick={() => setLocal(EMPTY_FILTERS)} className="flex-1 py-3.5 rounded-xl bg-surface-container text-sm font-medium text-on-surface active:scale-95 transition-transform">Clear All</button>
-          <button onClick={() => onApply(local)} className="flex-1 py-3.5 gold-gradient text-on-primary font-bold uppercase tracking-[0.1em] rounded-xl ambient-glow active:scale-[0.98] transition-all text-sm">APPLY</button>
+        <div className="px-8 py-4 flex gap-3">
+          <button onClick={() => setLocal(EMPTY_FILTERS)} className="flex-1 py-3.5 rounded-sm bg-surface-container text-sm font-medium text-on-surface transition-opacity hover:opacity-80">Clear All</button>
+          <button onClick={() => onApply(local)} className="flex-1 py-3.5 gold-gradient text-on-primary font-bold uppercase tracking-[0.1em] rounded-sm ambient-glow transition-opacity hover:opacity-90 text-sm">APPLY</button>
         </div>
       </section>
     </div>

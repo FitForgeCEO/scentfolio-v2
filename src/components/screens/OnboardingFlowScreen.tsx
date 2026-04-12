@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useOnboarding, NOTE_FAMILIES, VIBE_OPTIONS, EXPERIENCE_LEVELS } from '@/hooks/useOnboarding'
 import { supabase } from '@/lib/supabase'
-import { Icon } from '@/components/ui/Icon'
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 
 /* ─── shared editorial chrome ─── */
@@ -51,7 +50,7 @@ function ChapterNav({
           onClick={onBack}
           className="flex items-center gap-3 text-secondary hover:text-primary transition-colors group"
         >
-          <Icon name="arrow_back" className="text-lg group-hover:-translate-x-0.5 transition-transform" />
+          <span className="text-lg group-hover:-translate-x-0.5 transition-transform">←</span>
           <span className="text-[10px] tracking-[0.2em] uppercase font-medium">Back</span>
         </button>
       ) : (
@@ -60,11 +59,11 @@ function ChapterNav({
       <button
         onClick={onNext}
         disabled={nextDisabled}
-        className="flex items-center gap-3 gold-gradient text-on-primary rounded-lg px-10 py-3 font-bold disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.98] transition-transform"
+        className="flex items-center gap-3 gold-gradient text-on-primary rounded-sm px-10 py-3 font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
         style={{ boxShadow: '0 12px 32px rgba(25,18,16,0.6)' }}
       >
         <span className="text-[10px] tracking-[0.2em] uppercase">{nextLabel}</span>
-        <Icon name="arrow_forward" className="text-lg" />
+        <span className="text-lg">→</span>
       </button>
     </div>
   )
@@ -130,7 +129,7 @@ function WelcomeStep({
           <div className="flex flex-col items-start gap-4 mt-auto">
             <button
               onClick={onNext}
-              className="gold-gradient text-on-primary rounded-lg px-10 py-4 font-bold uppercase tracking-[0.2em] text-[11px] active:scale-[0.98] transition-transform"
+              className="gold-gradient text-on-primary rounded-sm px-10 py-4 font-bold uppercase tracking-[0.2em] text-[11px] transition-opacity hover:opacity-90"
               style={{ boxShadow: '0 12px 32px rgba(25,18,16,0.6)' }}
             >
               Begin the Journal
@@ -232,7 +231,7 @@ function TasteQuizStep({
                   <button
                     key={level.id}
                     onClick={() => updatePreferences({ experienceLevel: level.id })}
-                    className={`relative w-full text-left overflow-hidden rounded-lg p-6 md:p-8 transition-all duration-500 ${
+                    className={`relative w-full text-left overflow-hidden rounded-sm p-6 md:p-8 transition-all duration-500 ${
                       selected
                         ? 'bg-surface-container-highest'
                         : 'bg-surface-container hover:bg-surface-container-high'
@@ -247,7 +246,7 @@ function TasteQuizStep({
                             {level.label}
                           </h3>
                           {selected && (
-                            <span className="bg-primary-container/20 text-primary text-[9px] tracking-[0.15em] px-2 py-0.5 rounded-full font-bold uppercase">
+                            <span className="bg-primary-container/20 text-primary text-[9px] tracking-[0.15em] px-2 py-0.5 rounded-sm font-bold uppercase">
                               Selected
                             </span>
                           )}
@@ -256,10 +255,10 @@ function TasteQuizStep({
                           {level.description}
                         </p>
                       </div>
-                      <div className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                      <div className={`h-10 w-10 rounded-sm flex items-center justify-center flex-shrink-0 transition-all ${
                         selected ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-outline'
                       }`}>
-                        <Icon name={selected ? 'check' : 'radio_button_unchecked'} className="text-lg" />
+                        <span className="text-sm font-bold">{selected ? '✓' : ''}</span>
                       </div>
                     </div>
                   </button>
@@ -279,12 +278,12 @@ function TasteQuizStep({
                     key={note.id}
                     onClick={() => toggleNote(note.id)}
                     disabled={muted}
-                    className={`relative text-left rounded-lg p-4 transition-all duration-300 ${
+                    className={`relative text-left rounded-sm p-4 transition-all duration-300 ${
                       selected ? 'bg-surface-container-highest' : 'bg-surface-container hover:bg-surface-container-high'
                     } ${muted ? 'opacity-30' : ''}`}
                     style={selected ? { boxShadow: 'inset 0 0 16px rgba(229,194,118,0.15)' } : undefined}
                   >
-                    {selected && <div className="absolute top-0 left-0 w-[3px] h-full bg-primary rounded-l-lg" />}
+                    {selected && <div className="absolute top-0 left-0 w-[3px] h-full bg-primary" />}
                     <span className="text-xl block mb-2">{note.icon}</span>
                     <div className={`font-label text-xs uppercase tracking-[0.1em] font-medium ${selected ? 'text-primary' : 'text-on-surface'}`}>
                       {note.label}
@@ -309,12 +308,12 @@ function TasteQuizStep({
                     key={vibe.id}
                     onClick={() => toggleVibe(vibe.id)}
                     disabled={muted}
-                    className={`relative flex items-center gap-3 rounded-lg p-4 transition-all duration-300 ${
+                    className={`relative flex items-center gap-3 rounded-sm p-4 transition-all duration-300 ${
                       selected ? 'bg-surface-container-highest' : 'bg-surface-container hover:bg-surface-container-high'
                     } ${muted ? 'opacity-30' : ''}`}
                     style={selected ? { boxShadow: 'inset 0 0 16px rgba(229,194,118,0.15)' } : undefined}
                   >
-                    {selected && <div className="absolute top-0 left-0 w-[3px] h-full bg-primary rounded-l-lg" />}
+                    {selected && <div className="absolute top-0 left-0 w-[3px] h-full bg-primary" />}
                     <span className="text-xl">{vibe.icon}</span>
                     <span className={`font-label text-xs uppercase tracking-[0.1em] font-medium ${selected ? 'text-primary' : 'text-on-surface'}`}>
                       {vibe.label}
@@ -420,7 +419,7 @@ function FirstFragranceStep({
             {/* Editorial search */}
             <div className="relative">
               <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
-                <Icon name="search" className="text-outline text-xl" />
+                <span className="text-outline text-xs italic">search</span>
               </div>
               <input
                 type="text"
@@ -428,18 +427,21 @@ function FirstFragranceStep({
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Search for a scent…"
                 autoFocus
-                className="w-full bg-surface-container border-none py-5 pl-14 pr-14 rounded-xl text-on-surface placeholder:font-headline placeholder:italic placeholder:text-outline/60 focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all text-base"
+                className="w-full bg-surface-container border-none py-5 pl-14 pr-14 rounded-sm text-on-surface placeholder:font-headline placeholder:italic placeholder:text-outline/60 focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all text-base"
               />
               {searching && (
-                <div className="absolute right-5 top-1/2 -translate-y-1/2">
-                  <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <div className="absolute right-5 top-1/2 -translate-y-1/2 flex flex-col gap-1">
+                  {[1,2].map(i => (
+                    <div key={i} className="h-1 rounded-sm bg-primary/30 animate-pulse" style={{ width: `${20 - i * 4}px` }} />
+                  ))}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Count band — no divider line, hairline only */}
-          <div className="flex justify-between items-baseline mb-8 pb-4 border-b border-outline-variant/15">
+          {/* Count band — gradient hairline instead of border-b */}
+          <div className="flex justify-between items-baseline mb-8 pb-4 relative">
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-outline-variant/15 via-outline-variant/10 to-transparent" />
             <span className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">Added count</span>
             <span className="font-headline italic text-base text-secondary">
               {added.length.toString().padStart(2, '0')} fragrance{added.length !== 1 ? 's' : ''}
@@ -472,7 +474,7 @@ function FirstFragranceStep({
                 const isAdding = adding === f.id
                 return (
                   <article key={f.id} className="flex gap-6 items-center group">
-                    <div className="relative w-20 h-28 flex-shrink-0 bg-surface-container-low rounded-lg overflow-hidden">
+                    <div className="relative w-20 h-28 flex-shrink-0 bg-surface-container-low rounded-sm overflow-hidden">
                       {f.image_url ? (
                         <img src={f.image_url} alt="" className="w-full h-full object-cover" />
                       ) : (
@@ -490,11 +492,11 @@ function FirstFragranceStep({
                       className="flex flex-col items-center group/btn cursor-pointer min-w-[56px]"
                     >
                       {isAdding ? (
-                        <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                        <span className="text-[9px] uppercase tracking-wider text-primary animate-pulse">Adding…</span>
                       ) : isAdded ? (
                         <>
                           <span className="text-[10px] uppercase tracking-[0.15em] text-primary font-bold mb-1">Added</span>
-                          <Icon name="check_circle" className="text-primary text-lg" />
+                          <span className="text-primary text-lg">✓</span>
                         </>
                       ) : (
                         <>
@@ -594,7 +596,7 @@ function CompleteStep({
                   {noteLabels.map((label, idx) => (
                     <span
                       key={idx}
-                      className="px-5 py-2.5 rounded-full bg-surface-container-highest text-on-surface text-sm tracking-wide"
+                      className="px-5 py-2.5 rounded-sm bg-surface-container-highest text-on-surface text-sm tracking-wide"
                       style={{ boxShadow: 'inset 0 0 12px rgba(229,194,118,0.08)' }}
                     >
                       {label}
@@ -614,7 +616,7 @@ function CompleteStep({
                 </div>
                 <div className="h-px w-full bg-gradient-to-r from-primary/40 via-primary/10 to-transparent mb-6" />
                 <div
-                  className="bg-surface-container p-8 rounded-xl relative overflow-hidden"
+                  className="bg-surface-container p-8 rounded-sm relative overflow-hidden"
                   style={{ boxShadow: '0 12px 32px rgba(25,18,16,0.6)' }}
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16" />
@@ -638,7 +640,7 @@ function CompleteStep({
             <button
               onClick={onFinish}
               disabled={loading}
-              className="gold-gradient text-on-primary rounded-lg px-12 py-5 font-bold uppercase tracking-[0.2em] text-sm hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-60 disabled:hover:scale-100"
+              className="gold-gradient text-on-primary rounded-sm px-12 py-5 font-bold uppercase tracking-[0.2em] text-sm transition-opacity hover:opacity-90 disabled:opacity-60"
               style={{ boxShadow: '0 12px 32px rgba(25,18,16,0.6)' }}
             >
               {loading ? 'Opening…' : 'Open ScentFolio'}
@@ -647,7 +649,7 @@ function CompleteStep({
               onClick={onBack}
               className="text-secondary hover:text-on-surface transition-colors text-[10px] tracking-[0.2em] font-medium uppercase flex items-center gap-2"
             >
-              <Icon name="arrow_back" className="text-sm" />
+              <span className="text-sm">←</span>
               Back
             </button>
           </div>

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
@@ -150,9 +149,9 @@ export function StatsScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-4">
-        <Icon name="analytics" className="text-5xl text-primary/30" />
+        <span className="text-5xl text-primary/30 font-serif italic">S</span>
         <p className="text-secondary/60 text-sm">Sign in to see your stats</p>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-6 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest">
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary px-6 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest transition-opacity hover:opacity-90">
           Sign In
         </button>
       </main>
@@ -161,8 +160,10 @@ export function StatsScreen() {
 
   if (loading || !data) {
     return (
-      <main className="pt-24 pb-32 px-6 flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      <main className="pt-24 pb-32 px-6 flex flex-col items-center justify-center min-h-screen gap-3">
+        {[1,2,3].map(i => (
+          <div key={i} className="h-3 rounded-sm bg-surface-container-highest/40 animate-pulse" style={{ width: `${90 - i * 20}%` }} />
+        ))}
       </main>
     )
   }
@@ -175,35 +176,29 @@ export function StatsScreen() {
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen space-y-8">
       {/* KPI Cards */}
       <section className="grid grid-cols-3 gap-3">
-        <div className="bg-surface-container rounded-xl p-4 text-center">
-          <Icon name="water_drop" className="text-primary/60 text-xl mb-1" />
+        <div className="bg-surface-container rounded-sm p-4 text-center">
           <p className="font-headline text-2xl">{data.totalOwned}</p>
           <p className="text-[9px] text-secondary/50 uppercase tracking-wider">Owned</p>
         </div>
-        <div className="bg-surface-container rounded-xl p-4 text-center">
-          <Icon name="checkroom" className="text-tertiary/60 text-xl mb-1" />
+        <div className="bg-surface-container rounded-sm p-4 text-center">
           <p className="font-headline text-2xl">{data.totalWears}</p>
           <p className="text-[9px] text-secondary/50 uppercase tracking-wider">Total Wears</p>
         </div>
-        <div className="bg-surface-container rounded-xl p-4 text-center">
-          <Icon name="star" filled className="text-primary/60 text-xl mb-1" />
+        <div className="bg-surface-container rounded-sm p-4 text-center">
           <p className="font-headline text-2xl">{data.avgRating > 0 ? data.avgRating.toFixed(1) : '—'}</p>
           <p className="text-[9px] text-secondary/50 uppercase tracking-wider">Avg Rating</p>
         </div>
       </section>
 
       {/* Diversity Score */}
-      <section className="bg-surface-container rounded-xl p-5">
+      <section className="bg-surface-container rounded-sm p-5">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Icon name="diversity_3" className="text-primary" />
-            <h3 className="text-[10px] uppercase tracking-[0.15em] text-primary font-bold">NOSE DIVERSITY</h3>
-          </div>
+          <h3 className="text-[10px] uppercase tracking-[0.15em] text-primary font-bold">NOSE DIVERSITY</h3>
           <span className="font-headline text-xl text-primary">{data.diversityScore}/100</span>
         </div>
-        <div className="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+        <div className="h-2 w-full bg-surface-container-highest overflow-hidden">
           <div
-            className="h-full rounded-full transition-all duration-700"
+            className="h-full transition-all duration-700"
             style={{
               width: `${data.diversityScore}%`,
               background: data.diversityScore >= 70 ? '#aad0ae' : data.diversityScore >= 40 ? '#e5c276' : '#ffb4ab',
@@ -216,7 +211,7 @@ export function StatsScreen() {
       </section>
 
       {/* Collection Growth Chart */}
-      <section className="bg-surface-container rounded-xl p-5">
+      <section className="bg-surface-container rounded-sm p-5">
         <h3 className="text-[10px] uppercase tracking-[0.15em] text-primary font-bold mb-4">COLLECTION GROWTH</h3>
         <div className="flex items-end gap-2 h-28">
           {data.monthlyGrowth.map((m) => (
@@ -238,7 +233,7 @@ export function StatsScreen() {
       </section>
 
       {/* Weekday Wearing Patterns */}
-      <section className="bg-surface-container rounded-xl p-5">
+      <section className="bg-surface-container rounded-sm p-5">
         <h3 className="text-[10px] uppercase tracking-[0.15em] text-primary font-bold mb-4">WHEN YOU WEAR</h3>
         <div className="flex items-end gap-2 h-24">
           {data.weekdayWears.map((d) => (
@@ -260,22 +255,22 @@ export function StatsScreen() {
 
       {/* Most Worn */}
       {data.topWorn.length > 0 && (
-        <section className="bg-surface-container rounded-xl p-5">
+        <section className="bg-surface-container rounded-sm p-5">
           <h3 className="text-[10px] uppercase tracking-[0.15em] text-primary font-bold mb-4">MOST WORN</h3>
           <div className="space-y-3">
             {data.topWorn.map((item, i) => (
               <button
                 key={item.fragrance.id}
                 onClick={() => navigate(`/fragrance/${item.fragrance.id}`)}
-                className="w-full flex items-center gap-3 text-left active:scale-[0.98] transition-transform"
+                className="w-full flex items-center gap-3 text-left transition-opacity hover:opacity-80"
               >
                 <span className="text-[10px] text-primary font-bold w-5">{i + 1}</span>
-                <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                <div className="w-10 h-10 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                   {item.fragrance.image_url ? (
                     <img src={item.fragrance.image_url} alt="" className="w-full h-full object-cover" loading="lazy" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Icon name="water_drop" className="text-secondary/30" size={16} />
+                      <span className="text-secondary/30 text-[9px] italic">—</span>
                     </div>
                   )}
                 </div>
@@ -292,7 +287,7 @@ export function StatsScreen() {
 
       {/* Note Families */}
       {data.topFamilies.length > 0 && (
-        <section className="bg-surface-container rounded-xl p-5">
+        <section className="bg-surface-container rounded-sm p-5">
           <h3 className="text-[10px] uppercase tracking-[0.15em] text-primary font-bold mb-4">TOP NOTE FAMILIES</h3>
           <div className="space-y-3">
             {data.topFamilies.map((f) => (
@@ -301,9 +296,9 @@ export function StatsScreen() {
                   <span className="text-xs text-on-surface">{f.family}</span>
                   <span className="text-[10px] text-secondary/50">{f.count}</span>
                 </div>
-                <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+                <div className="h-1.5 w-full bg-surface-container-highest overflow-hidden">
                   <div
-                    className="h-full bg-primary rounded-full transition-all duration-500"
+                    className="h-full bg-primary transition-all duration-500"
                     style={{ width: `${(f.count / maxFamily) * 100}%` }}
                   />
                 </div>
@@ -315,11 +310,11 @@ export function StatsScreen() {
 
       {/* Concentration Breakdown */}
       {data.concentrationBreakdown.length > 0 && (
-        <section className="bg-surface-container rounded-xl p-5">
+        <section className="bg-surface-container rounded-sm p-5">
           <h3 className="text-[10px] uppercase tracking-[0.15em] text-primary font-bold mb-4">CONCENTRATIONS</h3>
           <div className="flex flex-wrap gap-2">
             {data.concentrationBreakdown.map((c) => (
-              <div key={c.type} className="bg-surface-container-highest px-3 py-2 rounded-full">
+              <div key={c.type} className="bg-surface-container-highest px-3 py-2 rounded-sm">
                 <span className="text-xs text-on-surface font-medium">{c.type}</span>
                 <span className="text-[10px] text-primary ml-2 font-bold">{c.count}</span>
               </div>
@@ -330,11 +325,11 @@ export function StatsScreen() {
 
       {/* Top Brands */}
       {data.topBrands.length > 0 && (
-        <section className="bg-surface-container rounded-xl p-5">
+        <section className="bg-surface-container rounded-sm p-5">
           <h3 className="text-[10px] uppercase tracking-[0.15em] text-primary font-bold mb-4">TOP BRANDS</h3>
           <div className="grid grid-cols-2 gap-2">
             {data.topBrands.map((b, i) => (
-              <div key={b.brand} className="flex items-center gap-2 bg-surface-container-highest px-3 py-2.5 rounded-xl">
+              <div key={b.brand} className="flex items-center gap-2 bg-surface-container-highest px-3 py-2.5 rounded-sm">
                 <span className="text-[10px] text-primary font-bold">{i + 1}</span>
                 <span className="text-xs text-on-surface truncate flex-1">{b.brand}</span>
                 <span className="text-[10px] text-secondary/50">{b.count}</span>
