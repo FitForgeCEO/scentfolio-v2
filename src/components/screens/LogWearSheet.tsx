@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { awardXP, XP_AWARDS } from '@/lib/xp'
@@ -158,9 +157,9 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
           <button
             onClick={onClose}
             aria-label="Close"
-            className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform"
+            className="w-10 h-10 rounded-sm bg-surface-container-highest flex items-center justify-center text-on-surface-variant transition-opacity hover:opacity-80"
           >
-            <Icon name="close" size={20} />
+            <span className="text-sm">×</span>
           </button>
         </header>
 
@@ -172,8 +171,8 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
             <div className="space-y-3">
               <label className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">FRAGRANCE</label>
               <div className="relative">
-                <div className="flex items-center bg-surface-container rounded-2xl px-4 py-3 focus-within:ring-1 ring-primary/30 transition-all">
-                  <Icon name="search" className="text-secondary/50 mr-3" size={18} />
+                <div className="flex items-center bg-surface-container rounded-sm px-4 py-3 focus-within:ring-1 ring-primary/30 transition-all">
+                  <span className="text-secondary/50 mr-3 text-xs italic">search</span>
                   <input
                     className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-secondary/40 w-full text-sm"
                     placeholder="Search by name or brand..."
@@ -183,36 +182,38 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
                     autoFocus
                   />
                   {searchQuery && (
-                    <button onClick={() => setSearchQuery('')} aria-label="Clear search" className="text-secondary/60 active:scale-90 transition-transform">
-                      <Icon name="close" size={16} />
+                    <button onClick={() => setSearchQuery('')} aria-label="Clear search" className="text-secondary/60 transition-opacity hover:opacity-80">
+                      <span className="text-sm">×</span>
                     </button>
                   )}
                 </div>
 
                 {/* Search Results */}
                 {searchQuery.length >= 2 && (
-                  <div className="mt-2 max-h-[35vh] overflow-y-auto rounded-2xl bg-surface-container divide-y divide-outline-variant/10">
+                  <div className="mt-2 max-h-[35vh] overflow-y-auto rounded-sm bg-surface-container divide-y divide-outline-variant/10">
                     {searching ? (
-                      <div className="flex items-center justify-center py-8">
-                        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      <div className="flex flex-col gap-3 py-6 px-4">
+                        {[1,2,3].map(i => (
+                          <div key={i} className="h-3 rounded-sm bg-surface-container-highest/40 animate-pulse" style={{ width: `${70 - i * 15}%` }} />
+                        ))}
                       </div>
                     ) : searchResults.length === 0 ? (
                       <div className="py-8 text-center">
-                        <p className="text-sm text-secondary/50">No fragrances found</p>
+                        <p className="text-sm text-secondary/50 italic">No fragrances found</p>
                       </div>
                     ) : (
                       searchResults.map((f) => (
                         <button
                           key={f.id}
                           onClick={() => handleSelectFragrance(f)}
-                          className="w-full flex items-center gap-3 p-3 hover:bg-surface-container-highest active:bg-surface-container-highest transition-colors text-left"
+                          className="w-full flex items-center gap-3 p-3 hover:bg-surface-container-highest transition-opacity text-left"
                         >
-                          <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-surface-container-highest">
+                          <div className="w-10 h-10 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container-highest">
                             {f.image_url ? (
                               <img src={f.image_url} alt={f.name} className="w-full h-full object-cover" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <Icon name="water_drop" className="text-secondary/30" size={16} />
+                                <span className="text-secondary/30 text-[10px] italic">—</span>
                               </div>
                             )}
                           </div>
@@ -222,7 +223,6 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
                           </div>
                           {f.rating && (
                             <div className="flex items-center gap-0.5 text-primary/60">
-                              <Icon name="star" filled className="text-[11px]" />
                               <span className="text-[10px] font-bold">{Number(f.rating).toFixed(1)}</span>
                             </div>
                           )}
@@ -237,13 +237,13 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
 
           {/* Selected Fragrance Card */}
           {fragrance && (
-            <div className="flex items-center gap-4 bg-surface-container p-4 rounded-2xl">
-              <div className="w-12 h-12 bg-surface-container-highest rounded-lg overflow-hidden flex-shrink-0">
+            <div className="flex items-center gap-4 bg-surface-container p-4 rounded-sm">
+              <div className="w-12 h-12 bg-surface-container-highest rounded-sm overflow-hidden flex-shrink-0">
                 {fragrance.image_url ? (
                   <img src={fragrance.image_url} alt={fragrance.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Icon name="water_drop" className="text-secondary/30" size={20} />
+                    <span className="text-secondary/30 text-xs italic">—</span>
                   </div>
                 )}
               </div>
@@ -256,9 +256,9 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
                 <button
                   onClick={() => { setChosenFragrance(null); setSearchQuery('') }}
                   aria-label="Change fragrance"
-                  className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary/60 active:scale-90 transition-transform flex-shrink-0"
+                  className="w-8 h-8 rounded-sm bg-surface-container-highest flex items-center justify-center text-secondary/60 transition-opacity hover:opacity-80 flex-shrink-0"
                 >
-                  <Icon name="swap_horiz" size={16} />
+                  <span className="text-[10px] italic">swap</span>
                 </button>
               )}
             </div>
@@ -270,7 +270,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
             <div className="flex gap-2">
               <button
                 onClick={() => setSelectedDay('today')}
-                className={`flex-1 py-3 px-4 rounded-full text-xs font-bold tracking-wider active:scale-95 transition-all ${
+                className={`flex-1 py-3 px-4 rounded-sm text-xs font-bold tracking-wider transition-opacity hover:opacity-80 ${
                   selectedDay === 'today'
                     ? 'bg-primary text-on-primary'
                     : 'bg-surface-container-highest text-on-surface-variant'
@@ -280,7 +280,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
               </button>
               <button
                 onClick={() => setSelectedDay('yesterday')}
-                className={`flex-1 py-3 px-4 rounded-full text-xs font-bold tracking-wider active:scale-95 transition-all ${
+                className={`flex-1 py-3 px-4 rounded-sm text-xs font-bold tracking-wider transition-opacity hover:opacity-80 ${
                   selectedDay === 'yesterday'
                     ? 'bg-primary text-on-primary'
                     : 'bg-surface-container-highest text-on-surface-variant'
@@ -290,13 +290,13 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
               </button>
               <button
                 onClick={() => setSelectedDay('custom')}
-                className={`w-12 py-3 rounded-full flex items-center justify-center active:scale-95 transition-all ${
+                className={`w-12 py-3 rounded-sm flex items-center justify-center transition-opacity hover:opacity-80 ${
                   selectedDay === 'custom'
                     ? 'bg-primary text-on-primary'
                     : 'bg-surface-container-highest text-on-surface-variant'
                 }`}
               >
-                <Icon name="calendar_today" size={18} />
+                <span className="text-[10px] italic">date</span>
               </button>
             </div>
 
@@ -307,7 +307,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
                 value={customDate}
                 max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => setCustomDate(e.target.value)}
-                className="w-full py-3 px-4 bg-surface-container text-on-surface rounded-2xl text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none [color-scheme:dark]"
+                className="w-full py-3 px-4 bg-surface-container text-on-surface rounded-sm text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none [color-scheme:dark]"
               />
             )}
           </div>
@@ -320,7 +320,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
                 <button
                   key={occ}
                   onClick={() => setSelectedOccasion(occ)}
-                  className={`px-5 py-2.5 rounded-full text-sm transition-colors ${
+                  className={`px-5 py-2.5 rounded-sm text-sm transition-colors ${
                     selectedOccasion === occ
                       ? 'bg-primary text-on-primary font-semibold ambient-glow'
                       : 'bg-surface-container-highest text-on-surface-variant hover:text-on-surface'
@@ -335,7 +335,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
           {/* Notes */}
           <div className="space-y-3">
             <textarea
-              className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-2xl p-4 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none resize-none"
+              className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-sm p-4 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none resize-none"
               placeholder="Add a note..."
               rows={3}
               value={notes}
@@ -346,26 +346,26 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
           {/* Footer */}
           <div className="pt-2 flex flex-col items-center gap-4">
             {errorMsg && (
-              <div role="alert" className="w-full py-3 px-4 bg-error/10 text-error text-sm rounded-2xl text-center">
+              <div role="alert" className="w-full py-3 px-4 bg-error/10 text-error text-sm rounded-sm text-center">
                 {errorMsg}
               </div>
             )}
             {success ? (
-              <div role="status" aria-live="polite" className="w-full py-4 bg-primary/20 text-primary font-bold uppercase tracking-[0.15em] rounded-2xl text-center flex items-center justify-center gap-2">
-                <Icon name="check_circle" filled className="text-xl" />
+              <div role="status" aria-live="polite" className="w-full py-4 bg-primary/20 text-primary font-bold uppercase tracking-[0.15em] rounded-sm text-center flex items-center justify-center gap-2">
+                <span className="text-lg">✓</span>
                 LOGGED!
               </div>
             ) : (
               <button
                 onClick={handleLog}
                 disabled={saving || !fragrance || !user || (selectedDay === 'custom' && !customDate)}
-                className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-2xl ambient-glow active:scale-[0.98] transition-all disabled:opacity-50"
+                className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-sm ambient-glow transition-opacity hover:opacity-90 disabled:opacity-50"
               >
                 {saving ? 'SAVING...' : !user ? 'SIGN IN TO LOG' : !fragrance ? 'SELECT A FRAGRANCE' : 'LOG WEAR'}
               </button>
             )}
             <div className="flex items-center gap-2">
-              <Icon name="auto_awesome" filled className="text-primary text-sm" />
+              <span className="text-primary text-sm italic">✦</span>
               <span className="text-[10px] font-bold tracking-[0.1em] text-primary">
                 {success && xpGained > 0 ? `+${xpGained} XP EARNED` : `+${XP_AWARDS.LOG_WEAR} XP`}
               </span>

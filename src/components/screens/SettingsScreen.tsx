@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '../ui/Icon'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/contexts/ToastContext'
@@ -135,11 +134,11 @@ export function SettingsScreen() {
   if (!user) {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex flex-col items-center justify-center">
-        <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5">
-          <Icon name="settings" className="text-3xl text-primary/40" />
+        <div className="w-16 h-16 rounded-sm bg-surface-container flex items-center justify-center mb-5">
+          <span className="text-2xl text-primary/40 italic font-serif">S</span>
         </div>
         <h3 className="font-headline text-xl text-on-surface mb-2">Sign in to access settings</h3>
-        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-xl font-label text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-lg mt-6">SIGN IN</button>
+        <button onClick={() => navigate('/profile')} className="gold-gradient text-on-primary-container px-8 py-3 rounded-sm font-label text-[10px] font-bold uppercase tracking-widest transition-opacity hover:opacity-90 shadow-lg mt-6">SIGN IN</button>
       </main>
     )
   }
@@ -147,7 +146,11 @@ export function SettingsScreen() {
   if (loading) {
     return (
       <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex flex-col gap-3 w-full max-w-[280px]">
+          {[1,2,3].map(i => (
+            <div key={i} className="h-3 rounded-sm bg-surface-container-highest/40 animate-pulse" style={{ width: `${90 - i * 15}%` }} />
+          ))}
+        </div>
       </main>
     )
   }
@@ -155,12 +158,12 @@ export function SettingsScreen() {
   return (
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen space-y-6">
       {/* Profile Summary */}
-      <section className="bg-surface-container rounded-xl p-5 flex items-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center ring-2 ring-primary/20 flex-shrink-0">
+      <section className="bg-surface-container rounded-sm p-5 flex items-center gap-4">
+        <div className="w-14 h-14 rounded-sm bg-surface-container-highest flex items-center justify-center flex-shrink-0">
           {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+            <img src={profile.avatar_url} alt="" className="w-full h-full rounded-sm object-cover" />
           ) : (
-            <Icon name="person" className="text-2xl text-primary/40" />
+            <span className="text-xl text-primary/40 italic font-serif">P</span>
           )}
         </div>
         <div className="flex-1 min-w-0">
@@ -170,9 +173,9 @@ export function SettingsScreen() {
         </div>
         <button
           onClick={() => setEditNameOpen(true)}
-          className="w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center active:scale-90 transition-transform"
+          className="w-9 h-9 rounded-sm bg-surface-container-highest flex items-center justify-center transition-opacity hover:opacity-80"
         >
-          <Icon name="edit" className="text-primary" size={16} />
+          <span className="text-primary text-[10px] italic">edit</span>
         </button>
       </section>
 
@@ -181,9 +184,9 @@ export function SettingsScreen() {
         <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary px-1 mb-3">PREFERENCES</h3>
 
         {/* Currency */}
-        <div className="bg-surface-container rounded-xl px-4 py-3.5 flex items-center justify-between">
+        <div className="bg-surface-container rounded-sm px-4 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Icon name="payments" className="text-primary" size={20} />
+            <span className="text-primary text-sm w-5 text-center">£</span>
             <div>
               <p className="text-sm text-on-surface font-medium">Currency</p>
               <p className="text-[10px] text-secondary/50">For decant & budget tracking</p>
@@ -192,7 +195,7 @@ export function SettingsScreen() {
           <select
             value={settings.preferred_currency}
             onChange={(e) => updateSetting('preferred_currency', e.target.value as Currency)}
-            className="bg-surface-container-highest text-on-surface text-xs font-bold px-3 py-1.5 rounded-lg border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
+            className="bg-surface-container-highest text-on-surface text-xs font-bold px-3 py-1.5 rounded-sm border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
           >
             {CURRENCIES.map((c) => (
               <option key={c} value={c}>{CURRENCY_SYMBOLS[c]} {c}</option>
@@ -201,9 +204,9 @@ export function SettingsScreen() {
         </div>
 
         {/* Theme Toggle */}
-        <div className="bg-surface-container rounded-xl px-4 py-3.5 flex items-center justify-between">
+        <div className="bg-surface-container rounded-sm px-4 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Icon name={theme === 'dark' ? 'dark_mode' : 'light_mode'} className="text-primary" size={20} />
+            <span className="text-primary text-sm w-5 text-center">{theme === 'dark' ? '◑' : '○'}</span>
             <div>
               <p className="text-sm text-on-surface font-medium">Theme</p>
               <p className="text-[10px] text-secondary/50">{theme === 'dark' ? 'Dark mode' : 'Light mode'}</p>
@@ -223,9 +226,9 @@ export function SettingsScreen() {
         </div>
 
         {/* Season auto-detect */}
-        <div className="bg-surface-container rounded-xl px-4 py-3.5 flex items-center justify-between">
+        <div className="bg-surface-container rounded-sm px-4 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Icon name="thermostat" className="text-primary" size={20} />
+            <span className="text-primary text-sm w-5 text-center">◉</span>
             <div>
               <p className="text-sm text-on-surface font-medium">Auto-detect season</p>
               <p className="text-[10px] text-secondary/50">For recommendations</p>
@@ -244,9 +247,9 @@ export function SettingsScreen() {
         </div>
 
         {/* Default size type */}
-        <div className="bg-surface-container rounded-xl px-4 py-3.5 flex items-center justify-between">
+        <div className="bg-surface-container rounded-sm px-4 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Icon name="straighten" className="text-primary" size={20} />
+            <span className="text-primary text-sm w-5 text-center">↔</span>
             <div>
               <p className="text-sm text-on-surface font-medium">Default size type</p>
               <p className="text-[10px] text-secondary/50">When adding decants</p>
@@ -255,7 +258,7 @@ export function SettingsScreen() {
           <select
             value={settings.default_size_type}
             onChange={(e) => updateSetting('default_size_type', e.target.value)}
-            className="bg-surface-container-highest text-on-surface text-xs font-bold px-3 py-1.5 rounded-lg border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
+            className="bg-surface-container-highest text-on-surface text-xs font-bold px-3 py-1.5 rounded-sm border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
           >
             {['full', 'travel', 'decant', 'sample', 'discovery'].map((t) => (
               <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
@@ -272,20 +275,20 @@ export function SettingsScreen() {
           {notifPermission !== 'granted' || !notifSettings.enabled ? (
             <button
               onClick={handleEnableNotifications}
-              className="w-full bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left"
+              className="w-full bg-surface-container rounded-sm px-4 py-3.5 flex items-center gap-3 transition-opacity hover:opacity-80 text-left"
             >
-              <Icon name="notifications" className="text-primary" size={20} />
+              <span className="text-primary text-sm w-5 text-center">⚑</span>
               <div className="flex-1">
                 <p className="text-sm text-on-surface font-medium">Enable notifications</p>
                 <p className="text-[10px] text-secondary/50">Get reminders to log your daily wear</p>
               </div>
-              <Icon name="chevron_right" className="text-secondary/60" size={18} />
+              <span className="text-secondary/60 text-sm">›</span>
             </button>
           ) : (
             <>
               {/* Daily reminder toggle */}
-              <div className="bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3">
-                <Icon name="schedule" className="text-primary" size={20} />
+              <div className="bg-surface-container rounded-sm px-4 py-3.5 flex items-center gap-3">
+                <span className="text-primary text-sm w-5 text-center">◷</span>
                 <div className="flex-1">
                   <p className="text-sm text-on-surface font-medium">Daily reminder</p>
                   <p className="text-[10px] text-secondary/50">Remind me to log my wear</p>
@@ -304,8 +307,8 @@ export function SettingsScreen() {
 
               {/* Reminder time */}
               {notifSettings.dailyReminder && (
-                <div className="bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3">
-                  <Icon name="alarm" className="text-primary/60" size={20} />
+                <div className="bg-surface-container rounded-sm px-4 py-3.5 flex items-center gap-3">
+                  <span className="text-primary/60 text-sm w-5 text-center">⏰</span>
                   <div className="flex-1">
                     <p className="text-sm text-on-surface font-medium">Reminder time</p>
                   </div>
@@ -313,14 +316,14 @@ export function SettingsScreen() {
                     type="time"
                     value={notifSettings.dailyReminderTime}
                     onChange={(e) => handleChangeReminderTime(e.target.value)}
-                    className="bg-surface-container-highest text-on-surface text-xs font-bold px-3 py-1.5 rounded-lg border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
+                    className="bg-surface-container-highest text-on-surface text-xs font-bold px-3 py-1.5 rounded-sm border-none focus:outline-none focus:ring-1 focus:ring-primary/30"
                   />
                 </div>
               )}
 
               {/* Streak reminder toggle */}
-              <div className="bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3">
-                <Icon name="local_fire_department" className="text-primary" size={20} />
+              <div className="bg-surface-container rounded-sm px-4 py-3.5 flex items-center gap-3">
+                <span className="text-primary text-sm w-5 text-center">🔥</span>
                 <div className="flex-1">
                   <p className="text-sm text-on-surface font-medium">Streak alerts</p>
                   <p className="text-[10px] text-secondary/50">Warn when streak is about to break</p>
@@ -340,9 +343,9 @@ export function SettingsScreen() {
               {/* Disable all */}
               <button
                 onClick={handleDisableNotifications}
-                className="w-full bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left"
+                className="w-full bg-surface-container rounded-sm px-4 py-3.5 flex items-center gap-3 transition-opacity hover:opacity-80 text-left"
               >
-                <Icon name="notifications_off" className="text-secondary/40" size={20} />
+                <span className="text-secondary/40 text-sm w-5 text-center">⊘</span>
                 <div className="flex-1">
                   <p className="text-sm text-secondary/60 font-medium">Disable all notifications</p>
                 </div>
@@ -358,26 +361,26 @@ export function SettingsScreen() {
 
         <button
           onClick={() => navigate('/data')}
-          className="w-full bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left"
+          className="w-full bg-surface-container rounded-sm px-4 py-3.5 flex items-center gap-3 transition-opacity hover:opacity-80 text-left"
         >
-          <Icon name="cloud_download" className="text-primary" size={20} />
+          <span className="text-primary text-sm w-5 text-center">↓</span>
           <div className="flex-1">
             <p className="text-sm text-on-surface font-medium">Export & Backup</p>
             <p className="text-[10px] text-secondary/50">JSON, CSV, HTML report, restore from backup</p>
           </div>
-          <Icon name="chevron_right" className="text-secondary/60" size={18} />
+          <span className="text-secondary/60 text-sm">›</span>
         </button>
 
         <button
           onClick={() => setDeleteConfirmOpen(true)}
-          className="w-full bg-surface-container rounded-xl px-4 py-3.5 flex items-center gap-3 active:scale-[0.98] transition-transform text-left"
+          className="w-full bg-surface-container rounded-sm px-4 py-3.5 flex items-center gap-3 transition-opacity hover:opacity-80 text-left"
         >
-          <Icon name="delete_forever" className="text-error/70" size={20} />
+          <span className="text-error/70 text-sm w-5 text-center">✕</span>
           <div className="flex-1">
             <p className="text-sm text-error/70 font-medium">Delete all data</p>
             <p className="text-[10px] text-secondary/50">Remove collection, wears, reviews & decants</p>
           </div>
-          <Icon name="chevron_right" className="text-secondary/60" size={18} />
+          <span className="text-secondary/60 text-sm">›</span>
         </button>
       </section>
 
@@ -385,9 +388,8 @@ export function SettingsScreen() {
       <section>
         <button
           onClick={signOut}
-          className="w-full bg-surface-container rounded-xl px-4 py-3.5 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+          className="w-full bg-surface-container rounded-sm px-4 py-3.5 flex items-center justify-center gap-2 transition-opacity hover:opacity-80"
         >
-          <Icon name="logout" className="text-error/70" />
           <span className="text-sm text-error/70 font-medium">Sign out</span>
         </button>
       </section>
@@ -395,7 +397,7 @@ export function SettingsScreen() {
       {/* App Info */}
       <section className="text-center pt-4 pb-8">
         <p className="text-[10px] text-secondary/30 tracking-widest uppercase font-label">ScentFolio v2.0</p>
-        <p className="text-[9px] text-secondary/20 mt-1">Letterboxd for fragrance lovers</p>
+        <p className="text-[9px] text-secondary/20 mt-1 italic">Letterboxd for fragrance lovers</p>
       </section>
 
       {/* Edit Name Sheet */}
@@ -452,8 +454,8 @@ function EditNameInline({ isOpen, onClose, userId, currentName, onSaved }: {
         <div className="px-8 pb-10 space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-headline font-bold text-on-surface">Edit Name</h2>
-            <button onClick={onClose} className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center active:scale-90 transition-transform">
-              <Icon name="close" size={20} />
+            <button onClick={onClose} className="w-10 h-10 rounded-sm bg-surface-container-highest flex items-center justify-center transition-opacity hover:opacity-80">
+              <span className="text-sm">×</span>
             </button>
           </div>
           <input
@@ -462,12 +464,12 @@ function EditNameInline({ isOpen, onClose, userId, currentName, onSaved }: {
             onChange={(e) => setName(e.target.value)}
             maxLength={50}
             autoFocus
-            className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-2xl px-4 py-3.5 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none"
+            className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-sm px-4 py-3.5 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none"
           />
           <button
             onClick={handleSave}
             disabled={name.trim().length < 2 || saving}
-            className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-2xl ambient-glow active:scale-[0.98] transition-all disabled:opacity-50"
+            className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-sm ambient-glow transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {saving ? 'SAVING...' : 'SAVE'}
           </button>
@@ -485,18 +487,18 @@ function DeleteConfirmDialog({ isOpen, onClose, onConfirm, deleting }: {
   return (
     <div ref={trapRef} className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-6" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative bg-surface-container-low rounded-2xl p-6 max-w-[340px] w-full space-y-4">
+      <div className="relative bg-surface-container-low rounded-sm p-6 max-w-[340px] w-full space-y-4">
         <div className="flex items-center gap-3">
-          <Icon name="warning" className="text-error text-2xl" />
+          <span className="text-error text-xl">⚠</span>
           <h3 className="font-headline text-lg text-on-surface font-bold">Delete all data?</h3>
         </div>
         <p className="text-sm text-secondary/70">This will permanently remove your collection, wear logs, reviews, and decants. This cannot be undone.</p>
         <div className="flex gap-3 pt-2">
-          <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-surface-container text-on-surface font-bold text-xs uppercase tracking-widest active:scale-95 transition-all">CANCEL</button>
+          <button onClick={onClose} className="flex-1 py-3 rounded-sm bg-surface-container text-on-surface font-bold text-xs uppercase tracking-widest transition-opacity hover:opacity-80">CANCEL</button>
           <button
             onClick={onConfirm}
             disabled={deleting}
-            className="flex-1 py-3 rounded-xl bg-error/20 text-error font-bold text-xs uppercase tracking-widest active:scale-95 transition-all disabled:opacity-50"
+            className="flex-1 py-3 rounded-sm bg-error/20 text-error font-bold text-xs uppercase tracking-widest transition-opacity hover:opacity-80 disabled:opacity-50"
           >
             {deleting ? 'DELETING...' : 'DELETE'}
           </button>

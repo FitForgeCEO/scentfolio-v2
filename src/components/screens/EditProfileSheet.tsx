@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Icon } from '../ui/Icon'
 import { supabase } from '@/lib/supabase'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useProfileExtras, useSignatureFragrance } from '@/hooks/useProfileExtras'
@@ -143,9 +142,9 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
           <button
             onClick={onClose}
             aria-label="Close"
-            className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform"
+            className="w-10 h-10 rounded-sm bg-surface-container-highest flex items-center justify-center text-on-surface-variant transition-opacity hover:opacity-80"
           >
-            <Icon name="close" size={20} />
+            <span className="text-sm">×</span>
           </button>
         </header>
 
@@ -159,7 +158,7 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Your display name"
               maxLength={50}
-              className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-2xl px-4 py-3.5 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none"
+              className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-sm px-4 py-3.5 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none"
             />
             <p className="text-[9px] text-secondary/60">{displayName.trim().length}/50 characters</p>
           </div>
@@ -168,7 +167,7 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
           <div className="space-y-3">
             <label className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">Bio</label>
             <textarea
-              className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-2xl p-4 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none resize-none"
+              className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-sm p-4 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none resize-none"
               placeholder="Tell the community about your fragrance journey..."
               rows={3}
               maxLength={200}
@@ -181,16 +180,16 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
           {/* Signature Scent */}
           <div className="space-y-3">
             <label className="text-[10px] uppercase tracking-[0.2em] text-primary font-bold">Signature Scent</label>
-            <p className="text-[10px] text-secondary/60 -mt-1">Your all-time favourite — shown on your profile</p>
+            <p className="text-[10px] text-secondary/60 -mt-1 italic">Your all-time favourite — shown on your profile</p>
 
             {signatureFragrance && !scentPickerOpen ? (
-              <div className="flex items-center gap-3 bg-surface-container p-3 rounded-2xl">
-                <div className="w-10 h-10 rounded-lg overflow-hidden bg-surface-container-highest flex-shrink-0">
+              <div className="flex items-center gap-3 bg-surface-container p-3 rounded-sm">
+                <div className="w-10 h-10 rounded-sm overflow-hidden bg-surface-container-highest flex-shrink-0">
                   {signatureFragrance.image_url ? (
                     <img src={signatureFragrance.image_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Icon name="water_drop" className="text-secondary/30" size={16} />
+                      <span className="text-secondary/30 text-[10px] italic">—</span>
                     </div>
                   )}
                 </div>
@@ -201,24 +200,24 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
                 <div className="flex gap-1">
                   <button
                     onClick={() => setScentPickerOpen(true)}
-                    className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center active:scale-90"
+                    className="w-8 h-8 rounded-sm bg-surface-container-highest flex items-center justify-center transition-opacity hover:opacity-80"
                     aria-label="Change"
                   >
-                    <Icon name="edit" size={14} className="text-secondary" />
+                    <span className="text-secondary text-[9px] italic">edit</span>
                   </button>
                   <button
                     onClick={() => setSignatureId(null)}
-                    className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center active:scale-90"
+                    className="w-8 h-8 rounded-sm bg-surface-container-highest flex items-center justify-center transition-opacity hover:opacity-80"
                     aria-label="Remove"
                   >
-                    <Icon name="close" size={14} className="text-secondary" />
+                    <span className="text-secondary text-sm">×</span>
                   </button>
                 </div>
               </div>
             ) : (
               <div className="space-y-2">
-                <div className="relative flex items-center bg-surface-container rounded-2xl px-4 py-3 focus-within:ring-1 ring-primary/30 transition-all">
-                  <Icon name="search" className="text-secondary/40 mr-2" size={16} />
+                <div className="relative flex items-center bg-surface-container rounded-sm px-4 py-3 focus-within:ring-1 ring-primary/30 transition-all">
+                  <span className="text-secondary/40 mr-2 text-xs italic">search</span>
                   <input
                     className="bg-transparent border-none p-0 focus:ring-0 focus:outline-none text-on-surface placeholder:text-secondary/40 w-full text-sm"
                     placeholder="Search your collection..."
@@ -227,18 +226,20 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
                     autoFocus={scentPickerOpen}
                   />
                   {scentSearch && (
-                    <button onClick={() => { setScentSearch(''); setScentResults([]) }} className="text-secondary/60">
-                      <Icon name="close" size={16} />
+                    <button onClick={() => { setScentSearch(''); setScentResults([]) }} className="text-secondary/60 transition-opacity hover:opacity-80">
+                      <span className="text-sm">×</span>
                     </button>
                   )}
                 </div>
                 {scentSearching && (
-                  <div className="flex justify-center py-4">
-                    <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  <div className="flex flex-col gap-2 py-4 px-2">
+                    {[1,2].map(i => (
+                      <div key={i} className="h-3 rounded-sm bg-surface-container-highest/40 animate-pulse" style={{ width: `${80 - i * 20}%` }} />
+                    ))}
                   </div>
                 )}
                 {scentResults.length > 0 && (
-                  <div className="bg-surface-container rounded-2xl overflow-hidden max-h-[180px] overflow-y-auto">
+                  <div className="bg-surface-container rounded-sm overflow-hidden max-h-[180px] overflow-y-auto">
                     {scentResults.map((frag) => (
                       <button
                         key={frag.id}
@@ -248,14 +249,14 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
                           setScentSearch('')
                           setScentResults([])
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-surface-container-highest active:bg-surface-container-highest transition-colors"
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-surface-container-highest transition-opacity"
                       >
-                        <div className="w-8 h-8 rounded-lg overflow-hidden bg-surface-container-highest flex-shrink-0">
+                        <div className="w-8 h-8 rounded-sm overflow-hidden bg-surface-container-highest flex-shrink-0">
                           {frag.image_url ? (
                             <img src={frag.image_url} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Icon name="water_drop" className="text-secondary/30" size={12} />
+                              <span className="text-secondary/30 text-[9px] italic">—</span>
                             </div>
                           )}
                         </div>
@@ -270,7 +271,7 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
                 {scentPickerOpen && signatureFragrance && (
                   <button
                     onClick={() => { setScentPickerOpen(false); setScentSearch(''); setScentResults([]) }}
-                    className="text-[10px] text-secondary/60 active:text-primary"
+                    className="text-[10px] text-secondary/60 transition-opacity hover:opacity-80 italic"
                   >
                     Cancel
                   </button>
@@ -290,7 +291,7 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
                   key={note}
                   type="button"
                   onClick={() => toggleNote(note)}
-                  className={`px-3 py-2 rounded-full text-[10px] font-medium transition-colors ${
+                  className={`px-3 py-2 rounded-sm text-[10px] font-medium transition-colors ${
                     favoriteNotes.includes(note)
                       ? 'bg-primary text-on-primary'
                       : 'bg-surface-container-highest text-secondary/70'
@@ -307,22 +308,22 @@ export function EditProfileSheet({ isOpen, onClose, userId, currentName, onSaved
 
           {/* Error */}
           {error && (
-            <div role="alert" className="bg-red-500/10 text-red-400 text-xs font-medium px-4 py-3 rounded-xl text-center">
+            <div role="alert" className="bg-red-500/10 text-red-400 text-xs font-medium px-4 py-3 rounded-sm text-center">
               {error}
             </div>
           )}
 
           {/* Save */}
           {success ? (
-            <div role="status" aria-live="polite" className="w-full py-4 bg-primary/20 text-primary font-bold uppercase tracking-[0.15em] rounded-2xl text-center flex items-center justify-center gap-2">
-              <Icon name="check_circle" filled className="text-xl" />
+            <div role="status" aria-live="polite" className="w-full py-4 bg-primary/20 text-primary font-bold uppercase tracking-[0.15em] rounded-sm text-center flex items-center justify-center gap-2">
+              <span className="text-lg">✓</span>
               SAVED!
             </div>
           ) : (
             <button
               onClick={handleSave}
               disabled={!canSubmit}
-              className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-2xl ambient-glow active:scale-[0.98] transition-all disabled:opacity-50"
+              className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-sm ambient-glow transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {saving ? 'SAVING...' : 'SAVE CHANGES'}
             </button>
