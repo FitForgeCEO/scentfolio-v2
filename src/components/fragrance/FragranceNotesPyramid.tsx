@@ -7,38 +7,48 @@ interface FragranceNotesPyramidProps {
 }
 
 const TIERS = [
-  { key: 'top' as const, label: 'TOP NOTES' },
-  { key: 'heart' as const, label: 'MIDDLE NOTES' },
-  { key: 'base' as const, label: 'BASE NOTES' },
+  { key: 'top' as const, label: 'TOP', roman: 'I' },
+  { key: 'heart' as const, label: 'HEART', roman: 'II' },
+  { key: 'base' as const, label: 'BASE', roman: 'III' },
 ] as const
 
 /**
- * Note icon — large, clear, no decoration. Fragrantica-style.
+ * Single note icon with family-tinted glow and elegant label.
+ * Designed to be large, clear, and visually rich — screenshot-worthy.
  */
 function NoteIcon({ note }: { note: string }) {
   const colors = getNoteFamilyColors(note)
   const iconPath = getNoteIconPath(note)
 
   return (
-    <div className="flex flex-col items-center gap-1 cursor-default">
-      {/* Large icon — no rings, no glow, just the image */}
-      <div className="w-16 h-16 flex items-center justify-center">
+    <div className="flex flex-col items-center gap-2 group cursor-default">
+      {/* Icon container with family-tinted ambient glow */}
+      <div
+        className="relative w-[72px] h-[72px] flex items-center justify-center rounded-sm overflow-hidden transition-transform duration-300 group-hover:scale-105"
+        style={{
+          background: colors.bg,
+          boxShadow: `0 0 24px 4px ${colors.border}`,
+        }}
+      >
+        {/* Subtle inner border */}
+        <div
+          className="absolute inset-0 rounded-sm pointer-events-none"
+          style={{ border: `1px solid ${colors.border}` }}
+        />
         <img
           src={iconPath}
           alt={note}
-          className="w-14 h-14 object-contain"
-          style={{
-            filter: 'brightness(1.2) contrast(1.15)',
-          }}
+          className="w-14 h-14 object-contain relative z-10 drop-shadow-sm"
+          style={{ filter: 'brightness(1.15) contrast(1.1)' }}
           loading="lazy"
           onError={(e) => {
             ;(e.target as HTMLImageElement).src = '/note-icons/water-drop.png'
           }}
         />
       </div>
-      {/* Note name — family-coloured */}
+      {/* Note name — family-coloured, editorial caps */}
       <span
-        className="text-[10px] font-semibold tracking-wide text-center leading-tight max-w-[80px]"
+        className="text-[9px] font-label font-bold tracking-[0.15em] uppercase text-center leading-tight max-w-[80px]"
         style={{ color: colors.text }}
       >
         {note}
@@ -71,49 +81,85 @@ export function FragranceNotesPyramid({ notesTop, notesHeart, notesBase }: Fragr
   ]
 
   return (
-    <section className="py-6">
+    <section className="px-6 py-8 relative">
       {/* Header */}
-      <h3 className="font-headline text-base tracking-[0.15em] text-primary uppercase text-center mb-8">
-        Perfume Pyramid
-      </h3>
+      <div className="flex items-center justify-center gap-4 mb-10">
+        <div
+          className="h-px flex-1 max-w-[60px]"
+          style={{ background: 'linear-gradient(to right, transparent, rgba(229,194,118,0.3))' }}
+        />
+        <h3 className="font-headline italic text-lg tracking-wide text-primary">
+          Perfume Pyramid
+        </h3>
+        <div
+          className="h-px flex-1 max-w-[60px]"
+          style={{ background: 'linear-gradient(to left, transparent, rgba(229,194,118,0.3))' }}
+        />
+      </div>
 
-      {/* Tiers */}
-      <div className="flex flex-col items-center gap-6">
-        {tiers.map(({ key, label, notes }) => {
+      {/* Pyramid tiers — progressively wider to form visual pyramid shape */}
+      <div className="flex flex-col items-center gap-8">
+        {tiers.map(({ key, label, roman, notes }, tierIndex) => {
           if (!notes || notes.length === 0) return null
 
+          // Progressive width: top is narrowest, base is widest
+          const maxWidth = tierIndex === 0 ? 'max-w-[280px]'
+            : tierIndex === 1 ? 'max-w-[360px]'
+            : 'max-w-[440px]'
+
           return (
-            <div key={key} className="w-full flex flex-col items-center">
-              {/* Tier label — simple, centered, with subtle flanking lines */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-px w-8" style={{ background: 'rgba(229, 194, 118, 0.15)' }} />
-                <span className="text-[10px] tracking-[0.2em] font-bold text-secondary/50 uppercase">
-                  {label}
-                </span>
-                <div className="h-px w-8" style={{ background: 'rgba(229, 194, 118, 0.15)' }} />
+            <div key={key} className={`w-full ${maxWidth} flex flex-col items-center`}>
+              {/* Tier label — roman numeral + name with flanking gradient lines */}
+              <div className="flex items-center gap-3 mb-5 w-full">
+                <div
+                  className="h-px flex-1"
+                  style={{ background: 'linear-gradient(to right, transparent, rgba(229,194,118,0.12))' }}
+                />
+                <div className="flex items-baseline gap-2">
+                  <span
+                    className="font-headline italic text-sm text-primary/40"
+                  >
+                    {roman}.
+                  </span>
+                  <span className="text-[10px] tracking-[0.25em] font-label font-bold text-secondary/50 uppercase">
+                    {label}
+                  </span>
+                </div>
+                <div
+                  className="h-px flex-1"
+                  style={{ background: 'linear-gradient(to left, transparent, rgba(229,194,118,0.12))' }}
+                />
               </div>
 
-              {/* Note icons — large and clear */}
-              <div className="flex gap-5 flex-wrap justify-center">
+              {/* Note icons — centred grid, generously spaced */}
+              <div className="flex gap-4 flex-wrap justify-center">
                 {notes.map((note) => (
                   <NoteIcon key={note} note={note} />
                 ))}
               </div>
+
+              {/* Subtle connector line between tiers */}
+              {tierIndex < 2 && (
+                <div
+                  className="mt-6 w-px h-6"
+                  style={{ background: 'linear-gradient(to bottom, rgba(229,194,118,0.2), transparent)' }}
+                />
+              )}
             </div>
           )
         })}
       </div>
 
-      {/* Family legend */}
+      {/* Family colour legend — only when multiple families present */}
       {familiesPresent.size > 1 && (
-        <div className="mt-8 flex flex-wrap justify-center gap-x-4 gap-y-1 px-4">
+        <div className="mt-10 flex flex-wrap justify-center gap-x-5 gap-y-2 px-4">
           {Array.from(familiesPresent.entries()).map(([family, color]) => (
             <div key={family} className="inline-flex items-center gap-1.5">
               <div
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: color }}
+                className="w-2 h-2 rounded-sm"
+                style={{ backgroundColor: color, opacity: 0.7 }}
               />
-              <span className="text-[8px] tracking-[0.1em] text-secondary/60 uppercase">{family}</span>
+              <span className="text-[8px] tracking-[0.15em] text-secondary/50 uppercase font-label font-bold">{family}</span>
             </div>
           ))}
         </div>

@@ -19,6 +19,7 @@ import { useReviewOwners, useDeleteReview } from '@/hooks/useReviewEnhancements'
 import type { ReviewSortOption } from '@/hooks/useReviewEnhancements'
 import type { Review } from '@/types/database'
 import { addRecentlyViewed } from '@/lib/recentlyViewed'
+import { FragranceNotesPyramid } from '../fragrance/FragranceNotesPyramid'
 
 /* ── Noir helpers ── */
 
@@ -484,6 +485,19 @@ export function FragranceDetailScreen() {
 
           <div className="mt-8 h-px" style={hairline} />
         </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          DEPARTMENT 5b — THE PERFUME PYRAMID
+          Visual pyramid with custom note icons — the shareable hero.
+          ═══════════════════════════════════════════════════════ */}
+      <FragranceNotesPyramid
+        notesTop={frag.notes_top ?? undefined}
+        notesHeart={frag.notes_heart ?? undefined}
+        notesBase={frag.notes_base ?? undefined}
+      />
+      {(frag.notes_top?.length || frag.notes_heart?.length || frag.notes_base?.length) && (
+        <div className="px-8"><div className="h-px" style={hairline} /></div>
       )}
 
       {/* ═══════════════════════════════════════════════════════
