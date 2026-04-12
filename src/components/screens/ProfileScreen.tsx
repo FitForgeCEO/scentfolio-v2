@@ -1,7 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { AuthScreen } from './AuthScreen'
-import { Icon } from '../ui/Icon'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getLevelProgress, getXPForNextLevel, getLevelTitle } from '@/lib/xp'
@@ -10,13 +9,55 @@ import { PullToRefresh } from '../ui/PullToRefresh'
 import { useProfileExtras, useSignatureFragrance } from '@/hooks/useProfileExtras'
 import type { Profile } from '@/types/database'
 
+/* ── voice helpers ───────────────────────────────────────────── */
+
+const WORDS = [
+  'zero','one','two','three','four','five','six','seven','eight','nine',
+  'ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen',
+  'seventeen','eighteen','nineteen','twenty',
+]
+
+function numberToWord(n: number): string {
+  if (n >= 0 && n <= 20) return WORDS[n]
+  if (n < 100) {
+    const tens = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety']
+    const t = Math.floor(n / 10)
+    const u = n % 10
+    return u === 0 ? tens[t] : `${tens[t]}-${WORDS[u]}`
+  }
+  return String(n)
+}
+
+/* ── noir style constants ────────────────────────────────────── */
+
+const hairline = 'linear-gradient(to right, rgba(229,194,118,0.4) 0%, rgba(229,194,118,0.1) 40%, transparent 100%)'
+
+function ambientGlow(top: string, left: string) {
+  return {
+    position: 'absolute' as const,
+    top,
+    left,
+    width: '300px',
+    height: '300px',
+    background: 'radial-gradient(circle, rgba(229,194,118,0.07) 0%, transparent 70%)',
+    filter: 'blur(80px)',
+    pointerEvents: 'none' as const,
+  }
+}
+
+/* ── auth gate ───────────────────────────────────────────────── */
+
 export function ProfileScreen() {
   const { user, signOut, loading: authLoading } = useAuth()
 
   if (authLoading) {
     return (
       <main className="pt-24 pb-32 px-6 min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="space-y-4 w-full max-w-[280px]">
+          {[1, 2, 3].map(n => (
+            <div key={n} className="h-3 rounded-sm animate-pulse" style={{ background: '#3c3330', width: `${60 + n * 10}%` }} />
+          ))}
+        </div>
       </main>
     )
   }
@@ -25,6 +66,8 @@ export function ProfileScreen() {
 
   return <ProfileContent userId={user.id} email={user.email ?? ''} onSignOut={signOut} />
 }
+
+/* ── main content ────────────────────────────────────────────── */
 
 function ProfileContent({ userId, email, onSignOut }: { userId: string; email: string; onSignOut: () => void }) {
   const navigate = useNavigate()
@@ -52,454 +95,378 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
     })
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { fetchData() }, [userId])
+
+  /* derived */
+  const level = profile?.level ?? 1
+  const xp = profile?.xp ?? 0
+  const progress = getLevelProgress(xp, level)
+  const nextLevelXP = getXPForNextLevel(level)
+  const title = getLevelTitle(level)
+  const displayName = profile?.display_name ?? 'Fragrance Lover'
 
   if (loading) {
     return (
-      <main className="pt-24 pb-32 px-6 min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      <main className="relative pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen overflow-hidden">
+        <div aria-hidden style={ambientGlow('-5%', '-10%')} />
+        <div className="space-y-6">
+          {[1, 2, 3, 4, 5].map(n => (
+            <div key={n} className="h-3 rounded-sm animate-pulse" style={{ background: '#3c3330', width: `${40 + n * 12}%` }} />
+          ))}
+        </div>
       </main>
     )
   }
 
   return (
     <PullToRefresh onRefresh={async () => fetchData()}>
-    <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
-      {/* Avatar + Name */}
-      <section className="flex flex-col items-center mb-10">
-        <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center mb-4 ring-2 ring-primary/20">
-          {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
-          ) : (
-            <Icon name="person" className="text-3xl text-primary/40" />
+    <main
+      className="relative pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen overflow-hidden"
+    >
+      {/* ── ambient gold lifts ─────────────────────────────── */}
+      <div aria-hidden style={ambientGlow('-5%', '-10%')} />
+      <div aria-hidden style={ambientGlow('40%', '70%')} />
+      <div aria-hidden style={ambientGlow('80%', '-15%')} />
+
+      {/* ── I. THE FRONTISPIECE ────────────────────────────── */}
+      <header className="mb-10">
+        <p
+          className="font-label text-[0.65rem] tracking-[0.3em] uppercase mb-3"
+          style={{ color: 'rgba(229,194,118,0.6)' }}
+        >
+          THE PROPRIETOR'S STUDY
+        </p>
+        <h1 className="font-headline italic text-5xl md:text-6xl leading-tight text-on-background mb-2">
+          {displayName}.
+        </h1>
+        <p className="font-headline italic text-base" style={{ color: 'rgba(168,154,145,0.7)' }}>
+          {email}
+        </p>
+        <div className="mt-6" style={{ height: '1px', background: hairline }} />
+      </header>
+
+      {/* ── II. THE CREDENTIALS ────────────────────────────── */}
+      <section className="mb-10">
+        <div className="flex gap-5 items-start">
+          {/* a) Portrait */}
+          {profile?.avatar_url && (
+            <div
+              className="w-[80px] h-[106px] flex-shrink-0 rounded-sm overflow-hidden grayscale hover:grayscale-0 transition-all duration-700"
+              style={{ background: '#3c3330' }}
+            >
+              <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+            </div>
           )}
-        </div>
-        <h2 className="font-headline text-2xl text-on-surface">{profile?.display_name ?? 'Fragrance Lover'}</h2>
-        <p className="text-xs text-secondary/50 mt-1">{email}</p>
 
-        {/* Bio */}
-        {extras.bio && (
-          <p className="text-sm text-on-surface-variant/80 mt-3 max-w-[300px] text-center italic leading-relaxed">
-            "{extras.bio}"
-          </p>
-        )}
+          <div className="flex-1 space-y-4">
+            {/* b) Bio */}
+            {extras.bio && (
+              <p
+                className="font-headline italic text-base leading-relaxed max-w-[300px]"
+                style={{ color: 'rgba(168,154,145,0.7)' }}
+              >
+                &ldquo;{extras.bio}&rdquo;
+              </p>
+            )}
 
-        {/* Signature Scent */}
-        {signatureFragrance && (
-          <div className="mt-3 flex items-center gap-2.5 bg-surface-container px-3.5 py-2.5 rounded-2xl">
-            <div className="w-8 h-8 rounded-lg overflow-hidden bg-surface-container-highest flex-shrink-0">
-              {signatureFragrance.image_url ? (
-                <img src={signatureFragrance.image_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Icon name="water_drop" className="text-secondary/30" size={14} />
-                </div>
-              )}
-            </div>
-            <div className="min-w-0">
-              <p className="text-[8px] uppercase tracking-[0.15em] text-primary/70 font-bold">Signature Scent</p>
-              <p className="text-xs text-on-surface truncate">{signatureFragrance.brand} — {signatureFragrance.name}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Favourite Notes */}
-        {extras.favorite_notes.length > 0 && (
-          <div className="mt-3 flex flex-wrap justify-center gap-1.5 max-w-[300px]">
-            {extras.favorite_notes.map((note) => (
-              <span key={note} className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
-                {note}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Level + XP progress */}
-        {(() => {
-          const level = profile?.level ?? 1
-          const xp = profile?.xp ?? 0
-          const progress = getLevelProgress(xp, level)
-          const nextLevelXP = getXPForNextLevel(level)
-          const title = getLevelTitle(level)
-          return (
-            <div className="mt-4 w-full max-w-[280px]">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Icon name="emoji_events" filled className="text-primary text-sm" />
-                  <span className="font-label text-[10px] tracking-widest text-primary font-bold uppercase">
-                    Level {level}
-                  </span>
-                  <span className="text-[10px] text-secondary/60">·</span>
-                  <span className="text-[10px] text-secondary/60 italic">{title}</span>
-                </div>
-                <span className="text-[9px] text-secondary/50">{xp} / {nextLevelXP} XP</span>
-              </div>
-              <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+            {/* c) House signature */}
+            {signatureFragrance && (
+              <div className="flex items-center gap-3">
                 <div
-                  className="h-full bg-primary rounded-full transition-all duration-700"
-                  style={{ width: `${progress}%` }}
-                />
+                  className="w-8 h-[42px] flex-shrink-0 rounded-sm overflow-hidden grayscale"
+                  style={{ background: '#3c3330' }}
+                >
+                  {signatureFragrance.image_url && (
+                    <img src={signatureFragrance.image_url} alt="" className="w-full h-full object-cover" />
+                  )}
+                </div>
+                <div>
+                  <p
+                    className="font-label text-[0.6rem] tracking-[0.15em] uppercase mb-0.5"
+                    style={{ color: 'rgba(229,194,118,0.6)' }}
+                  >
+                    HOUSE SIGNATURE
+                  </p>
+                  <p className="font-headline italic text-sm text-on-background">
+                    {signatureFragrance.brand} — {signatureFragrance.name}
+                  </p>
+                </div>
               </div>
-            </div>
-          )
-        })()}
-      </section>
+            )}
 
-      {/* Stats */}
-      <section className="grid grid-cols-3 gap-3 mb-10">
-        {[
-          { label: 'Collection', value: collectionCount, icon: 'water_drop' },
-          { label: 'Wears', value: wearCount, icon: 'checkroom' },
-          { label: 'Reviews', value: reviewCount, icon: 'rate_review' },
-        ].map((stat) => (
-          <div key={stat.label} className="bg-surface-container rounded-xl p-4 text-center">
-            <Icon name={stat.icon} className="text-primary/60 text-xl mb-2" />
-            <p className="font-headline text-2xl text-on-surface">{stat.value}</p>
-            <p className="font-label text-[9px] tracking-[0.15em] text-secondary/50 uppercase mt-1">{stat.label}</p>
+            {/* d) Preferred accords */}
+            {extras.favorite_notes.length > 0 && (
+              <div>
+                <p
+                  className="font-label text-[0.6rem] tracking-[0.15em] uppercase mb-1.5"
+                  style={{ color: 'rgba(229,194,118,0.6)' }}
+                >
+                  PREFERRED ACCORDS
+                </p>
+                <p className="font-headline italic text-sm" style={{ color: 'rgba(168,154,145,0.5)' }}>
+                  {extras.favorite_notes.map(n => n.toLowerCase()).join(' · ')}
+                </p>
+              </div>
+            )}
           </div>
-        ))}
-      </section>
-
-      {/* My Scent Identity */}
-      <section className="mb-10">
-        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary mb-3">MY SCENT IDENTITY</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => navigate('/dna')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="fingerprint" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">DNA Profile</p>
-              <p className="text-[10px] text-secondary/50">Your scent radar</p>
-            </div>
-          </button>
-          <button
-            onClick={() => navigate('/profile-card')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="badge" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Profile Card</p>
-              <p className="text-[10px] text-secondary/50">Share your taste</p>
-            </div>
-          </button>
-          <button
-            onClick={() => navigate('/stats')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="analytics" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Stats</p>
-              <p className="text-[10px] text-secondary/50">Your taste decoded</p>
-            </div>
-          </button>
-          <button
-            onClick={() => navigate('/achievements')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="emoji_events" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Achievements</p>
-              <p className="text-[10px] text-secondary/50">Badges & milestones</p>
-            </div>
-          </button>
-          <button
-            onClick={() => navigate('/challenges')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="flag" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Challenges</p>
-              <p className="text-[10px] text-secondary/50">Goals & rewards</p>
-            </div>
-          </button>
-          <button
-            onClick={() => navigate('/collection-insights')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="psychology" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Insights</p>
-              <p className="text-[10px] text-secondary/50">Collection decoded</p>
-            </div>
-          </button>
-          <button
-            onClick={() => navigate('/collection-health')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="health_and_safety" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Health Score</p>
-              <p className="text-[10px] text-secondary/50">Rate your collection</p>
-            </div>
-          </button>
-          <button
-            onClick={() => navigate('/brands')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="storefront" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Brands</p>
-              <p className="text-[10px] text-secondary/50">Browse by brand</p>
-            </div>
-          </button>
-          <button
-            onClick={() => navigate('/families')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="category" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Families</p>
-              <p className="text-[10px] text-secondary/50">Browse by note family</p>
-            </div>
-          </button>
-          <button
-            onClick={() => navigate('/top-shelf')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="shelves" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Top Shelf</p>
-              <p className="text-[10px] text-secondary/50">Your all-time faves</p>
-            </div>
-          </button>
-          <button
-            onClick={() => navigate('/milestones')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="workspace_premium" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Milestones</p>
-              <p className="text-[10px] text-secondary/50">Track your journey</p>
-            </div>
-          </button>
         </div>
+        <div className="mt-8" style={{ height: '1px', background: hairline }} />
       </section>
 
-      {/* Personal Tools */}
+      {/* ── III. THE STANDING ──────────────────────────────── */}
       <section className="mb-10">
-        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary mb-3">PERSONAL</h3>
-        <div className="space-y-2">
-          <button
-            onClick={() => navigate('/activity')}
-            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
-          >
-            <Icon name="notifications" className="text-primary" />
-            <div className="flex-1">
-              <p className="text-sm text-on-surface font-medium">Activity & Notifications</p>
-              <p className="text-[10px] text-secondary/50">Your recent activity log</p>
-            </div>
-            <Icon name="chevron_right" className="text-secondary/60" />
-          </button>
-          <button
-            onClick={() => navigate('/scent-quiz')}
-            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
-          >
-            <Icon name="quiz" className="text-primary" />
-            <div className="flex-1">
-              <p className="text-sm text-on-surface font-medium">Scent Quiz</p>
-              <p className="text-[10px] text-secondary/50">Discover your profile</p>
-            </div>
-            <Icon name="chevron_right" className="text-secondary/60" />
-          </button>
-          <button
-            onClick={() => navigate('/gift-finder')}
-            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
-          >
-            <Icon name="card_giftcard" className="text-primary" />
-            <div className="flex-1">
-              <p className="text-sm text-on-surface font-medium">Gift Finder</p>
-              <p className="text-[10px] text-secondary/50">Find the perfect gift</p>
-            </div>
-            <Icon name="chevron_right" className="text-secondary/60" />
-          </button>
-          <button
-            onClick={() => navigate('/dupes')}
-            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
-          >
-            <Icon name="compare_arrows" className="text-primary" />
-            <div className="flex-1">
-              <p className="text-sm text-on-surface font-medium">Dupe Finder</p>
-              <p className="text-[10px] text-secondary/50">Similar scents & alternatives</p>
-            </div>
-            <Icon name="chevron_right" className="text-secondary/60" />
-          </button>
-          <button
-            onClick={() => navigate('/blind-buys')}
-            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
-          >
-            <Icon name="shopping_bag" className="text-primary" />
-            <div className="flex-1">
-              <p className="text-sm text-on-surface font-medium">Blind Buys</p>
-              <p className="text-[10px] text-secondary/50">Track unsniffed purchases</p>
-            </div>
-            <Icon name="chevron_right" className="text-secondary/60" />
-          </button>
-          <button
-            onClick={() => navigate('/wear-predictions')}
-            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
-          >
-            <Icon name="smart_toy" className="text-primary" />
-            <div className="flex-1">
-              <p className="text-sm text-on-surface font-medium">Today's Picks</p>
-              <p className="text-[10px] text-secondary/50">Smart wear suggestions</p>
-            </div>
-            <Icon name="chevron_right" className="text-secondary/60" />
-          </button>
-          <button
-            onClick={() => navigate('/journal')}
-            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
-          >
-            <Icon name="edit_note" className="text-primary" />
-            <div className="flex-1">
-              <p className="text-sm text-on-surface font-medium">Scent Journal</p>
-              <p className="text-[10px] text-secondary/50">Your fragrance diary</p>
-            </div>
-            <Icon name="chevron_right" className="text-secondary/60" />
-          </button>
-          <button
-            onClick={() => navigate('/calendar')}
-            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
-          >
-            <Icon name="calendar_month" className="text-primary" />
-            <div className="flex-1">
-              <p className="text-sm text-on-surface font-medium">Wear Calendar</p>
-              <p className="text-[10px] text-secondary/50">Monthly wear overview</p>
-            </div>
-            <Icon name="chevron_right" className="text-secondary/60" />
-          </button>
-          <button
-            onClick={() => navigate('/heatmap')}
-            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
-          >
-            <Icon name="grid_on" className="text-primary" />
-            <div className="flex-1">
-              <p className="text-sm text-on-surface font-medium">Wear Heatmap</p>
-              <p className="text-[10px] text-secondary/50">Activity heatmap & cost per wear</p>
-            </div>
-            <Icon name="chevron_right" className="text-secondary/60" />
-          </button>
-          <button
-            onClick={() => navigate('/timeline')}
-            className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
-          >
-            <Icon name="timeline" className="text-primary" />
-            <div className="flex-1">
-              <p className="text-sm text-on-surface font-medium">Timeline</p>
-              <p className="text-[10px] text-secondary/50">Your fragrance journey</p>
-            </div>
-            <Icon name="chevron_right" className="text-secondary/60" />
-          </button>
+        <p
+          className="font-label text-[0.65rem] tracking-[0.3em] uppercase mb-3"
+          style={{ color: 'rgba(229,194,118,0.6)' }}
+        >
+          STANDING
+        </p>
+        <p className="font-headline italic text-xl text-on-background mb-3">
+          Level {numberToWord(level)} · {title}
+        </p>
+        <div className="h-[2px] w-full" style={{ background: '#3c3330' }}>
+          <div
+            className="h-full transition-all duration-700"
+            style={{ width: `${progress}%`, background: '#e5c276' }}
+          />
         </div>
+        <p
+          className="text-right font-headline italic mt-1.5"
+          style={{ fontSize: '0.65rem', color: 'rgba(168,154,145,0.5)' }}
+        >
+          {xp} of {nextLevelXP} merit
+        </p>
+        <div className="mt-6" style={{ height: '1px', background: hairline }} />
       </section>
 
-      {/* Share & Social */}
+      {/* ── IV. THE REGISTERS ─────────────────────────────── */}
       <section className="mb-10">
-        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary mb-3">SHARE & SOCIAL</h3>
+        <div className="grid grid-cols-3 gap-6">
+          {[
+            { value: collectionCount, label: 'bottles archived' },
+            { value: wearCount, label: 'sessions recorded' },
+            { value: reviewCount, label: 'appraisals offered' },
+          ].map(stat => (
+            <div key={stat.label}>
+              <p className="font-headline italic text-3xl text-on-background mb-1">
+                {numberToWord(stat.value)}
+              </p>
+              <p
+                className="font-label text-[0.6rem] tracking-[0.15em] uppercase"
+                style={{ color: 'rgba(229,194,118,0.6)' }}
+              >
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8" style={{ height: '1px', background: hairline }} />
+      </section>
+
+      {/* ── V. THE PROPRIETOR'S INTERESTS ─────────────────── */}
+      <section className="mb-10">
+        <p
+          className="font-label text-[0.65rem] tracking-[0.3em] uppercase mb-6"
+          style={{ color: 'rgba(229,194,118,0.6)' }}
+        >
+          THE PROPRIETOR'S INTERESTS
+        </p>
+        <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+          {([
+            ['/dna', 'Olfactory fingerprint', 'your scent radar'],
+            ['/profile-card', 'Calling card', 'share your taste'],
+            ['/stats', 'Taste decoded', 'your numbers, revealed'],
+            ['/achievements', 'Distinctions', 'honours & milestones'],
+            ['/challenges', 'Pursuits', 'goals & rewards'],
+            ['/collection-insights', 'Archive decoded', 'collection intelligence'],
+            ['/collection-health', 'Archive condition', 'rate your archive'],
+            ['/brands', 'Houses', 'browse by house'],
+            ['/families', 'Accords', 'browse by accord'],
+            ['/top-shelf', 'Treasured bottles', 'your all-time favourites'],
+            ['/milestones', 'Milestones', 'trace the journey'],
+          ] as [string, string, string][]).map(([path, name, desc]) => (
+            <button
+              key={path}
+              onClick={() => navigate(path)}
+              className="text-left group"
+            >
+              <p className="font-headline italic text-base text-on-background group-hover:text-primary transition-colors">
+                {name}
+              </p>
+              <p
+                className="font-headline italic text-sm mt-0.5"
+                style={{ color: 'rgba(168,154,145,0.5)' }}
+              >
+                {desc}
+              </p>
+              <div
+                className="mt-1.5 w-0 group-hover:w-8 h-[1px] transition-all duration-500"
+                style={{ background: '#e5c276' }}
+              />
+            </button>
+          ))}
+        </div>
+        <div className="mt-8" style={{ height: '1px', background: hairline }} />
+      </section>
+
+      {/* ── VI. INSTRUMENTS & RECORDS ─────────────────────── */}
+      <section className="mb-10">
+        <p
+          className="font-label text-[0.65rem] tracking-[0.3em] uppercase mb-6"
+          style={{ color: 'rgba(229,194,118,0.6)' }}
+        >
+          INSTRUMENTS & RECORDS
+        </p>
+        <div className="space-y-0">
+          {([
+            ['/activity', 'Correspondence', 'your recent notices'],
+            ['/scent-quiz', 'Olfactory assessment', 'discover your profile'],
+            ['/gift-finder', 'Gift consultation', 'find the perfect gift'],
+            ['/dupes', 'Alternatives', 'similar scents & substitutes'],
+            ['/blind-buys', 'Unsniffed acquisitions', 'bottles bought on faith'],
+            ['/wear-predictions', "Today's recommendation", 'what to wear today'],
+            ['/journal', 'Private journal', 'your fragrance diary'],
+            ['/calendar', 'Diary', 'monthly wear overview'],
+            ['/heatmap', 'Wear atlas', 'activity map & cost per wear'],
+            ['/timeline', 'Chronology', 'your fragrance journey'],
+          ] as [string, string, string][]).map(([path, name, desc]) => (
+            <div key={path}>
+              <button
+                onClick={() => navigate(path)}
+                className="w-full text-left py-4 group"
+              >
+                <p className="font-headline italic text-base text-on-background group-hover:text-primary transition-colors">
+                  {name}
+                </p>
+                <p
+                  className="font-headline italic text-sm mt-0.5"
+                  style={{ color: 'rgba(168,154,145,0.5)' }}
+                >
+                  {desc}
+                </p>
+              </button>
+              <div style={{ height: '1px', background: hairline }} />
+            </div>
+          ))}
+        </div>
+        <div className="mt-4" style={{ height: '1px', background: hairline }} />
+      </section>
+
+      {/* ── VII. SALON & SOCIETY ──────────────────────────── */}
+      <section className="mb-10">
+        <p
+          className="font-label text-[0.65rem] tracking-[0.3em] uppercase mb-6"
+          style={{ color: 'rgba(229,194,118,0.6)' }}
+        >
+          SALON & SOCIETY
+        </p>
+
+        {/* full-width lead item */}
         <button
           onClick={() => navigate('/feed')}
-          className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left mb-3"
+          className="w-full text-left py-4 group"
         >
-          <Icon name="dynamic_feed" className="text-primary" />
-          <div className="flex-1">
-            <p className="text-sm text-on-surface font-medium">Social Feed</p>
-            <p className="text-[10px] text-secondary/50">See what people you follow are wearing</p>
-          </div>
-          <Icon name="chevron_right" className="text-secondary/60" />
+          <p className="font-headline italic text-base text-on-background group-hover:text-primary transition-colors">
+            The salon
+          </p>
+          <p
+            className="font-headline italic text-sm mt-0.5"
+            style={{ color: 'rgba(168,154,145,0.5)' }}
+          >
+            see what others are wearing
+          </p>
         </button>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => navigate('/share-collection')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="auto_awesome" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Share Cards</p>
-              <p className="text-[10px] text-secondary/50">Wrapped-style cards</p>
-            </div>
-          </button>
-          <button
-            onClick={() => navigate('/year-wrapped')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="celebration" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Year Wrapped</p>
-              <p className="text-[10px] text-secondary/50">Annual summary</p>
-            </div>
-          </button>
-          <button
-            onClick={() => navigate('/month-review')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="calendar_month" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Month Review</p>
-              <p className="text-[10px] text-secondary/50">Monthly highlights</p>
-            </div>
-          </button>
-          <button
-            onClick={() => navigate('/badges')}
-            className="flex items-center gap-3 bg-surface-container p-4 rounded-xl text-left active:scale-[0.97] transition-transform"
-          >
-            <Icon name="military_tech" className="text-primary" />
-            <div>
-              <p className="text-sm text-on-surface font-medium">Badges</p>
-              <p className="text-[10px] text-secondary/50">Shareable proof</p>
-            </div>
-          </button>
+        <div style={{ height: '1px', background: hairline }} />
+
+        {/* 2-col sub-grid */}
+        <div className="grid grid-cols-2 gap-x-8 gap-y-6 mt-6">
+          {([
+            ['/share-collection', 'Presentation cards', 'wrapped-style cards'],
+            ['/year-wrapped', 'Annual review', 'the year in scent'],
+            ['/month-review', 'Monthly précis', 'highlights of the month'],
+            ['/badges', 'Distinctions earned', 'shareable proof'],
+          ] as [string, string, string][]).map(([path, name, desc]) => (
+            <button
+              key={path}
+              onClick={() => navigate(path)}
+              className="text-left group"
+            >
+              <p className="font-headline italic text-base text-on-background group-hover:text-primary transition-colors">
+                {name}
+              </p>
+              <p
+                className="font-headline italic text-sm mt-0.5"
+                style={{ color: 'rgba(168,154,145,0.5)' }}
+              >
+                {desc}
+              </p>
+              <div
+                className="mt-1.5 w-0 group-hover:w-8 h-[1px] transition-all duration-500"
+                style={{ background: '#e5c276' }}
+              />
+            </button>
+          ))}
         </div>
+        <div className="mt-8" style={{ height: '1px', background: hairline }} />
       </section>
 
-      {/* Account */}
-      <section className="space-y-2 mb-10">
-        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary mb-3">ACCOUNT</h3>
-        <button
-          onClick={() => setEditSheetOpen(true)}
-          className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
+      {/* ── VIII. PRIVATE AFFAIRS ─────────────────────────── */}
+      <section className="mb-10">
+        <p
+          className="font-label text-[0.65rem] tracking-[0.3em] uppercase mb-6"
+          style={{ color: 'rgba(229,194,118,0.6)' }}
         >
-          <Icon name="edit" className="text-primary" />
-          <div className="flex-1">
-            <p className="text-sm text-on-surface font-medium">Edit Profile</p>
-            <p className="text-[10px] text-secondary/50">Name, bio, signature scent & notes</p>
-          </div>
-          <Icon name="chevron_right" className="text-secondary/60" />
-        </button>
-        <button
-          onClick={() => navigate('/settings')}
-          className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
-        >
-          <Icon name="settings" className="text-primary" />
-          <div className="flex-1">
-            <p className="text-sm text-on-surface font-medium">Settings</p>
-            <p className="text-[10px] text-secondary/50">Preferences, data export, currency</p>
-          </div>
-          <Icon name="chevron_right" className="text-secondary/60" />
-        </button>
-        <button
-          onClick={() => navigate('/blocked')}
-          className="w-full flex items-center gap-4 bg-surface-container rounded-xl px-4 py-3.5 active:scale-[0.98] transition-transform text-left"
-        >
-          <Icon name="block" className="text-primary" />
-          <div className="flex-1">
-            <p className="text-sm text-on-surface font-medium">Blocked Users</p>
-            <p className="text-[10px] text-secondary/50">Manage blocked accounts</p>
-          </div>
-          <Icon name="chevron_right" className="text-secondary/60" />
-        </button>
+          PRIVATE AFFAIRS
+        </p>
+        <div className="space-y-0">
+          {([
+            [() => setEditSheetOpen(true), 'Amend the register', 'name, bio, house signature & accords'],
+            [() => navigate('/settings'), 'Preferences', 'preferences, data export, currency'],
+            [() => navigate('/blocked'), 'Barred persons', 'manage barred accounts'],
+          ] as [() => void, string, string][]).map(([action, name, desc]) => (
+            <div key={name}>
+              <button
+                onClick={action}
+                className="w-full text-left py-4 group"
+              >
+                <p className="font-headline italic text-base text-on-background group-hover:text-primary transition-colors">
+                  {name}
+                </p>
+                <p
+                  className="font-headline italic text-sm mt-0.5"
+                  style={{ color: 'rgba(168,154,145,0.5)' }}
+                >
+                  {desc}
+                </p>
+              </button>
+              <div style={{ height: '1px', background: hairline }} />
+            </div>
+          ))}
+        </div>
+        <div className="mt-4" style={{ height: '1px', background: hairline }} />
       </section>
 
-      {/* Sign Out */}
-      <button
-        onClick={onSignOut}
-        className="w-full bg-surface-container rounded-xl px-4 py-3.5 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
-      >
-        <Icon name="logout" className="text-error/70" />
-        <span className="text-sm text-error/70 font-medium">Sign out</span>
-      </button>
+      {/* ── IX. LEAVE-TAKING ──────────────────────────────── */}
+      <div className="flex justify-center pt-8 pb-4">
+        <button
+          onClick={onSignOut}
+          className="group flex flex-col items-center space-y-3"
+        >
+          <div
+            className="w-12 h-[1px] group-hover:w-24 transition-all duration-700"
+            style={{ background: 'rgba(168,154,145,0.3)' }}
+          />
+          <span
+            className="font-headline italic text-lg tracking-wide group-hover:text-on-background transition-colors"
+            style={{ color: 'rgba(168,154,145,0.5)' }}
+          >
+            Take one&apos;s leave
+          </span>
+        </button>
+      </div>
 
-      {/* Edit Profile Sheet */}
+      {/* ── EDIT PROFILE SHEET ────────────────────────────── */}
       <EditProfileSheet
         isOpen={editSheetOpen}
         onClose={() => setEditSheetOpen(false)}
