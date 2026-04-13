@@ -282,7 +282,6 @@ export function DiscoverScreen() {
     const { data: topRated } = await supabase
       .from('fragrances')
       .select('*')
-      .not('image_url', 'is', null)
       .not('rating', 'is', null)
       .order('rating', { ascending: false })
       .limit(10)
@@ -298,7 +297,6 @@ export function DiscoverScreen() {
     const { data: hiddenGems } = await supabase
       .from('fragrances')
       .select('*')
-      .not('image_url', 'is', null)
       .gte('rating', 4.0)
       .order('rating', { ascending: false })
       .range(50, 70)
@@ -328,7 +326,6 @@ export function DiscoverScreen() {
         const { data: candidates } = await supabase
           .from('fragrances')
           .select('*')
-          .not('image_url', 'is', null)
           .not('rating', 'is', null)
           .order('rating', { ascending: false })
           .limit(80)
@@ -362,7 +359,6 @@ export function DiscoverScreen() {
       .from('fragrances')
       .select('*')
       .eq('brand', randomNiche)
-      .not('image_url', 'is', null)
       .order('rating', { ascending: false })
       .limit(10)
 
@@ -385,7 +381,6 @@ export function DiscoverScreen() {
       .from('fragrances')
       .select('*')
       .eq('note_family', selectedFamily)
-      .not('image_url', 'is', null)
       .order('rating', { ascending: false, nullsFirst: false })
       .limit(12)
       .then(({ data }) => {

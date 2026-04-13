@@ -92,7 +92,6 @@ export function useFragrancesByNote(note: string, position: NotePosition = 'all'
     let query = supabase
       .from('fragrances')
       .select('*')
-      .not('image_url', 'is', null)
 
     if (position === 'top') {
       query = query.contains('notes_top', [searchTerm])

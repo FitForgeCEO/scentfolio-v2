@@ -403,7 +403,6 @@ function FilingDeskSheet({
         .from('fragrances')
         .select('*')
         .or(`name.ilike.%${query}%,brand.ilike.%${query}%`)
-        .not('image_url', 'is', null)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(15)
         .then(({ data }) => {

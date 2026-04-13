@@ -55,7 +55,6 @@ export function RecommendationCarousel() {
     const { data: candidates } = await supabase
       .from('fragrances')
       .select('*')
-      .not('image_url', 'is', null)
       .not('rating', 'is', null)
       .order('rating', { ascending: false })
       .limit(100)

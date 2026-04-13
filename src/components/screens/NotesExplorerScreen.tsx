@@ -113,7 +113,6 @@ export function NotesExplorerScreen() {
       .from('fragrances')
       .select('*')
       .eq('note_family', family)
-      .not('image_url', 'is', null)
       .order('rating', { ascending: false, nullsFirst: false })
       .limit(20)
     setSelectedFamilyFragrances((data ?? []) as Fragrance[])
@@ -126,7 +125,6 @@ export function NotesExplorerScreen() {
       .from('fragrances')
       .select('*')
       .contains('accords', [accord])
-      .not('image_url', 'is', null)
       .order('rating', { ascending: false, nullsFirst: false })
       .limit(20)
     setSelectedAccord({ accord, fragrances: (data ?? []) as Fragrance[] })
@@ -141,7 +139,6 @@ export function NotesExplorerScreen() {
       .from('fragrances')
       .select('*')
       .or(`notes_top.cs.{${q}},notes_heart.cs.{${q}},notes_base.cs.{${q}},general_notes.cs.{${q}}`)
-      .not('image_url', 'is', null)
       .order('rating', { ascending: false, nullsFirst: false })
       .limit(20)
       .then(({ data }) => {

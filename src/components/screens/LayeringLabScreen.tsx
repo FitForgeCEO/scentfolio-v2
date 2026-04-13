@@ -95,7 +95,6 @@ function FragranceSearch({
         .from('fragrances')
         .select('*')
         .or(`name.ilike.%${query}%,brand.ilike.%${query}%`)
-        .not('image_url', 'is', null)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(10)
         .then(({ data }) => {

@@ -131,7 +131,6 @@ export function SearchScreen() {
     let qb = supabase
       .from('fragrances')
       .select('*')
-      .not('image_url', 'is', null)
 
     if (q.length >= 2) {
       qb = qb.or(`name.ilike.%${q}%,brand.ilike.%${q}%`)

@@ -24,7 +24,6 @@ export function useTrendingFragrances(limit = 6) {
       .from('fragrances')
       .select('*')
       .not('rating', 'is', null)
-      .not('image_url', 'is', null)
       .order('rating', { ascending: false })
       .limit(limit)
       .then(({ data, error }) => {
@@ -87,7 +86,6 @@ export function useFragranceSearch(query: string, limit = 20) {
       .from('fragrances')
       .select('*')
       .or(`name.ilike.%${query}%,brand.ilike.%${query}%`)
-      .not('image_url', 'is', null)
       .order('rating', { ascending: false, nullsFirst: false })
       .limit(limit)
       .then(({ data, error }) => {
@@ -113,7 +111,6 @@ export function useFragrancesBrowse(page = 0, pageSize = 20) {
     supabase
       .from('fragrances')
       .select('*', { count: 'exact' })
-      .not('image_url', 'is', null)
       .order('rating', { ascending: false, nullsFirst: false })
       .range(page * pageSize, (page + 1) * pageSize - 1)
       .then(({ data, error, count: total }) => {

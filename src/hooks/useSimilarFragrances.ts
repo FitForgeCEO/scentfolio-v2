@@ -45,7 +45,6 @@ async function fetchAndScore(source: Fragrance, limit: number): Promise<SimilarR
           .select('*')
           .eq('note_family', noteFamily)
           .neq('id', source.id)
-          .not('image_url', 'is', null)
           .order('rating', { ascending: false, nullsFirst: false })
           .limit(30)
       : null,
@@ -55,7 +54,6 @@ async function fetchAndScore(source: Fragrance, limit: number): Promise<SimilarR
       .select('*')
       .eq('brand', brand)
       .neq('id', source.id)
-      .not('image_url', 'is', null)
       .order('rating', { ascending: false, nullsFirst: false })
       .limit(15),
     // Top rated as fallback pool
@@ -63,7 +61,6 @@ async function fetchAndScore(source: Fragrance, limit: number): Promise<SimilarR
       .from('fragrances')
       .select('*')
       .neq('id', source.id)
-      .not('image_url', 'is', null)
       .not('rating', 'is', null)
       .order('rating', { ascending: false })
       .limit(20),

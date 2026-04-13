@@ -277,7 +277,6 @@ function AddToBoardSheet({ boardId, onClose, onAdded }: { boardId: string; onClo
         .from('fragrances')
         .select('*')
         .or(`name.ilike.%${searchQuery}%,brand.ilike.%${searchQuery}%`)
-        .not('image_url', 'is', null)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(8)
         .then(({ data }) => {
