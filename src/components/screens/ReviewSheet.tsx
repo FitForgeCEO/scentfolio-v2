@@ -15,6 +15,7 @@ interface ReviewSheetProps {
   fragrance: Fragrance
   isOwner: boolean
   onSubmitted?: () => void
+  onEditExisting?: () => void
 }
 
 function RomanRating({ value, onChange, label }: { value: number; onChange: (v: number) => void; label: string }) {
@@ -44,9 +45,10 @@ function RomanRating({ value, onChange, label }: { value: number; onChange: (v: 
   )
 }
 
-export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted }: ReviewSheetProps) {
+export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted, onEditExisting }: ReviewSheetProps) {
   const { user } = useAuth()
   const trapRef = useFocusTrap(isOpen, onClose)
+  const [isDuplicate, setIsDuplicate] = useState(false)
   const [overall, setOverall] = useState(0)
   const [longevity, setLongevity] = useState(0)
   const [sillage, setSillage] = useState(0)
@@ -93,12 +95,15 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted }
 
     if (insertError) {
       if (insertError.code === '23505') {
-        setError("You've already reviewed this fragrance.")
+        setIsDuplicate(true)
+        setError("You've already written a review for this fragrance.")
       } else {
+        setIsDuplicate(false)
         setError('Something went wrong. Please try again.')
       }
       return
     }
+    setIsDuplicate(false)
 
     // Award XP
     await awardXP(user.id, 'WRITE_REVIEW')
@@ -310,8 +315,28 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted }
 
           {/* Error message */}
           {error && (
-            <div role="alert" className="bg-red-500/10 text-red-400 text-xs font-medium px-4 py-3 rounded-sm text-center">
-              {error}
+            <div
+              role="alert"
+              className={`text-xs font-medium px-4 py-3 rounded-sm text-center ${
+                isDuplicate ? 'bg-primary/10 text-primary' : 'bg-red-500/10 text-red-400'
+              }`}
+            >
+              <p>{error}</p>
+              {isDuplicate && onEditExisting && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose()
+                    onEditExisting()
+                  }}
+                  className="mt-2 inline-block font-bold tracking-[0.15em] uppercase text-[10px] underline underline-offset-4 hover:opacity-80 transition-opacity"
+                >
+                  Edit your review
+                </button>
+              )}
+              {isDuplicate && !onEditExisting && (
+                <p className="mt-1 italic opacity-80">You can edit it from the fragrance page.</p>
+              )}
             </div>
           )}
 

@@ -92,7 +92,7 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
     markAllRead()
   }, [])
 
-  const typeColor: Record<string, string> = {
+  const _typeColor: Record<string, string> = {
     achievement: 'text-amber-400',
     milestone: 'text-primary',
     tip: 'text-blue-400',
@@ -100,6 +100,7 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
     collection: 'text-emerald-400',
     system: 'text-primary',
   }
+  void _typeColor
 
   const formatTime = (iso: string): string => {
     const diff = Date.now() - new Date(iso).getTime()

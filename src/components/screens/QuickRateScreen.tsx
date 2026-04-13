@@ -19,7 +19,7 @@ export function QuickRateScreen() {
   const [items, setItems] = useState<UnratedItem[]>([])
   const [currentIdx, setCurrentIdx] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [hoveredStar, setHoveredStar] = useState(0)
+  const [, setHoveredStar] = useState(0)
   const [saving, setSaving] = useState(false)
   const [rated, setRated] = useState(0)
   const [skipped, setSkipped] = useState(0)

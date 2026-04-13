@@ -30,7 +30,12 @@ export function BlindBuyScreen() {
   }
 
   const handleAddFragrance = (f: Fragrance) => {
-    const price = pricePaid ? parseFloat(pricePaid) : null
+    let price: number | null = null
+    if (pricePaid) {
+      const parsed = parseFloat(pricePaid)
+      if (!Number.isFinite(parsed) || parsed < 0) return
+      price = parsed
+    }
     addBlindBuy(f.id, f, price)
     setAddMode(false)
     setQuery('')
@@ -115,9 +120,16 @@ export function BlindBuyScreen() {
             <label className="text-[10px] text-secondary/50 mb-1 block">Price paid (optional)</label>
             <input
               type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
               placeholder="£0.00"
               value={pricePaid}
-              onChange={(e) => setPricePaid(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value
+                // Only allow non-negative numbers (or empty)
+                if (v === '' || parseFloat(v) >= 0) setPricePaid(v)
+              }}
               className="w-full bg-surface-container-highest rounded-sm px-4 py-2.5 text-sm text-on-surface placeholder:text-secondary/30 outline-none"
             />
           </div>

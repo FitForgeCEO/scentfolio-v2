@@ -58,7 +58,6 @@ export function ExploreScreen() {
     let q = supabase
       .from('fragrances')
       .select('*', { count: 'exact' })
-      .not('image_url', 'is', null)
 
     if (filters.concentration) q = q.eq('concentration', filters.concentration)
     if (filters.gender) q = q.ilike('gender', `%${filters.gender}%`)
@@ -124,7 +123,9 @@ export function ExploreScreen() {
       <header className="mb-6">
         <h2 className="font-headline text-3xl text-on-surface leading-tight mb-1">Explore</h2>
         <p className="font-body text-sm text-secondary opacity-70">
-          {browseCount.toLocaleString()} fragrances in the library
+          {filters.season && !isSearching
+            ? `${browseResults.length.toLocaleString()} of ${browseCount.toLocaleString()} fragrances · ${filters.season.charAt(0) + filters.season.slice(1).toLowerCase()} picks`
+            : `${browseCount.toLocaleString()} fragrances in the library`}
         </p>
       </header>
 

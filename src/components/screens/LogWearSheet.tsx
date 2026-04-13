@@ -61,7 +61,6 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
         .from('fragrances')
         .select('*')
         .or(`name.ilike.%${searchQuery}%,brand.ilike.%${searchQuery}%`)
-        .not('image_url', 'is', null)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(8)
         .then(({ data }) => {
@@ -305,6 +304,11 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
               <input
                 type="date"
                 value={customDate}
+                min={(() => {
+                  const d = new Date()
+                  d.setFullYear(d.getFullYear() - 2)
+                  return d.toISOString().split('T')[0]
+                })()}
                 max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => setCustomDate(e.target.value)}
                 className="w-full py-3 px-4 bg-surface-container text-on-surface rounded-sm text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none [color-scheme:dark]"

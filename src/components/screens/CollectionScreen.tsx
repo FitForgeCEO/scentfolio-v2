@@ -221,7 +221,6 @@ export function CollectionScreen() {
         .from('fragrances')
         .select('*')
         .or(`name.ilike.%${addQuery}%,brand.ilike.%${addQuery}%`)
-        .not('image_url', 'is', null)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(10)
         .then(({ data }) => {
@@ -380,7 +379,7 @@ export function CollectionScreen() {
     collection.map((c) => c.fragrance.note_family).filter(Boolean),
   ).size
   const lastEntry = collection.length > 0
-    ? [...collection].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+    ? [...collection].sort((a, b) => new Date(b.date_added).getTime() - new Date(a.date_added).getTime())[0]
     : null
 
   const dateProse = (iso?: string) => {
@@ -970,7 +969,7 @@ export function CollectionScreen() {
                 <>
                   <br />
                   Last entry filed on{' '}
-                  <span className="text-primary/70">{dateProse(lastEntry.created_at)}</span>.
+                  <span className="text-primary/70">{dateProse(lastEntry.date_added)}</span>.
                 </>
               )}
             </p>

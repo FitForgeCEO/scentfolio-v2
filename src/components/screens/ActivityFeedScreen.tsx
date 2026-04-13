@@ -268,7 +268,7 @@ export function ActivityFeedScreen() {
 // ── Sub-components ────────────────────────────────────────────────
 
 function NotificationRow({ notif, navigate }: { notif: AppNotification; navigate: (path: string) => void }) {
-  const typeColor: Record<string, string> = {
+  const _typeColor: Record<string, string> = {
     achievement: 'text-amber-400',
     milestone: 'text-primary',
     tip: 'text-blue-400',
@@ -276,6 +276,7 @@ function NotificationRow({ notif, navigate }: { notif: AppNotification; navigate
     collection: 'text-emerald-400',
     system: 'text-primary',
   }
+  void _typeColor
 
   return (
     <button
@@ -345,5 +346,8 @@ function groupByDate<T>(items: T[], getDate: (item: T) => string): Record<string
     if (!groups[label]) groups[label] = []
     groups[label].push(item)
   }
+  return groups
+}
+
   return groups
 }

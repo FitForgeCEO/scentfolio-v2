@@ -526,21 +526,23 @@ function FirstFragranceStep({
 function CompleteStep({
   preferences,
   onFinish,
+  onViewShelf,
   onBack,
   loading,
 }: {
   preferences: { favoriteNotes: string[]; vibes: string[]; experienceLevel: 'beginner' | 'intermediate' | 'connoisseur' | null }
   onFinish: () => void
+  onViewShelf: () => void
   onBack: () => void
   loading: boolean
 }) {
   const experienceLabel =
     EXPERIENCE_LEVELS.find(l => l.id === preferences.experienceLevel)?.label ?? 'Just beginning'
   const noteLabels = preferences.favoriteNotes
-    .map(id => NOTE_FAMILIES.find(n => n.id === id)?.name)
+    .map(id => NOTE_FAMILIES.find(n => n.id === id)?.label)
     .filter(Boolean) as string[]
   const vibeLabels = preferences.vibes
-    .map(id => VIBE_OPTIONS.find(v => v.id === id)?.name)
+    .map(id => VIBE_OPTIONS.find(v => v.id === id)?.label)
     .filter(Boolean) as string[]
 
   return (
@@ -636,18 +638,26 @@ function CompleteStep({
           </div>
 
           {/* Finish CTA — centred, Ambient Lift */}
-          <div className="mt-20 mb-8 flex flex-col items-center gap-6">
+          <div className="mt-20 mb-8 flex flex-col items-center gap-5">
             <button
               onClick={onFinish}
               disabled={loading}
               className="gold-gradient text-on-primary rounded-sm px-12 py-5 font-bold uppercase tracking-[0.2em] text-sm transition-opacity hover:opacity-90 disabled:opacity-60"
               style={{ boxShadow: '0 12px 32px rgba(25,18,16,0.6)' }}
             >
-              {loading ? 'Opening…' : 'Open ScentFolio'}
+              {loading ? 'Opening…' : 'Start exploring'}
+            </button>
+            <button
+              onClick={onViewShelf}
+              disabled={loading}
+              className="font-headline italic text-secondary hover:text-on-surface transition-colors text-sm disabled:opacity-60"
+            >
+              Or head straight to your shelf
             </button>
             <button
               onClick={onBack}
-              className="text-secondary hover:text-on-surface transition-colors text-[10px] tracking-[0.2em] font-medium uppercase flex items-center gap-2"
+              disabled={loading}
+              className="text-secondary hover:text-on-surface transition-colors text-[10px] tracking-[0.2em] font-medium uppercase flex items-center gap-2 mt-2"
             >
               <span className="text-sm">←</span>
               Back
@@ -672,12 +682,12 @@ export function OnboardingFlowScreen() {
     user?.email?.split('@')[0] ??
     ''
 
-  const handleFinish = useCallback(async () => {
+  const handleFinish = useCallback(async (destination: string = '/explore') => {
     setFinishing(true)
     try {
       await onboarding.completeOnboarding()
-      trackEvent(AnalyticsEvents.COMPLETE_ONBOARDING, { method: 'completed' })
-      navigate('/', { replace: true })
+      trackEvent(AnalyticsEvents.COMPLETE_ONBOARDING, { method: 'completed', destination })
+      navigate(destination, { replace: true })
     } finally {
       setFinishing(false)
     }
@@ -740,7 +750,8 @@ export function OnboardingFlowScreen() {
       return (
         <CompleteStep
           preferences={onboarding.preferences}
-          onFinish={handleFinish}
+          onFinish={() => handleFinish('/explore')}
+          onViewShelf={() => handleFinish('/')}
           onBack={onboarding.prevStep}
           loading={finishing}
         />

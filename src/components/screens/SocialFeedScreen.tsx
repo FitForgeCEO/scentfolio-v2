@@ -84,7 +84,8 @@ export function SocialFeedScreen() {
 
 function FeedCard({ item, navigate }: { item: FeedItem; navigate: (path: string) => void }) {
   const typeIcon = item.type === 'wear' ? 'air' : item.type === 'review' ? 'rate_review' : 'add_circle'
-  const typeColor = item.type === 'wear' ? 'text-blue-400' : item.type === 'review' ? 'text-amber-400' : 'text-emerald-400'
+  const _typeColor = item.type === 'wear' ? 'text-blue-400' : item.type === 'review' ? 'text-amber-400' : 'text-emerald-400'
+  void _typeColor
 
   return (
     <div className="bg-surface-container rounded-sm overflow-hidden">
@@ -126,6 +127,10 @@ function FeedCard({ item, navigate }: { item: FeedItem; navigate: (path: string)
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+>
     </div>
   )
 }

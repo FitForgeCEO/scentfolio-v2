@@ -11,7 +11,7 @@ type Mode = 'sign_in' | 'sign_up'
 // tonal depth, a hairline gold rule, and italic serif copy.
 
 export function AuthScreen() {
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, resendConfirmation, sendPasswordReset } = useAuth()
   const [mode, setMode] = useState<Mode>('sign_in')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -19,6 +19,35 @@ export function AuthScreen() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [confirmSent, setConfirmSent] = useState(false)
+  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [forgotOpen, setForgotOpen] = useState(false)
+  const [resetState, setResetState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [resetMessage, setResetMessage] = useState<string | null>(null)
+
+  const handleResend = async () => {
+    if (!email || resendState === 'sending') return
+    setResendState('sending')
+    const { error } = await resendConfirmation(email)
+    setResendState(error ? 'error' : 'sent')
+  }
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) {
+      setResetMessage('Enter the email on your shelf first.')
+      setResetState('error')
+      return
+    }
+    setResetState('sending')
+    const { error } = await sendPasswordReset(email)
+    if (error) {
+      setResetMessage(error)
+      setResetState('error')
+    } else {
+      setResetMessage(`A reset link is on its way to ${email}.`)
+      setResetState('sent')
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -101,14 +130,24 @@ export function AuthScreen() {
 
           {/* Actions */}
           <div className="flex flex-col items-center space-y-8">
-            {/* Resend — decorative for now, no reset flow wired */}
-            {/* TODO: wire to supabase.auth.resend when the flow lands */}
-            <div className="group flex flex-col items-center cursor-default">
-              <span className="text-[11px] font-bold tracking-[0.2em] text-primary/60 uppercase transition-all duration-300">
-                Resend the letter
+            {/* Resend — now wired to supabase.auth.resend */}
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendState === 'sending' || resendState === 'sent'}
+              className="group flex flex-col items-center disabled:cursor-default"
+            >
+              <span className="text-[11px] font-bold tracking-[0.2em] text-primary/70 uppercase transition-all duration-300 group-hover:text-primary">
+                {resendState === 'sending'
+                  ? 'Sending…'
+                  : resendState === 'sent'
+                    ? 'Letter resent'
+                    : resendState === 'error'
+                      ? 'Try again'
+                      : 'Resend the letter'}
               </span>
-              <div className="h-px bg-primary/40 w-1/2 mt-1.5" />
-            </div>
+              <div className="h-px bg-primary/40 w-1/2 mt-1.5 group-hover:w-full transition-all duration-300" />
+            </button>
             <button
               onClick={() => { setConfirmSent(false); setMode('sign_in') }}
               className="font-headline italic text-on-background/40 hover:text-on-background/70 text-sm transition-colors duration-300"
@@ -231,7 +270,19 @@ export function AuthScreen() {
 
         {/* Footer */}
         <footer className="mt-16 flex flex-col items-center space-y-8 w-full">
-          {/* TODO: surface "forgot your key?" link when reset-password flow lands */}
+          {!isSignUp && (
+            <button
+              type="button"
+              onClick={() => {
+                setForgotOpen(true)
+                setResetState('idle')
+                setResetMessage(null)
+              }}
+              className="font-headline italic text-xs text-on-surface-variant/50 hover:text-primary transition-colors"
+            >
+              Forgot your key?
+            </button>
+          )}
           <div className="flex items-center space-x-6 text-[9px] tracking-[0.2em] text-on-surface-variant/20 uppercase">
             <a href="#" className="hover:text-primary transition-colors">Terms</a>
             <span className="w-1 h-1 bg-on-surface-variant/20 rounded-full" />
@@ -239,6 +290,67 @@ export function AuthScreen() {
           </div>
         </footer>
       </section>
+
+      {/* ── Forgot-password overlay ───────────────────────────────────── */}
+      {forgotOpen && (
+        <div className="fixed inset-0 z-20 flex items-center justify-center bg-background/85 backdrop-blur-sm px-8">
+          <form
+            onSubmit={handlePasswordReset}
+            className="w-full max-w-[340px] space-y-6 text-center"
+          >
+            <div className="flex flex-col items-center space-y-3">
+              <span className="text-[10px] tracking-[0.3em] text-primary/60 uppercase">Reset your key</span>
+              <div className="w-10 h-px bg-primary/30" />
+              <p className="font-headline italic text-on-background/70 text-sm leading-relaxed">
+                We'll send a reset link to the email on your shelf.
+              </p>
+            </div>
+
+            <div className="space-y-2 text-left">
+              <label className="block text-[10px] tracking-[0.15em] text-primary/60 uppercase">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                className="w-full bg-surface-container border-none rounded-sm py-4 px-5 text-on-surface placeholder:text-on-surface-variant/30 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30"
+              />
+            </div>
+
+            {resetMessage && (
+              <p
+                className={`font-headline italic text-xs ${
+                  resetState === 'error' ? 'text-error' : 'text-primary/80'
+                }`}
+              >
+                {resetMessage}
+              </p>
+            )}
+
+            <div className="space-y-4 pt-2">
+              <button
+                type="submit"
+                disabled={resetState === 'sending' || resetState === 'sent'}
+                className="w-full gold-gradient text-on-primary py-4 rounded-sm text-xs font-bold tracking-[0.2em] uppercase hover:opacity-80 transition disabled:opacity-50"
+              >
+                {resetState === 'sending'
+                  ? 'Sending…'
+                  : resetState === 'sent'
+                    ? 'Link sent'
+                    : 'Send reset link'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setForgotOpen(false)}
+                className="font-headline italic text-sm text-on-background/50 hover:text-on-background transition-colors"
+              >
+                back to sign in
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </main>
   )
 }

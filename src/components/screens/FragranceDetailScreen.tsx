@@ -770,9 +770,9 @@ export function FragranceDetailScreen() {
                     &ldquo;
                   </span>
 
-                  {review.content && (
+                  {review.review_text && (
                     <p className="relative font-headline italic text-lg text-on-background/90 leading-relaxed">
-                      {review.content}
+                      {review.review_text}
                     </p>
                   )}
 
@@ -825,6 +825,10 @@ export function FragranceDetailScreen() {
         fragrance={frag}
         isOwner={collectionStatus === 'own'}
         onSubmitted={refetchReviews}
+        onEditExisting={() => {
+          const mine = reviews.find((r) => r.user_id === user?.id)
+          if (mine) setEditingReview(mine)
+        }}
       />
       {editingReview && (
         <EditReviewSheet
@@ -832,6 +836,15 @@ export function FragranceDetailScreen() {
           onClose={() => setEditingReview(null)}
           review={editingReview}
           onUpdated={refetchReviews}
+        />
+      )}
+      {shareCardOpen && (
+        <ShareCardSheet fragrance={frag} onClose={() => setShareCardOpen(false)} />
+      )}
+    </main>
+  )
+}
+ws}
         />
       )}
       {shareCardOpen && (
