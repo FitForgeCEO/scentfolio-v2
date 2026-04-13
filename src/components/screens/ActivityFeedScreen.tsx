@@ -348,6 +348,3 @@ function groupByDate<T>(items: T[], getDate: (item: T) => string): Record<string
   }
   return groups
 }
-
-  return groups
-}

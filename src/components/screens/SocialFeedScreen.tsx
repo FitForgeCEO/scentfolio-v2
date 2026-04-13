@@ -130,7 +130,3 @@ function FeedCard({ item, navigate }: { item: FeedItem; navigate: (path: string)
     </div>
   )
 }
->
-    </div>
-  )
-}

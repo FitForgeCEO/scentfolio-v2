@@ -844,12 +844,3 @@ export function FragranceDetailScreen() {
     </main>
   )
 }
-ws}
-        />
-      )}
-      {shareCardOpen && (
-        <ShareCardSheet fragrance={frag} onClose={() => setShareCardOpen(false)} />
-      )}
-    </main>
-  )
-}
