@@ -223,10 +223,10 @@ export function SearchScreen() {
           THE READING ROOM · CATALOGUE DESK
         </p>
         <h1 className="font-headline italic text-5xl md:text-6xl leading-tight text-on-background mb-3">
-          Request a title.
+          Find a fragrance.
         </h1>
         <p className="font-headline italic text-base md:text-lg" style={{ color: 'rgba(168,154,145,0.7)' }}>
-          Consult our catalogue of over two thousand titles by name, house, or note.
+          Search over two thousand fragrances by name, house, or note.
         </p>
         <div className="mt-6" style={{ height: '1px', background: hairline }} />
       </header>
@@ -242,7 +242,7 @@ export function SearchScreen() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          aria-label="Request a title"
+          aria-label="Search fragrances"
         />
         {query && (
           <button
@@ -423,7 +423,7 @@ export function SearchScreen() {
                 {/* portrait */}
                 <button
                   onClick={() => handleSelect(frag)}
-                  className="aspect-[3/4] rounded-sm overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700"
+                  className="aspect-[3/4] rounded-sm overflow-hidden transition-all duration-700"
                   style={{ background: '#3c3330' }}
                 >
                   <FragranceImage
@@ -543,10 +543,10 @@ export function SearchScreen() {
                     key={item.id}
                     onClick={() => navigate(`/fragrance/${item.id}`)}
                     className="flex-shrink-0 flex flex-col items-center gap-1.5 group"
-                    style={{ minWidth: '80px' }}
+                    style={{ width: '72px' }}
                   >
                     <div
-                      className="w-full aspect-[3/4] rounded-sm overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700"
+                      className="w-full aspect-[3/4] rounded-sm overflow-hidden transition-all duration-700"
                       style={{ background: '#3c3330' }}
                     >
                       {item.image_url ? (

@@ -285,7 +285,7 @@ export function WishlistScreen() {
                       <FragranceImage
                         src={frag.image_url}
                         alt={frag.name}
-                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                        className="w-full h-full object-cover transition-all duration-700"
                       />
                     ) : (
                       <div className="w-full h-full bg-surface-container" />

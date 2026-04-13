@@ -451,7 +451,7 @@ export function HomeScreen() {
                 className="group flex items-center justify-between py-5 md:py-6 text-left hover:opacity-80 transition-transform"
               >
                 <div className="flex items-center gap-6 md:gap-8">
-                  <span className="font-headline italic text-primary text-lg w-6" style={{ fontVariantLigatures: 'none' }}>
+                  <span className="font-headline italic text-primary text-lg w-6" style={{ fontVariantLigatures: 'none', fontFeatureSettings: '"liga" 0, "dlig" 0, "clig" 0, "hlig" 0' }}>
                     {entry.index}
                   </span>
                   <span className="font-headline italic text-xl md:text-2xl text-on-background">
@@ -550,7 +550,7 @@ export function HomeScreen() {
                       <img
                         src={frag.image_url}
                         alt={frag.name}
-                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                        className="w-full h-full object-cover transition-all duration-700"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-secondary/30 font-headline italic text-4xl">

@@ -761,11 +761,11 @@ export function FragranceDetailScreen() {
               const byline = (review as unknown as { user_name?: string }).user_name || 'a keeper'
               return (
                 <blockquote key={review.id} className="relative">
-                  {/* Oversized opening quote mark, italic serif */}
+                  {/* Opening quote mark, italic serif */}
                   <span
                     aria-hidden="true"
-                    className="absolute -top-6 -left-3 font-headline italic text-primary/20 select-none pointer-events-none"
-                    style={{ fontSize: '72px', lineHeight: 1 }}
+                    className="absolute -top-4 -left-2 font-headline italic text-primary/15 select-none pointer-events-none"
+                    style={{ fontSize: '48px', lineHeight: 1 }}
                   >
                     &ldquo;
                   </span>

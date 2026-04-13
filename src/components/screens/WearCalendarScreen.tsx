@@ -98,14 +98,14 @@ export function WearCalendarScreen() {
     <main className="pt-24 pb-32 px-6 max-w-[430px] mx-auto min-h-screen">
       {/* Month Navigation */}
       <div className="flex items-center justify-between mb-6">
-        <button onClick={goToPrevMonth} className="p-2 rounded-full hover:opacity-80 transition-transform">
+        <button onClick={goToPrevMonth} className="p-2 rounded-sm hover:opacity-80 transition-transform">
           <span className="text-on-surface">?</span>
         </button>
         <div className="text-center">
           <h2 className="font-headline text-xl">{MONTHS[month]}</h2>
           <p className="text-[10px] text-secondary/50">{year}</p>
         </div>
-        <button onClick={goToNextMonth} className="p-2 rounded-full hover:opacity-80 transition-transform">
+        <button onClick={goToNextMonth} className="p-2 rounded-sm hover:opacity-80 transition-transform">
           <span className="text-on-surface">?</span>
         </button>
       </div>
@@ -163,8 +163,8 @@ export function WearCalendarScreen() {
                   key={day}
                   onClick={() => setSelectedDate(isSelected ? null : dateStr)}
                   className={`aspect-square rounded-sm flex flex-col items-center justify-center relative transition-all hover:opacity-80 ${
-                    isSelected ? 'bg-primary/20 ring-2 ring-primary' :
-                    isToday ? 'bg-surface-container ring-1 ring-primary/40' :
+                    isSelected ? 'bg-primary/20' :
+                    isToday ? 'bg-surface-container' :
                     'bg-surface-container/50'
                   }`}
                 >
@@ -175,11 +175,23 @@ export function WearCalendarScreen() {
                   }`}>
                     {day}
                   </span>
-                  {wearCount > 0 && (
-                    <div className="flex gap-0.5 mt-0.5">
-                      {Array.from({ length: Math.min(wearCount, 3) }).map((_, di) => (
-                        <div key={di} className="w-1 h-1 rounded-full bg-primary" />
+                  {wearCount > 0 && dayWears && (
+                    <div className="flex gap-0.5 mt-0.5 items-center justify-center">
+                      {dayWears.slice(0, 2).map((w, di) => (
+                        w.image_url ? (
+                          <img
+                            key={di}
+                            src={w.image_url}
+                            alt=""
+                            className="w-3 h-4 rounded-[1px] object-cover"
+                          />
+                        ) : (
+                          <div key={di} className="w-1 h-1 rounded-full bg-primary" />
+                        )
                       ))}
+                      {wearCount > 2 && (
+                        <span className="text-[6px] text-primary/60">+{wearCount - 2}</span>
+                      )}
                     </div>
                   )}
                 </button>
@@ -232,11 +244,11 @@ export function WearCalendarScreen() {
       {/* Legend */}
       <div className="mt-8 flex items-center justify-center gap-4 text-[9px] text-secondary/40">
         <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+          <div className="w-1.5 h-1.5 rounded-sm bg-primary" />
           <span>Fragrance worn</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-4 rounded ring-1 ring-primary/40" />
+          <div className="w-4 h-4 rounded-sm bg-surface-container" />
           <span>Today</span>
         </div>
       </div>

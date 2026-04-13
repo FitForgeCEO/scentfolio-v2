@@ -431,7 +431,7 @@ export function CollectionScreen() {
                     alt={item.fragrance.name}
                     noteFamily={item.fragrance.note_family}
                     size="md"
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-focus:grayscale-0 transition-all duration-700"
+                    className="w-full h-full object-cover transition-all duration-700"
                   />
                   {selectMode && (
                     <div className={`absolute top-3 left-3 w-5 h-5 rounded-full flex items-center justify-center transition-all ${isSelected ? 'bg-primary' : 'bg-black/50 ring-1 ring-primary/40'}`}>
@@ -526,7 +526,7 @@ export function CollectionScreen() {
                   alt={item.fragrance.name}
                   noteFamily={item.fragrance.note_family}
                   size="sm"
-                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                  className="w-full h-full object-cover transition-all duration-700"
                 />
               </div>
               <div className="min-w-0 flex flex-col justify-center">
@@ -1044,7 +1044,7 @@ export function CollectionScreen() {
                         >
                           <div className="w-12 h-16 rounded-sm overflow-hidden flex-shrink-0 bg-surface-container">
                             {f.image_url ? (
-                              <img src={f.image_url} alt={f.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
+                              <img src={f.image_url} alt={f.name} className="w-full h-full object-cover transition-all duration-700" />
                             ) : (
                               <div className="w-full h-full" />
                             )}

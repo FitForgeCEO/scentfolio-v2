@@ -61,7 +61,7 @@ export function useGiftRecommender() {
     setLoading(true)
     setSearched(true)
 
-    let query = supabase.from('fragrances').select('*').eq('is_approved', true).limit(200)
+    let query = supabase.from('fragrances').select('*').not('name', 'is', null).limit(500)
 
     if (prefs.gender !== 'any') {
       if (prefs.gender === 'male') query = query.in('gender', ['Male', 'Unisex'])
@@ -80,13 +80,18 @@ export function useGiftRecommender() {
     }
 
     const scored: GiftResult[] = fragrances.map(f => {
-      let score = 0
+      // Baseline score — every fragrance starts with 10 so we always have results
+      let score = 10
       const reasons: string[] = []
 
-      // Family match
-      if (targetFamilies.size > 0 && f.note_family && targetFamilies.has(f.note_family)) {
-        score += 30
-        reasons.push(`${f.note_family} matches selected vibes`)
+      // Family match — boost if vibes selected
+      if (targetFamilies.size > 0 && f.note_family) {
+        if (targetFamilies.has(f.note_family)) {
+          score += 30
+          reasons.push(`${f.note_family} matches selected vibes`)
+        } else {
+          score -= 5
+        }
       }
 
       // Rating boost
@@ -94,6 +99,7 @@ export function useGiftRecommender() {
         const r = Number(f.rating)
         if (r >= 4) { score += 20; reasons.push('Highly rated') }
         else if (r >= 3.5) { score += 10 }
+        else if (r >= 3) { score += 5 }
       }
 
       // Budget filter (approximate by price_value)
@@ -102,7 +108,7 @@ export function useGiftRecommender() {
         if (prefs.budget === 'low' && price <= 50) { score += 15; reasons.push('Budget-friendly') }
         else if (prefs.budget === 'mid' && price > 50 && price <= 120) { score += 15; reasons.push('Mid-range price') }
         else if (prefs.budget === 'high' && price > 120) { score += 15; reasons.push('Premium gift') }
-        else { score -= 10 }
+        else { score -= 5 }
       }
 
       // Popularity boost
@@ -110,6 +116,9 @@ export function useGiftRecommender() {
         score += 10
         reasons.push('Popular choice')
       }
+
+      // Image available — better gift recommendation if buyer can see it
+      if (f.image_url) score += 5
 
       // Age range heuristic
       if (prefs.ageRange !== 'any' && f.note_family) {
@@ -123,13 +132,13 @@ export function useGiftRecommender() {
         }
       }
 
-      if (reasons.length === 0 && score > 0) reasons.push('Good all-rounder')
+      if (reasons.length === 0) reasons.push('Good all-rounder')
 
       return { fragrance: f, matchScore: score, reasons }
     })
 
     scored.sort((a, b) => b.matchScore - a.matchScore)
-    setResults(scored.filter(r => r.matchScore > 0).slice(0, 20))
+    setResults(scored.filter(r => r.matchScore >= 10).slice(0, 20))
     setLoading(false)
   }, [prefs])
 

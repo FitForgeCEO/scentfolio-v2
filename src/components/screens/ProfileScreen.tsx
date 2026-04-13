@@ -152,7 +152,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
           {/* a) Portrait */}
           {profile?.avatar_url && (
             <div
-              className="w-[80px] h-[106px] flex-shrink-0 rounded-sm overflow-hidden grayscale hover:grayscale-0 transition-all duration-700"
+              className="w-[80px] h-[106px] flex-shrink-0 rounded-sm overflow-hidden transition-all duration-700"
               style={{ background: '#3c3330' }}
             >
               <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -174,7 +174,7 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
             {signatureFragrance && (
               <div className="flex items-center gap-3">
                 <div
-                  className="w-8 h-[42px] flex-shrink-0 rounded-sm overflow-hidden grayscale"
+                  className="w-8 h-[42px] flex-shrink-0 rounded-sm overflow-hidden"
                   style={{ background: '#3c3330' }}
                 >
                   {signatureFragrance.image_url && (

@@ -18,6 +18,7 @@ export function TopAppBar({
   const navigate = useNavigate()
   const location = useLocation()
   const isHome = location.pathname === '/'
+  const isSearch = location.pathname === '/search'
 
   return (
     <>
@@ -56,7 +57,7 @@ export function TopAppBar({
       {/* Right */}
       <div className="flex items-center gap-3">
         {rightAction}
-        {showSearch && (
+        {showSearch && !isSearch && (
           <button
             onClick={() => navigate('/search')}
             aria-label="Search fragrances"

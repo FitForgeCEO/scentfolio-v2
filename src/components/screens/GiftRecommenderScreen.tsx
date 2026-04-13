@@ -79,7 +79,7 @@ export function GiftRecommenderScreen() {
             <button
               key={occ}
               onClick={() => updatePref('occasion', prefs.occasion === occ ? '' : occ)}
-              className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-sm text-[10px] font-medium transition-colors ${
                 prefs.occasion === occ ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary/60'
               }`}
             >
@@ -117,7 +117,7 @@ export function GiftRecommenderScreen() {
             <button
               key={vibe}
               onClick={() => toggleVibe(vibe)}
-              className={`px-3 py-1.5 rounded-full text-[10px] font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-sm text-[10px] font-medium transition-colors ${
                 prefs.vibes.includes(vibe) ? 'bg-primary text-on-primary' : 'bg-surface-container text-secondary/60'
               }`}
             >
@@ -164,7 +164,7 @@ export function GiftRecommenderScreen() {
                 className="w-full flex items-center gap-3 bg-surface-container rounded-sm p-3 text-left hover:opacity-80 transition-transform"
               >
                 {/* Rank */}
-                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-7 h-7 bg-primary/10 flex items-center justify-center flex-shrink-0 rounded-sm">
                   <span className="text-[10px] font-bold text-primary">{i + 1}</span>
                 </div>
 
