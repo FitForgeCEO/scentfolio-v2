@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { awardXP } from '@/lib/xp'
@@ -49,6 +49,8 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted, 
   const { user } = useAuth()
   const trapRef = useFocusTrap(isOpen, onClose)
   const [isDuplicate, setIsDuplicate] = useState(false)
+  const [checkingExisting, setCheckingExisting] = useState(true)
+  const [hasExistingReview, setHasExistingReview] = useState(false)
   const [overall, setOverall] = useState(0)
   const [longevity, setLongevity] = useState(0)
   const [sillage, setSillage] = useState(0)
@@ -62,6 +64,29 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted, 
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Pre-check for existing review when sheet opens, so we don't make the user
+  // fill the whole form just to discover a unique-constraint violation.
+  useEffect(() => {
+    if (!isOpen || !user) {
+      setCheckingExisting(false)
+      return
+    }
+    let cancelled = false
+    setCheckingExisting(true)
+    supabase
+      .from('reviews')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('fragrance_id', fragrance.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return
+        setHasExistingReview(!!data)
+        setCheckingExisting(false)
+      })
+    return () => { cancelled = true }
+  }, [isOpen, user, fragrance.id])
 
   if (!isOpen) return null
 
@@ -166,6 +191,57 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted, 
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-8 space-y-7 pb-10">
+          {checkingExisting ? (
+            <div className="py-16 flex items-center justify-center">
+              <p className="font-headline italic text-on-surface-variant/50 text-sm">Checking…</p>
+            </div>
+          ) : hasExistingReview ? (
+            <div className="py-8 space-y-6 text-center">
+              <div className="flex items-center gap-4 bg-surface-container p-4 rounded-sm text-left">
+                <div className="w-12 h-12 bg-surface-container-highest rounded-sm overflow-hidden flex-shrink-0">
+                  {fragrance.image_url ? (
+                    <img src={fragrance.image_url} alt={fragrance.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-secondary/30 text-xs italic">—</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] uppercase tracking-[0.15em] text-primary font-bold">{fragrance.brand}</p>
+                  <h3 className="text-lg font-headline text-on-surface truncate">{fragrance.name}</h3>
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-4">
+                <span className="text-[10px] tracking-[0.3em] text-primary/60 uppercase">Already on the page</span>
+                <div className="w-10 h-px bg-primary/30 mx-auto" />
+                <p className="font-headline italic text-on-surface/80 text-base leading-relaxed max-w-xs mx-auto">
+                  You've written a review for this one.
+                </p>
+              </div>
+
+              <div className="pt-4 space-y-3">
+                {onEditExisting && (
+                  <button
+                    type="button"
+                    onClick={() => { onClose(); onEditExisting() }}
+                    className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-sm ambient-glow transition-opacity hover:opacity-90"
+                  >
+                    EDIT YOUR REVIEW
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="font-headline italic text-sm text-on-surface-variant/60 hover:text-on-surface transition-colors"
+                >
+                  close
+                </button>
+              </div>
+            </div>
+          ) : (
+          <>
           {/* Fragrance Card */}
           <div className="flex items-center gap-4 bg-surface-container p-4 rounded-sm">
             <div className="w-12 h-12 bg-surface-container-highest rounded-sm overflow-hidden flex-shrink-0">
@@ -363,6 +439,8 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted, 
               </div>
             )}
           </div>
+          </>
+          )}
         </div>
       </section>
     </div>

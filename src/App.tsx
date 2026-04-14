@@ -84,6 +84,7 @@ const MilestonesScreen = lazy(() => import('./components/screens/MilestonesScree
 const BlindBuyScreen = lazy(() => import('./components/screens/BlindBuyScreen').then(m => ({ default: m.BlindBuyScreen })))
 const OnboardingFlowScreen = lazy(() => import('./components/screens/OnboardingFlowScreen').then(m => ({ default: m.OnboardingFlowScreen })))
 const LandingPage = lazy(() => import('./components/screens/LandingPage').then(m => ({ default: m.LandingPage })))
+const ResetPasswordScreen = lazy(() => import('./components/screens/ResetPasswordScreen').then(m => ({ default: m.ResetPasswordScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -147,6 +148,9 @@ export default function App() {
             <Routes>
               {/* ── Onboarding (no AppLayout — full-screen flow) ── */}
               <Route path="/onboarding" element={<LazyScreen><OnboardingFlowScreen /></LazyScreen>} />
+
+              {/* ── Password recovery (no AppLayout — full-screen, no auth required) ── */}
+              <Route path="/reset-password" element={<LazyScreen><ResetPasswordScreen /></LazyScreen>} />
 
               {/* ── Core tabs (lazy with instant prefetch) ── */}
               <Route path="/" element={<HomeGate />} />

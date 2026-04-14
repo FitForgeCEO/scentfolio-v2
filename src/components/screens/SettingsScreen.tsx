@@ -45,13 +45,14 @@ function saveSettings(s: UserSettings) {
 
 export function SettingsScreen() {
   const navigate = useNavigate()
-  const { user, signOut } = useAuth()
+  const { user, signOut, updatePassword } = useAuth()
   const toast = useToast()
   const { theme, toggleTheme } = useTheme()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [settings, setSettings] = useState<UserSettings>(loadSettings)
   const [editNameOpen, setEditNameOpen] = useState(false)
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false)
   const [deletingData, setDeletingData] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
@@ -355,6 +356,23 @@ export function SettingsScreen() {
         </section>
       )}
 
+      {/* Account */}
+      <section className="space-y-2">
+        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary px-1 mb-3">ACCOUNT</h3>
+
+        <button
+          onClick={() => setChangePasswordOpen(true)}
+          className="w-full bg-surface-container rounded-sm px-4 py-3.5 flex items-center gap-3 transition-opacity hover:opacity-80 text-left"
+        >
+          <span className="text-primary text-sm w-5 text-center">⚷</span>
+          <div className="flex-1">
+            <p className="text-sm text-on-surface font-medium">Change password</p>
+            <p className="text-[10px] text-secondary/50">Set a new key for your shelf</p>
+          </div>
+          <span className="text-secondary/60 text-sm">›</span>
+        </button>
+      </section>
+
       {/* Data Management */}
       <section className="space-y-2">
         <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary px-1 mb-3">DATA</h3>
@@ -408,6 +426,15 @@ export function SettingsScreen() {
           userId={user.id}
           currentName={profile?.display_name ?? ''}
           onSaved={(newName) => setProfile((p) => p ? { ...p, display_name: newName } : p)}
+        />
+      )}
+
+      {/* Change Password Sheet */}
+      {changePasswordOpen && (
+        <ChangePasswordInline
+          isOpen={changePasswordOpen}
+          onClose={() => setChangePasswordOpen(false)}
+          updatePassword={updatePassword}
         />
       )}
 
@@ -504,6 +531,85 @@ function DeleteConfirmDialog({ isOpen, onClose, onConfirm, deleting }: {
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+function ChangePasswordInline({ isOpen, onClose, updatePassword }: {
+  isOpen: boolean
+  onClose: () => void
+  updatePassword: (pw: string) => Promise<{ error: string | null }>
+}) {
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const toast = useToast()
+  const trapRef = useFocusTrap(isOpen, onClose)
+
+  const handleSave = async () => {
+    setError(null)
+    if (password.length < 6) { setError('At least six characters, please.'); return }
+    if (password !== confirm) { setError('The two keys don’t match.'); return }
+    setSaving(true)
+    const { error } = await updatePassword(password)
+    setSaving(false)
+    if (error) { setError(error); return }
+    toast.showToast('Password updated', 'success')
+    onClose()
+  }
+
+  return (
+    <div ref={trapRef} className="fixed inset-0 z-[var(--z-sheet)] flex flex-col justify-end" role="dialog" aria-modal="true">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <section className="relative w-full bg-surface-container-low rounded-t-[2.5rem] sheet-shadow animate-slide-up">
+        <div className="flex justify-center py-4"><div className="w-12 h-1 bg-surface-container-highest rounded-full" /></div>
+        <div className="px-8 pb-10 space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-headline font-bold text-on-surface">Change Password</h2>
+            <button onClick={onClose} className="w-10 h-10 rounded-sm bg-surface-container-highest flex items-center justify-center transition-opacity hover:opacity-80">
+              <span className="text-sm">×</span>
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-[10px] tracking-[0.15em] text-primary/60 uppercase">New password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="at least six characters"
+              autoFocus
+              minLength={6}
+              className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-sm px-4 py-3.5 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-[10px] tracking-[0.15em] text-primary/60 uppercase">Confirm</label>
+            <input
+              type="password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              placeholder="one more time"
+              minLength={6}
+              className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-sm px-4 py-3.5 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none"
+            />
+          </div>
+
+          {error && (
+            <p className="font-headline italic text-xs text-error text-center">{error}</p>
+          )}
+
+          <button
+            onClick={handleSave}
+            disabled={saving || password.length < 6 || confirm.length < 6}
+            className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-sm ambient-glow transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {saving ? 'UPDATING...' : 'UPDATE PASSWORD'}
+          </button>
+        </div>
+      </section>
     </div>
   )
 }

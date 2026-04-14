@@ -24,7 +24,7 @@ export function useIsBlocked(targetUserId: string | undefined) {
       try {
         const { data } = await supabase
           .from('user_blocks')
-          .select('id')
+          .select('blocked_id')
           .eq('blocker_id', user.id)
           .eq('blocked_id', targetUserId)
           .maybeSingle()

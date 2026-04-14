@@ -12,6 +12,7 @@ interface AuthState {
   signOut: () => Promise<void>
   resendConfirmation: (email: string) => Promise<{ error: string | null }>
   sendPasswordReset: (email: string) => Promise<{ error: string | null }>
+  updatePassword: (newPassword: string) => Promise<{ error: string | null }>
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined)
@@ -77,8 +78,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null }
   }
 
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    return { error: error?.message ?? null }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, resendConfirmation, sendPasswordReset }}>
+    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, resendConfirmation, sendPasswordReset, updatePassword }}>
       {children}
     </AuthContext.Provider>
   )
