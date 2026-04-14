@@ -256,7 +256,7 @@ export function LandingPage() {
               ScentFolio
             </h1>
             <p className="font-headline italic text-xl md:text-2xl text-secondary max-w-xl mx-auto opacity-80">
-              A curated digital archive for fragrance lovers.
+              Chronicle your collection. Map your taste. Discover what's next.
             </p>
             <div className="mt-16 flex flex-col items-center gap-4">
               <button
@@ -325,13 +325,13 @@ export function LandingPage() {
                 <FeatureEntry
                   numeral="I."
                   title="The Catalogue"
-                  description="Access deep metadata on thousands of extraits, parfums and colognes. Community notes meet editorial standards."
+                  description="Thousands of fragrances with verified notes, sillage and longevity — searchable, not buried."
                   delay={0}
                 />
                 <FeatureEntry
                   numeral="II."
                   title="The Layering Bench"
-                  description="Our proprietary engine suggests combinations based on chemical harmony and historical success."
+                  description="Discover pairings that work — combinations rated and refined by collectors."
                   delay={100}
                 />
               </div>
@@ -339,13 +339,13 @@ export function LandingPage() {
                 <FeatureEntry
                   numeral="III."
                   title="Scent Mapping"
-                  description="Visualise your fragrance preferences through a dynamic radar of notes, families and concentrations."
+                  description="See your taste at a glance — the notes you favour, the families you lean on, the gaps worth exploring."
                   delay={200}
                 />
                 <FeatureEntry
                   numeral="IV."
                   title="The Private Archive"
-                  description="Keep detailed journals of your daily wear, notes on sillage, and the private memories associated with scent."
+                  description="Journal your daily wears, track performance, and keep the memories scent leaves behind."
                   delay={300}
                 />
               </div>
@@ -437,13 +437,13 @@ export function LandingPage() {
             <div className="relative z-10 space-y-20 md:space-y-24">
               <Blockquote
                 quote="Finally, a digital space that respects the artistry of perfumery. ScentFolio is as essential as the atomiser itself."
-                name="Julian Vane"
-                role="Collector"
+                name="Julian V."
+                role="Collector · 80+ bottles"
               />
               <Blockquote
                 quote="The mapping feature revealed biases in my collection I never knew I had. My curation is now purposeful."
                 name="Elara K."
-                role="Fragrance Collector"
+                role="Curator"
                 align="right"
               />
             </div>
@@ -462,10 +462,10 @@ export function LandingPage() {
               </div>
               <div>
                 <p className="font-headline text-3xl md:text-4xl text-on-surface">
-                  {userCount > 0 ? <AnimatedCount target={userCount} /> : <AnimatedCount target={73} />}
+                  {userCount > 0 ? <AnimatedCount target={userCount} /> : '∞'}
                 </p>
                 <p className="font-label text-[10px] tracking-[0.25em] text-secondary uppercase mt-2">
-                  {userCount > 0 ? 'Collectors' : 'Movements'}
+                  {userCount > 0 ? 'Collectors' : 'Pairings'}
                 </p>
               </div>
               <div>
