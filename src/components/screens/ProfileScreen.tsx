@@ -274,13 +274,6 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
         </p>
         <div className="grid grid-cols-2 gap-x-8 gap-y-6">
           {([
-            ['/dna', 'Scent profile', 'your fragrance preferences'],
-            ['/profile-card', 'Profile card', 'share your taste'],
-            ['/stats', 'Your stats', 'numbers & insights'],
-            ['/achievements', 'Achievements', 'honours & milestones'],
-            ['/challenges', 'Challenges', 'goals & rewards'],
-            ['/collection-insights', 'Collection insights', 'patterns & trends'],
-            ['/collection-health', 'Collection health', 'rate your collection'],
             ['/brands', 'Brands', 'browse by brand'],
             ['/families', 'Scent families', 'browse by family'],
             ['/top-shelf', 'Top shelf', 'your all-time favourites'],
@@ -325,11 +318,8 @@ function ProfileContent({ userId, email, onSignOut }: { userId: string; email: s
             ['/gift-finder', 'Gift finder', 'find the perfect gift'],
             ['/dupes', 'Alternatives', 'similar scents & dupes'],
             ['/blind-buys', 'Blind buys', 'bottles bought unsmelled'],
-            ['/wear-predictions', "Today's pick", 'what to wear today'],
             ['/journal', 'Journal', 'your fragrance diary'],
             ['/calendar', 'Calendar', 'monthly wear overview'],
-            ['/heatmap', 'Wear map', 'activity & cost per wear'],
-            ['/timeline', 'Timeline', 'your fragrance journey'],
           ] as [string, string, string][]).map(([path, name, desc]) => (
             <div key={path}>
               <button
