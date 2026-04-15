@@ -168,6 +168,9 @@ export function FragranceDetailScreen() {
     setCollectionStatus(status)
     setSaving(true)
 
+    // Detect wishlist → owned promotion for bespoke voicing + XP reward.
+    const isPromotion = previousStatus === 'wishlist' && status === 'own'
+
     try {
       if (previousStatus) {
         const { error } = await supabase
@@ -176,6 +179,9 @@ export function FragranceDetailScreen() {
           .eq('user_id', user.id)
           .eq('fragrance_id', id)
         if (error) throw error
+        if (isPromotion) {
+          await awardXP(user.id, 'PROMOTE_TO_OWNED')
+        }
       } else {
         const { error } = await supabase
           .from('user_collections')
@@ -186,12 +192,13 @@ export function FragranceDetailScreen() {
       hapticMedium()
       trackEvent(AnalyticsEvents.ADD_TO_COLLECTION, { fragrance_id: id, status, was_update: !!previousStatus })
       const voiced =
-        status === 'own' ? 'filed on your own shelf.'
+        isPromotion ? 'Acquired · +10 XP'
+        : status === 'own' ? 'filed on your own shelf.'
         : status === 'wishlist' ? 'moved to your wishlist.'
         : status === 'sampled' ? 'marked as sampled.'
         : status === 'sold' ? 'released from the shelf.'
         : 'shelf updated.'
-      showToast(voiced, 'success')
+      showToast(voiced, 'success', isPromotion ? 'check_circle' : undefined)
     } catch {
       setCollectionStatus(previousStatus)
       showToast('could not update the shelf.', 'error')

@@ -29,6 +29,7 @@ export const XP_AWARDS = {
   LOG_WEAR: 10,
   WRITE_REVIEW: 25,
   ADD_TO_COLLECTION: 5,
+  PROMOTE_TO_OWNED: 10,   // Wishlist → owned: doubles the standard add reward
   FIRST_WEAR: 20,         // Bonus for very first wear log
   STREAK_3: 30,
   STREAK_7: 75,

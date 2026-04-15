@@ -44,6 +44,12 @@ export interface UserCollection {
   personal_rating: number | null
   personal_notes: string | null
   date_added: string
+  /** Date the bottle was acquired (owned items only; nullable). */
+  date_acquired: string | null
+  /** Bottle size tag: 30ml, 50ml, 100ml, decant, other. */
+  bottle_size: string | null
+  /** Purchase source: boutique, online, gift, swap, other. */
+  purchase_source: string | null
   fragrance?: Fragrance
 }
 
