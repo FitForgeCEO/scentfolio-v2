@@ -16,6 +16,7 @@ const HomeScreen = lazy(() => import('./components/screens/HomeScreen').then(m =
 const CollectionScreen = lazy(() => import('./components/screens/CollectionScreen').then(m => ({ default: m.CollectionScreen })))
 const ExploreScreen = lazy(() => import('./components/screens/ExploreScreen').then(m => ({ default: m.ExploreScreen })))
 const ProfileScreen = lazy(() => import('./components/screens/ProfileScreen').then(m => ({ default: m.ProfileScreen })))
+const SignatureScreen = lazy(() => import('./components/screens/SignatureScreen').then(m => ({ default: m.SignatureScreen })))
 const FragranceDetailScreen = lazy(() => import('./components/screens/FragranceDetailScreen').then(m => ({ default: m.FragranceDetailScreen })))
 const LayeringLabScreen = lazy(() => import('./components/screens/LayeringLabScreen').then(m => ({ default: m.LayeringLabScreen })))
 const WearHistoryScreen = lazy(() => import('./components/screens/WearHistoryScreen').then(m => ({ default: m.WearHistoryScreen })))
@@ -25,7 +26,6 @@ const SavedStacksScreen = lazy(() => import('./components/screens/SavedStacksScr
 const SearchScreen = lazy(() => import('./components/screens/SearchScreen').then(m => ({ default: m.SearchScreen })))
 const DecantsScreen = lazy(() => import('./components/screens/DecantsScreen').then(m => ({ default: m.DecantsScreen })))
 const WishlistScreen = lazy(() => import('./components/screens/WishlistScreen').then(m => ({ default: m.WishlistScreen })))
-const InsightsScreen = lazy(() => import('./components/screens/InsightsScreen').then(m => ({ default: m.InsightsScreen })))
 const CompareScreen = lazy(() => import('./components/screens/CompareScreen').then(m => ({ default: m.CompareScreen })))
 const RecommendScreen = lazy(() => import('./components/screens/RecommendScreen').then(m => ({ default: m.RecommendScreen })))
 const SettingsScreen = lazy(() => import('./components/screens/SettingsScreen').then(m => ({ default: m.SettingsScreen })))
@@ -157,6 +157,7 @@ export default function App() {
               <Route path="/collection" element={<AppLayout title="SCENTFOLIO" showBack={false}><LazyScreen grid><CollectionScreen /></LazyScreen></AppLayout>} />
               <Route path="/explore" element={<AppLayout title="SCENTFOLIO"><LazyScreen grid><ExploreScreen /></LazyScreen></AppLayout>} />
               <Route path="/profile" element={<AppLayout title="SCENTFOLIO"><LazyScreen><ProfileScreen /></LazyScreen></AppLayout>} />
+              <Route path="/signature" element={<AppLayout title="SCENTFOLIO"><LazyScreen><SignatureScreen /></LazyScreen></AppLayout>} />
 
               {/* ── Fragrance detail ── */}
               <Route path="/fragrance/:id" element={<AppLayout showBack title="SCENT PROFILE"><LazyScreen><FragranceDetailScreen /></LazyScreen></AppLayout>} />
@@ -213,7 +214,6 @@ export default function App() {
               <Route path="/achievements" element={<AppLayout title="ACHIEVEMENTS" showBack><LazyScreen><AchievementsScreen /></LazyScreen></AppLayout>} />
               <Route path="/stats" element={<AppLayout title="STATS" showBack><LazyScreen><StatsScreen /></LazyScreen></AppLayout>} />
               <Route path="/timeline" element={<AppLayout title="TIMELINE" showBack><LazyScreen><TimelineScreen /></LazyScreen></AppLayout>} />
-              <Route path="/insights" element={<AppLayout title="INSIGHTS" showBack><LazyScreen><InsightsScreen /></LazyScreen></AppLayout>} />
 
               {/* ── Share & Social ── */}
               <Route path="/share-collection" element={<AppLayout title="SHARE" showBack><LazyScreen><CollectionShareScreen /></LazyScreen></AppLayout>} />
