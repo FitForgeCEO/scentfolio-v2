@@ -9,9 +9,10 @@ import { awardXP } from '@/lib/xp'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { useToast } from '@/contexts/ToastContext'
 import { PullToRefresh } from '../ui/PullToRefresh'
+import { PromoteToOwnedSheet, type PromoteMeta } from '../ui/PromoteToOwnedSheet'
 import { RecommendationCarousel } from '../ui/RecommendationCarousel'
 import { useAllUserTags, useFragrancesByTag } from '@/hooks/useUserTags'
-import type { Fragrance } from '@/types/database'
+import type { Fragrance, UserCollection } from '@/types/database'
 
 // ── Noir helpers (shared voice with HomeScreen) ──
 const WORDS_20 = [
@@ -143,6 +144,32 @@ export function CollectionScreen() {
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [batchProcessing, setBatchProcessing] = useState(false)
+
+  // Promote-to-owned sheet (wishlist → own)
+  const [promoteItem, setPromoteItem] = useState<(UserCollection & { fragrance: Fragrance }) | null>(null)
+
+  const handlePromoteConfirm = async (
+    item: UserCollection & { fragrance: Fragrance },
+    meta: PromoteMeta,
+  ) => {
+    setPromoteItem(null)
+    const { error: promoteError } = await supabase
+      .from('user_collections')
+      .update({
+        status: 'own',
+        date_acquired: meta.date_acquired,
+        bottle_size: meta.bottle_size,
+        purchase_source: meta.purchase_source,
+      })
+      .eq('id', item.id)
+    if (promoteError) {
+      toast.showToast('The reclassification could not be completed.', 'error')
+      return
+    }
+    if (user) await awardXP(user.id, 'PROMOTE_TO_OWNED')
+    toast.showToast('Acquired · +10 XP', 'success', 'check_circle')
+    retry()
+  }
 
   const toggleSelect = (collectionId: string) => {
     setSelected((prev) => {
@@ -444,6 +471,20 @@ export function CollectionScreen() {
                 <h3 className="font-headline italic text-lg text-on-background leading-tight truncate">
                   {item.fragrance.name}
                 </h3>
+                {item.status === 'wishlist' && !selectMode && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setPromoteItem(item)
+                    }}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    className="mt-3 inline-flex items-center py-2 px-4 rounded-sm font-label text-[0.55rem] font-bold tracking-[0.2em] uppercase text-on-primary-container transition-transform hover:scale-[1.02]"
+                    style={{ background: 'linear-gradient(45deg, #e5c276 0%, #c4a35a 100%)' }}
+                  >
+                    I GOT THIS ONE
+                  </button>
+                )}
               </div>
             )
           })}
@@ -539,6 +580,20 @@ export function CollectionScreen() {
                   <p className="font-headline italic text-sm text-secondary/60">
                     filed under {item.fragrance.note_family.toLowerCase()}
                   </p>
+                )}
+                {item.status === 'wishlist' && !selectMode && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setPromoteItem(item)
+                    }}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    className="mt-4 self-start inline-flex items-center py-2.5 px-5 rounded-sm font-label text-[0.6rem] font-bold tracking-[0.2em] uppercase text-on-primary-container transition-transform hover:scale-[1.02]"
+                    style={{ background: 'linear-gradient(45deg, #e5c276 0%, #c4a35a 100%)' }}
+                  >
+                    I GOT THIS ONE
+                  </button>
                 )}
               </div>
             </div>
@@ -1092,6 +1147,15 @@ export function CollectionScreen() {
         >
           FILE AN ENTRY
         </button>
+      )}
+
+      {/* Promote wishlist → owned */}
+      {promoteItem && (
+        <PromoteToOwnedSheet
+          item={promoteItem}
+          onClose={() => setPromoteItem(null)}
+          onConfirm={handlePromoteConfirm}
+        />
       )}
     </main>
     </PullToRefresh>
