@@ -832,10 +832,7 @@ export function FragranceDetailScreen() {
         fragrance={frag}
         isOwner={collectionStatus === 'own'}
         onSubmitted={refetchReviews}
-        onEditExisting={() => {
-          const mine = reviews.find((r) => r.user_id === user?.id)
-          if (mine) setEditingReview(mine)
-        }}
+        onEditExisting={(existing) => setEditingReview(existing)}
       />
       {editingReview && (
         <EditReviewSheet

@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { awardXP } from '@/lib/xp'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
-import type { Fragrance } from '@/types/database'
+import type { Fragrance, Review } from '@/types/database'
 
 const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter']
 const OCCASIONS = ['Casual', 'Office', 'Date Night', 'Night Out', 'Special Event']
@@ -15,7 +15,13 @@ interface ReviewSheetProps {
   fragrance: Fragrance
   isOwner: boolean
   onSubmitted?: () => void
-  onEditExisting?: () => void
+  /**
+   * Called when the keeper confirms they want to edit their existing review.
+   * The fresh row is fetched directly by ReviewSheet's pre-check and handed
+   * back here so the parent doesn't have to hunt for it in a (possibly
+   * paginated or stale) local reviews list.
+   */
+  onEditExisting?: (existing: Review) => void
 }
 
 function RomanRating({ value, onChange, label }: { value: number; onChange: (v: number) => void; label: string }) {
@@ -50,7 +56,8 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted, 
   const trapRef = useFocusTrap(isOpen, onClose)
   const [isDuplicate, setIsDuplicate] = useState(false)
   const [checkingExisting, setCheckingExisting] = useState(true)
-  const [hasExistingReview, setHasExistingReview] = useState(false)
+  const [existingReview, setExistingReview] = useState<Review | null>(null)
+  const hasExistingReview = existingReview !== null
   const [overall, setOverall] = useState(0)
   const [longevity, setLongevity] = useState(0)
   const [sillage, setSillage] = useState(0)
@@ -66,7 +73,10 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted, 
   const [error, setError] = useState<string | null>(null)
 
   // Pre-check for existing review when sheet opens, so we don't make the user
-  // fill the whole form just to discover a unique-constraint violation.
+  // fill the whole form just to discover a unique-constraint violation. We
+  // fetch the full row (not just `id`) so the Edit CTA can hand it straight
+  // to EditReviewSheet without re-querying or depending on a paginated
+  // `reviews` list in the parent.
   useEffect(() => {
     if (!isOpen || !user) {
       setCheckingExisting(false)
@@ -74,15 +84,16 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted, 
     }
     let cancelled = false
     setCheckingExisting(true)
+    setExistingReview(null)
     supabase
       .from('reviews')
-      .select('id')
+      .select('*')
       .eq('user_id', user.id)
       .eq('fragrance_id', fragrance.id)
       .maybeSingle()
       .then(({ data }) => {
         if (cancelled) return
-        setHasExistingReview(!!data)
+        setExistingReview((data as Review | null) ?? null)
         setCheckingExisting(false)
       })
     return () => { cancelled = true }
@@ -122,6 +133,16 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted, 
       if (insertError.code === '23505') {
         setIsDuplicate(true)
         setError("You've already written a review for this fragrance.")
+        // Race-safe fetch: the pre-check didn't catch this row (sheet was
+        // already open when it was written elsewhere), so grab it now so
+        // the Edit CTA has something real to hand to EditReviewSheet.
+        const { data: raced } = await supabase
+          .from('reviews')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('fragrance_id', fragrance.id)
+          .maybeSingle()
+        if (raced) setExistingReview(raced as Review)
       } else {
         setIsDuplicate(false)
         setError('Something went wrong. Please try again.')
@@ -222,10 +243,14 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted, 
               </div>
 
               <div className="pt-4 space-y-3">
-                {onEditExisting && (
+                {onEditExisting && existingReview && (
                   <button
                     type="button"
-                    onClick={() => { onClose(); onEditExisting() }}
+                    onClick={() => {
+                      const row = existingReview
+                      onClose()
+                      onEditExisting(row)
+                    }}
                     className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-sm ambient-glow transition-opacity hover:opacity-90"
                   >
                     EDIT YOUR REVIEW
@@ -398,19 +423,20 @@ export function ReviewSheet({ isOpen, onClose, fragrance, isOwner, onSubmitted, 
               }`}
             >
               <p>{error}</p>
-              {isDuplicate && onEditExisting && (
+              {isDuplicate && onEditExisting && existingReview && (
                 <button
                   type="button"
                   onClick={() => {
+                    const row = existingReview
                     onClose()
-                    onEditExisting()
+                    onEditExisting(row)
                   }}
                   className="mt-2 inline-block font-bold tracking-[0.15em] uppercase text-[10px] underline underline-offset-4 hover:opacity-80 transition-opacity"
                 >
                   Edit your review
                 </button>
               )}
-              {isDuplicate && !onEditExisting && (
+              {isDuplicate && (!onEditExisting || !existingReview) && (
                 <p className="mt-1 italic opacity-80">You can edit it from the fragrance page.</p>
               )}
             </div>
