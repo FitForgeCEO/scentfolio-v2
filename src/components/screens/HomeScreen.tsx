@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { LogWearSheet } from './LogWearSheet'
 import { PullToRefresh } from '../ui/PullToRefresh'
 import { useSmartNotifications } from '@/hooks/useSmartNotifications'
+import { useToast } from '@/contexts/ToastContext'
 import { useOnboarding } from '@/hooks/useOnboarding'
 import { supabase } from '@/lib/supabase'
 
@@ -194,6 +195,27 @@ export function HomeScreen() {
 
   // Generate smart notifications on home screen load
   useSmartNotifications()
+
+  // One-time migration nudge: existing users learn that Stats / Scent DNA moved to Signature.
+  // New users (created on or after the IA refactor cutover) never see it.
+  const { showToast } = useToast()
+  useEffect(() => {
+    if (!user) return
+    const FLAG = 'scentfolio.ia-refactor-toast.v1'
+    if (typeof window === 'undefined') return
+    if (window.localStorage.getItem(FLAG)) return
+    const created = user.created_at ? new Date(user.created_at) : null
+    const cutover = new Date('2026-04-15T00:00:00Z')
+    if (!created || created >= cutover) {
+      window.localStorage.setItem(FLAG, '1')
+      return
+    }
+    const t = window.setTimeout(() => {
+      showToast('Stats & Scent DNA moved to Signature ↓', 'info', '✦')
+      window.localStorage.setItem(FLAG, '1')
+    }, 1200)
+    return () => window.clearTimeout(t)
+  }, [user, showToast])
 
   // Dispatches feed (absorbs CommunityBuzzWidget)
   const { buzz, loaded: buzzLoaded } = useCommunityBuzz(3)

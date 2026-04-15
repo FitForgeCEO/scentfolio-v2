@@ -6,7 +6,7 @@ const navItems = [
   { to: '/collection', label: 'Collection' },
   { to: '/explore', label: 'Explore' },
   { to: '/layering-lab', label: 'Lab' },
-  { to: '/profile', label: 'Profile' },
+  { to: '/signature', label: 'Signature' },
 ]
 
 export function BottomNav() {

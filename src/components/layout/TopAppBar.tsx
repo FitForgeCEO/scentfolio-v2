@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { NotificationBell } from '../ui/NotificationCenter'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface TopAppBarProps {
   title?: string
@@ -7,6 +8,15 @@ interface TopAppBarProps {
   showSearch?: boolean
   showMenu?: boolean
   rightAction?: React.ReactNode
+}
+
+function monogramFor(name?: string | null, email?: string | null): string {
+  const source = (name || email || '').trim()
+  if (!source) return '❧'
+  const parts = source.split(/[\s@._-]+/).filter(Boolean)
+  if (parts.length === 0) return source.charAt(0).toUpperCase()
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
+  return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase()
 }
 
 export function TopAppBar({
@@ -19,6 +29,10 @@ export function TopAppBar({
   const location = useLocation()
   const isHome = location.pathname === '/'
   const isSearch = location.pathname === '/search'
+  const { user } = useAuth()
+  const avatarUrl = (user?.user_metadata as { avatar_url?: string } | undefined)?.avatar_url
+  const displayName = (user?.user_metadata as { display_name?: string } | undefined)?.display_name
+  const monogram = monogramFor(displayName, user?.email)
 
   return (
     <>
@@ -88,8 +102,12 @@ export function TopAppBar({
               aria-label="Profile"
               className="flex items-center gap-2 transition-opacity hover:opacity-80"
             >
-              <div className="w-8 h-8 rounded-sm overflow-hidden bg-surface-container-highest">
-                <div className="w-full h-full bg-gradient-to-br from-primary/30 to-surface-container-highest" />
+              <div className="w-8 h-8 rounded-sm overflow-hidden bg-surface-container-highest flex items-center justify-center">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="font-headline text-[11px] tracking-[0.1em] uppercase text-primary">{monogram}</span>
+                )}
               </div>
             </button>
           </>
