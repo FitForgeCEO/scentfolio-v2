@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
@@ -110,6 +110,24 @@ function LazyScreen({ children, grid }: { children: React.ReactNode; grid?: bool
   )
 }
 
+// ── Pre-launch gate — redirect anonymous visitors to waitlist ──────
+function PreLaunchGate({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth()
+  const { pathname } = useLocation()
+  const exempt = pathname === '/reset-password'
+
+  useEffect(() => {
+    if (!loading && !user && !exempt) {
+      window.location.href = 'https://join.scentfolio.app/'
+    }
+  }, [loading, user, exempt])
+
+  // Show skeleton while auth resolves or while the redirect fires
+  if (loading || (!user && !exempt)) return <ScreenSkeleton />
+
+  return <>{children}</>
+}
+
 // ── Home route gate — landing page for visitors, home for users ───
 function HomeGate() {
   const { user, loading } = useAuth()
@@ -145,6 +163,7 @@ export default function App() {
         <BrowserRouter>
           <div className="max-w-[430px] mx-auto h-dvh overflow-y-auto overflow-x-hidden relative bg-background">
             <AnalyticsTracker />
+            <PreLaunchGate>
             <Routes>
               {/* ── Onboarding (no AppLayout — full-screen flow) ── */}
               <Route path="/onboarding" element={<LazyScreen><OnboardingFlowScreen /></LazyScreen>} />
@@ -256,6 +275,7 @@ export default function App() {
               {/* ── Settings ── */}
               <Route path="/settings" element={<AppLayout title="SETTINGS" showBack><LazyScreen><SettingsScreen /></LazyScreen></AppLayout>} />
             </Routes>
+            </PreLaunchGate>
             <InstallBanner />
           </div>
         </BrowserRouter>
