@@ -14,7 +14,8 @@
     "cap:build:ios": "npm run build && npx cap sync ios",
     "cap:build:android": "npm run build && npx cap sync android",
     "embed:fragrances": "tsx scripts/embed-fragrances.ts",
-    "embed:fragrances:dry": "tsx scripts/embed-fragrances.ts --dry-run --limit 5"
+    "embed:fragrances:dry": "tsx scripts/embed-fragrances.ts --dry-run --limit 5",
+    "eval:recommender": "tsx scripts/eval-recommender.ts"
   },
   "dependencies": {
     "@sentry/react": "^10.48.0",

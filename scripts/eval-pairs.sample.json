@@ -1,0 +1,22 @@
+{
+  "_comment_1": "Sample twin pairs for eval-recommender.ts. Dan curates the real 20 pairs.",
+  "_comment_2": "Brand and name must exactly match public.fragrances rows (case-sensitive). If a pair does not resolve, it is logged and skipped -- the run still produces signal from the rest.",
+  "_comment_3": "A 'twin' is a pair where BOTH directions should surface each other: same-house flankers, notorious dupes, olfactory cousins. See scripts/eval-recommender.ts header for the curation philosophy.",
+  "pairs": [
+    {
+      "a": { "brand": "Dior", "name": "Sauvage" },
+      "b": { "brand": "Dior", "name": "Sauvage Parfum" },
+      "note": "Placeholder -- same-house flanker, should land top-5"
+    },
+    {
+      "a": { "brand": "Maison Francis Kurkdjian", "name": "Baccarat Rouge 540" },
+      "b": { "brand": "Maison Francis Kurkdjian", "name": "Grand Soir" },
+      "note": "Placeholder -- same house, amber-heavy kinship"
+    },
+    {
+      "a": { "brand": "Creed", "name": "Aventus" },
+      "b": { "brand": "Initio", "name": "Oud for Greatness" },
+      "note": "Placeholder -- cross-house, shared smoky-fruit DNA"
+    }
+  ]
+}
