@@ -160,5 +160,6 @@ export const AnalyticsEvents = {
   LANDING_SCROLL_DEPTH: 'landing_scroll_depth',
 
   // Recommender
+  RECOMMENDER_CLICK: 'recommender_click',
   RECOMMENDER_THUMBS: 'recommender_thumbs',
 } as const

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { fetchPersonalisedRecs } from '@/lib/taste-vector'
+import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 import type { Fragrance } from '@/types/database'
 
 // ─────────────────────────────────────────────────────────────
@@ -430,13 +431,22 @@ export function DiscoverScreen() {
                   dekIsBrand={isNiche}
                 />
                 <div className="mt-8 flex gap-5 overflow-x-auto no-scrollbar px-6 pb-2">
-                  {section.items.map(frag => (
+                  {section.items.map((frag, fidx) => (
                     <ScentCard
                       key={frag.id}
                       frag={frag}
                       showRating={copy.showRatings}
                       dimmed={copy.dim}
-                      onClick={() => navigate(`/fragrance/${frag.id}`)}
+                      onClick={() => {
+                        if (section.id === 'for-you') {
+                          trackEvent(AnalyticsEvents.RECOMMENDER_CLICK, {
+                            source: 'discover_personalised',
+                            position: fidx,
+                            fragrance_id: frag.id,
+                          })
+                        }
+                        navigate(`/fragrance/${frag.id}`)
+                      }}
                     />
                   ))}
                 </div>

@@ -6,6 +6,7 @@ import {
   fetchPersonalisedRecsScored,
   type ScoredRec,
 } from '@/lib/taste-vector'
+import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 import type { Fragrance } from '@/types/database'
 
 interface CollectionItem {
@@ -70,10 +71,17 @@ export function RecommendationCarousel() {
         </div>
       </div>
       <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-2">
-        {recs.map((rec) => (
+        {recs.map((rec, idx) => (
           <button
             key={rec.fragrance.id}
-            onClick={() => navigate(`/fragrance/${rec.fragrance.id}`)}
+            onClick={() => {
+              trackEvent(AnalyticsEvents.RECOMMENDER_CLICK, {
+                source: 'collection_carousel',
+                position: idx,
+                fragrance_id: rec.fragrance.id,
+              })
+              navigate(`/fragrance/${rec.fragrance.id}`)
+            }}
             className="flex-shrink-0 w-[110px] text-left hover:opacity-80 transition-transform"
           >
             <div className="relative aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-highest mb-2">

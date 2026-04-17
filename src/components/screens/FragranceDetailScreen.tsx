@@ -697,18 +697,26 @@ export function FragranceDetailScreen() {
           </h2>
 
           <div className="mt-6 -mx-8 px-8 flex gap-5 overflow-x-auto no-scrollbar pb-3">
-            {similarFragrances.map((sr) => {
+            {similarFragrances.map((sr, kidx) => {
               const thumb = kindredThumbs[sr.fragrance.id] ?? null
+              const goKindred = () => {
+                trackEvent(AnalyticsEvents.RECOMMENDER_CLICK, {
+                  source: 'kindred_works',
+                  position: kidx,
+                  fragrance_id: sr.fragrance.id,
+                })
+                navigate(`/fragrance/${sr.fragrance.id}`)
+              }
               return (
                 <div
                   key={sr.fragrance.id}
                   role="button"
                   tabIndex={0}
-                  onClick={() => navigate(`/fragrance/${sr.fragrance.id}`)}
+                  onClick={goKindred}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault()
-                      navigate(`/fragrance/${sr.fragrance.id}`)
+                      goKindred()
                     }
                   }}
                   className="flex-shrink-0 w-[140px] text-left transition-opacity hover:opacity-80 group cursor-pointer"
