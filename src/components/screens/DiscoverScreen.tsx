@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { findSimilarToCollection } from '@/lib/similarity'
+import { fetchPersonalisedRecs } from '@/lib/taste-vector'
 import type { Fragrance } from '@/types/database'
 
 // ─────────────────────────────────────────────────────────────
@@ -322,23 +322,12 @@ export function DiscoverScreen() {
         .map(c => ({ ...c.fragrance!, rating: c.personal_rating }))
 
       if (owned.length >= 3) {
-        const ownedIds = new Set(owned.map(f => f.id))
-        const { data: candidates } = await supabase
-          .from('fragrances')
-          .select('*')
-          .not('rating', 'is', null)
-          .order('rating', { ascending: false })
-          .limit(80)
-
-        const pool = (candidates ?? []).filter(
-          c => !ownedIds.has((c as Fragrance).id)
-        ) as Fragrance[]
-        const personalised = findSimilarToCollection(owned, pool, 10)
+        const personalised = await fetchPersonalisedRecs(owned, 10)
 
         if (personalised.length > 0) {
           sects.splice(1, 0, {
             id: 'for-you',
-            items: personalised.map(p => p.fragrance),
+            items: personalised,
           })
         }
       }
