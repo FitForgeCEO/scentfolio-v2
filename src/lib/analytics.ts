@@ -158,4 +158,7 @@ export const AnalyticsEvents = {
   // Landing
   LANDING_CTA_CLICK: 'landing_cta_click',
   LANDING_SCROLL_DEPTH: 'landing_scroll_depth',
+
+  // Recommender
+  RECOMMENDER_THUMBS: 'recommender_thumbs',
 } as const

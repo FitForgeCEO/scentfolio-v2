@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useCallback, useMemo, type CSSProperties } from 'react'
 import { useFragranceDetail, useFragranceReviews, useFragranceTags } from '@/hooks/useFragrances'
 import { useSimilarFragrances } from '@/hooks/useSimilarFragrances'
+import { useFragranceThumbs } from '@/hooks/useFragranceThumbs'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { LogWearSheet } from './LogWearSheet'
@@ -121,6 +122,9 @@ export function FragranceDetailScreen() {
   const { data: reviews, refetch: refetchReviews } = useFragranceReviews(id, reviewSort)
   const { data: tags } = useFragranceTags(id)
   const { data: similarFragrances, loading: similarLoading } = useSimilarFragrances(frag ?? null)
+  const kindredIds = useMemo(() => similarFragrances.map((sr) => sr.fragrance.id), [similarFragrances])
+  const { thumbs: kindredThumbs, setThumb: setKindredThumb, isAuthed: kindredAuthed } =
+    useFragranceThumbs(kindredIds, 'kindred_works')
   const { tags: userTags, setTags: setUserTags } = useUserFragranceTags(id)
 
   const reviewerIds = useMemo(() => reviews.map((r) => r.user_id), [reviews])
@@ -693,31 +697,78 @@ export function FragranceDetailScreen() {
           </h2>
 
           <div className="mt-6 -mx-8 px-8 flex gap-5 overflow-x-auto no-scrollbar pb-3">
-            {similarFragrances.map((sr) => (
-              <button
-                key={sr.fragrance.id}
-                onClick={() => navigate(`/fragrance/${sr.fragrance.id}`)}
-                className="flex-shrink-0 w-[140px] text-left transition-opacity hover:opacity-80 group"
-              >
-                <div className="relative aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-low mb-3">
-                  <FragranceImage
-                    src={sr.fragrance.image_url}
-                    alt={sr.fragrance.name}
-                    noteFamily={sr.fragrance.note_family}
-                    size="md"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+            {similarFragrances.map((sr) => {
+              const thumb = kindredThumbs[sr.fragrance.id] ?? null
+              return (
+                <div
+                  key={sr.fragrance.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/fragrance/${sr.fragrance.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      navigate(`/fragrance/${sr.fragrance.id}`)
+                    }
+                  }}
+                  className="flex-shrink-0 w-[140px] text-left transition-opacity hover:opacity-80 group cursor-pointer"
+                >
+                  <div className="relative aspect-[3/4] rounded-sm overflow-hidden bg-surface-container-low mb-3">
+                    <FragranceImage
+                      src={sr.fragrance.image_url}
+                      alt={sr.fragrance.name}
+                      noteFamily={sr.fragrance.note_family}
+                      size="md"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+                    {kindredAuthed && (
+                      <div className="absolute bottom-1.5 right-1.5 flex gap-1" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          aria-label="More like this"
+                          aria-pressed={thumb === 'up'}
+                          onClick={(e) => { e.stopPropagation(); void setKindredThumb(sr.fragrance.id, 'up') }}
+                          className={`w-6 h-6 grid place-items-center rounded-full backdrop-blur-sm transition-colors ${
+                            thumb === 'up'
+                              ? 'bg-background/80 text-primary'
+                              : 'bg-background/40 text-on-background/60 hover:text-on-background'
+                          }`}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M7 10v12" />
+                            <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H7V10l4.34-8.66a1.93 1.93 0 0 1 3.66.54Z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Less like this"
+                          aria-pressed={thumb === 'down'}
+                          onClick={(e) => { e.stopPropagation(); void setKindredThumb(sr.fragrance.id, 'down') }}
+                          className={`w-6 h-6 grid place-items-center rounded-full backdrop-blur-sm transition-colors ${
+                            thumb === 'down'
+                              ? 'bg-background/80 text-primary'
+                              : 'bg-background/40 text-on-background/60 hover:text-on-background'
+                          }`}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M17 14V2" />
+                            <path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H17v12l-4.34 8.66a1.93 1.93 0 0 1-3.66-.54Z" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[9px] uppercase tracking-[0.2em] font-label font-bold text-primary/60">{sr.fragrance.brand}</p>
+                  <p className="mt-1 font-headline italic text-base text-on-background leading-tight">{sr.fragrance.name}</p>
+                  {sr.reasons.length > 0 && (
+                    <p className="mt-1.5 font-headline italic text-[11px] text-on-background/50 leading-snug">
+                      {sr.reasons[0].toLowerCase()}.
+                    </p>
+                  )}
                 </div>
-                <p className="text-[9px] uppercase tracking-[0.2em] font-label font-bold text-primary/60">{sr.fragrance.brand}</p>
-                <p className="mt-1 font-headline italic text-base text-on-background leading-tight">{sr.fragrance.name}</p>
-                {sr.reasons.length > 0 && (
-                  <p className="mt-1.5 font-headline italic text-[11px] text-on-background/50 leading-snug">
-                    {sr.reasons[0].toLowerCase()}.
-                  </p>
-                )}
-              </button>
-            ))}
+              )
+            })}
           </div>
 
           <div className="mt-8 h-px" style={hairline} />
