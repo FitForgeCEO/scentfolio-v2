@@ -71,6 +71,32 @@ export async function fetchPersonalisedRecs(
 }
 
 // ---------------------------------------------------------------------------
+// PostgREST returns pgvector columns as strings like "[0.1,0.2,...]". Parse
+// that (or pass through a pre-parsed number[]) into a plain number[] for
+// centroid arithmetic. Returns null for nulls, malformed strings, or non-
+// numeric arrays so the caller can cleanly skip the row.
+// ---------------------------------------------------------------------------
+function parseEmbedding(raw: string | number[] | null | undefined): number[] | null {
+  if (raw == null) return null
+  let arr: unknown
+  if (typeof raw === 'string') {
+    if (raw.length === 0) return null
+    try { arr = JSON.parse(raw) } catch { return null }
+  } else {
+    arr = raw
+  }
+  if (!Array.isArray(arr) || arr.length === 0) return null
+  // Validate every element is finite; NaN/Infinity would poison the centroid.
+  const out = new Array<number>(arr.length)
+  for (let i = 0; i < arr.length; i++) {
+    const n = arr[i]
+    if (typeof n !== 'number' || !Number.isFinite(n)) return null
+    out[i] = n
+  }
+  return out
+}
+
+// ---------------------------------------------------------------------------
 // Weighted element-wise centroid. Exported for unit-testability; no caller
 // outside this module needs it today.
 // ---------------------------------------------------------------------------
@@ -136,6 +162,12 @@ async function fetchHybrid(
 ): Promise<Fragrance[]> {
   // 1. Pull embeddings for the owned set. Some rows may not have been
   //    embedded yet (e.g., newly user-submitted fragrances) -- skip those.
+  //
+  //    NOTE: PostgREST returns pgvector columns as JSON STRINGS (e.g.
+  //    "[0.1,0.2,...]"), not as JSON number arrays. We must parse them into
+  //    number[] here before doing centroid arithmetic -- otherwise v[d] reads
+  //    a character and the centroid collapses to NaN, which serialises back
+  //    to the RPC as [null,null,...] and Postgres 400s on the vector cast.
   const ownedIds = owned.map(o => o.id)
   const { data: embedRows, error: embedErr } = await supabase
     .from('fragrances')
@@ -144,10 +176,9 @@ async function fetchHybrid(
   if (embedErr) throw embedErr
 
   const embeddingById = new Map<string, number[]>()
-  for (const row of (embedRows ?? []) as { id: string; embedding: number[] | null }[]) {
-    if (row.embedding && row.embedding.length > 0) {
-      embeddingById.set(row.id, row.embedding)
-    }
+  for (const row of (embedRows ?? []) as { id: string; embedding: string | number[] | null }[]) {
+    const parsed = parseEmbedding(row.embedding)
+    if (parsed) embeddingById.set(row.id, parsed)
   }
   if (embeddingById.size === 0) return []   // full cold start
 
