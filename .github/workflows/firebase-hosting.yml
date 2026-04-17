@@ -21,6 +21,7 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_FRAGELLA_API_KEY: ${{ secrets.VITE_FRAGELLA_API_KEY }}
+          VITE_ENABLE_VECTOR_RECOMMENDER: 'true'
 
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
