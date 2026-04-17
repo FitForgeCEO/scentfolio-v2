@@ -15,12 +15,25 @@
  *   - Bumps embedding_version only when we actually write.
  *   - Safe to re-run after a crash -- picks up where it left off.
  *
+ * Pagination
+ * ----------
+ * PostgREST caps a single .select() at 1000 rows by default, so we paginate
+ * in PAGE_SIZE batches. Two pagination strategies, picked automatically:
+ *   - FORCE or DRY_RUN: offset-based. The filter set (either "all rows" for
+ *     --force, or "rows with embedding IS NULL" for dry-run) is stable across
+ *     batches because we either don't write or overwrite in place without
+ *     changing which rows match. Increment offset by batch size each loop.
+ *   - Normal mode with writes: offset stays 0. Each write flips an
+ *     embedding from NULL to a vector, removing it from the next fetch's
+ *     filter set -- so the "window" of remaining NULL rows just shrinks.
+ *     Re-fetching from offset 0 returns the next unembedded rows.
+ *
  * Usage
  * -----
  *   # dry run (no writes) -- for sanity-checking the source string + model
  *   npx tsx scripts/embed-fragrances.ts --dry-run --limit 5
  *
- *   # real backfill
+ *   # real backfill (now processes ALL rows in one invocation)
  *   npx tsx scripts/embed-fragrances.ts
  *
  *   # re-embed everything (after a source-string change, bumps version)
@@ -156,24 +169,22 @@ async function main() {
   }`);
   console.log("=".repeat(72));
 
-  // --- fetch rows to embed ---------------------------------------------------
-  let query = supabase
+  // --- count total up-front (for progress logging) --------------------------
+  const countQueryBase = supabase
     .from("fragrances")
-    .select(
-      "id, brand, name, concentration, gender, accords, notes_top, notes_heart, notes_base",
-    )
-    .order("created_at", { ascending: true });
-  if (!FORCE) query = query.is("embedding", null);
-  if (LIMIT) query = query.limit(LIMIT);
-
-  const { data: rows, error } = await query;
-  if (error) {
-    console.error("Fetch failed:", error);
+    .select("id", { count: "exact", head: true });
+  const { count: totalMatching, error: countErr } = FORCE
+    ? await countQueryBase
+    : await countQueryBase.is("embedding", null);
+  if (countErr) {
+    console.error("Count query failed:", countErr);
     process.exit(1);
   }
-  const fragrances = rows as FragranceRow[];
-  console.log(`Fetched ${fragrances.length} rows to embed.`);
-  if (fragrances.length === 0) {
+  const grandTotal = LIMIT
+    ? Math.min(totalMatching ?? 0, LIMIT)
+    : (totalMatching ?? 0);
+  console.log(`Rows matching filter: ${totalMatching ?? 0}. Will process: ${grandTotal}.`);
+  if (grandTotal === 0) {
     console.log("Nothing to do. Exiting.");
     return;
   }
@@ -181,60 +192,101 @@ async function main() {
   // --- load model ------------------------------------------------------------
   const extractor = await loadModel();
 
-  // --- iterate ---------------------------------------------------------------
+  // --- paginated iterate -----------------------------------------------------
+  // See header comment "Pagination" for why the offset strategy differs by mode.
+  const PAGE_SIZE = 1000;
+  const batchesShiftFilter = !FORCE && !DRY_RUN;
+  let offset = 0;
+  let totalProcessed = 0;
   let ok = 0;
   let failed = 0;
   const failures: { id: string; error: string }[] = [];
   const startedAt = Date.now();
+  let batchNum = 0;
 
-  for (let i = 0; i < fragrances.length; i++) {
-    const f = fragrances[i];
-    const src = buildSourceString(f);
+  async function fetchBatch(fetchOffset: number, batchSize: number): Promise<FragranceRow[]> {
+    let q = supabase
+      .from("fragrances")
+      .select(
+        "id, brand, name, concentration, gender, accords, notes_top, notes_heart, notes_base",
+      )
+      .order("created_at", { ascending: true })
+      .range(fetchOffset, fetchOffset + batchSize - 1);
+    if (!FORCE) q = q.is("embedding", null);
+    const { data, error: fetchErr } = await q;
+    if (fetchErr) throw fetchErr;
+    return (data ?? []) as FragranceRow[];
+  }
 
-    try {
-      const vec = await embed(extractor, src);
+  while (true) {
+    const remaining = grandTotal - totalProcessed;
+    if (remaining <= 0) break;
+    const batchSize = Math.min(PAGE_SIZE, remaining);
 
-      if (vec.length !== 384) {
-        throw new Error(`Expected 384-dim vector, got ${vec.length}`);
-      }
+    batchNum++;
+    const batch = await fetchBatch(offset, batchSize);
+    if (batch.length === 0) break;
 
-      if (DRY_RUN) {
-        if (i < 3) {
-          console.log(`\n[dry-run ${i + 1}] ${f.brand} — ${f.name}`);
-          console.log(`  src: ${src.slice(0, 140)}${src.length > 140 ? "…" : ""}`);
-          console.log(
-            `  vec[0..4]: [${vec
-              .slice(0, 5)
-              .map((v) => v.toFixed(4))
-              .join(", ")}] …`,
-          );
+    console.log(
+      `\n[batch ${batchNum}] fetched ${batch.length} rows ` +
+        `(offset=${offset}, mode=${batchesShiftFilter ? "filter-shift" : "offset"})`,
+    );
+
+    for (let i = 0; i < batch.length; i++) {
+      const f = batch[i];
+      const src = buildSourceString(f);
+      const overallIdx = totalProcessed + i + 1;
+
+      try {
+        const vec = await embed(extractor, src);
+
+        if (vec.length !== 384) {
+          throw new Error(`Expected 384-dim vector, got ${vec.length}`);
         }
-        ok++;
-      } else {
-        const { error: upErr } = await supabase
-          .from("fragrances")
-          .update({ embedding: vec, embedding_version: VERSION })
-          .eq("id", f.id);
-        if (upErr) throw upErr;
-        ok++;
+
+        if (DRY_RUN) {
+          if (overallIdx <= 3) {
+            console.log(`\n[dry-run ${overallIdx}] ${f.brand} — ${f.name}`);
+            console.log(`  src: ${src.slice(0, 140)}${src.length > 140 ? "…" : ""}`);
+            console.log(
+              `  vec[0..4]: [${vec
+                .slice(0, 5)
+                .map((v) => v.toFixed(4))
+                .join(", ")}] …`,
+            );
+          }
+          ok++;
+        } else {
+          const { error: upErr } = await supabase
+            .from("fragrances")
+            .update({ embedding: vec, embedding_version: VERSION })
+            .eq("id", f.id);
+          if (upErr) throw upErr;
+          ok++;
+        }
+      } catch (e: unknown) {
+        failed++;
+        failures.push({
+          id: f.id,
+          error: e instanceof Error ? e.message : String(e),
+        });
+        console.error(`  ✗ ${f.brand} — ${f.name}: ${failures.at(-1)!.error}`);
       }
-    } catch (e: unknown) {
-      failed++;
-      failures.push({
-        id: f.id,
-        error: e instanceof Error ? e.message : String(e),
-      });
-      console.error(`  ✗ ${f.brand} — ${f.name}: ${failures.at(-1)!.error}`);
+
+      // Progress line every 25 rows (across the whole run)
+      const globalCount = totalProcessed + i + 1;
+      if (globalCount % 25 === 0 || (i === batch.length - 1 && globalCount === grandTotal)) {
+        const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+        const rate = (globalCount / Number(elapsed)).toFixed(1);
+        console.log(
+          `  [${globalCount}/${grandTotal}]  ok=${ok}  failed=${failed}  ${elapsed}s  (${rate}/s)`,
+        );
+      }
     }
 
-    // Progress line every 25 rows
-    if ((i + 1) % 25 === 0 || i === fragrances.length - 1) {
-      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-      const rate = ((i + 1) / Number(elapsed)).toFixed(1);
-      console.log(
-        `  [${i + 1}/${fragrances.length}]  ok=${ok}  failed=${failed}  ${elapsed}s  (${rate}/s)`,
-      );
-    }
+    totalProcessed += batch.length;
+    if (batch.length < batchSize) break; // fewer than asked = end of data
+    if (!batchesShiftFilter) offset += batch.length;
   }
 
   // --- summary ---------------------------------------------------------------
