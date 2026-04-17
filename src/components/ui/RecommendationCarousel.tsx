@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { findSimilarToCollection } from '@/lib/similarity'
+import {
+  fetchPersonalisedRecsScored,
+  type ScoredRec,
+} from '@/lib/taste-vector'
 import type { Fragrance } from '@/types/database'
 
 interface CollectionItem {
@@ -10,16 +13,15 @@ interface CollectionItem {
   personal_rating: number | null
 }
 
-interface ScoredRec {
-  fragrance: Fragrance
-  score: number
-  reasons: string[]
-}
-
 /**
  * "You might also like" horizontal carousel.
- * Uses the similarity engine to recommend fragrances
- * based on the user's entire collection.
+ *
+ * Delegates to fetchPersonalisedRecsScored which encapsulates both the
+ * flag-gated hybrid vector path (VITE_ENABLE_VECTOR_RECOMMENDER) and the
+ * heuristic fallback. Score (0-100) and reasons[] are rendered as a badge
+ * and a single-line tag below the title.
+ *
+ * See notes/recommender-design.md Section 11 step 8.
  */
 export function RecommendationCarousel() {
   const { user } = useAuth()
@@ -34,7 +36,7 @@ export function RecommendationCarousel() {
   }, [user])
 
   async function fetchRecs() {
-    // Get user's owned collection
+    // Pull the user's owned collection as the taste-vector seed.
     const { data: collData } = await supabase
       .from('user_collections')
       .select('personal_rating, fragrance:fragrances(*)')
@@ -48,27 +50,11 @@ export function RecommendationCarousel() {
 
     if (owned.length === 0) { setLoading(false); return }
 
-    // Get IDs to exclude
-    const ownedIds = new Set(owned.map(f => f.id))
-
-    // Fetch candidate pool — top rated fragrances not in collection
-    const { data: candidates } = await supabase
-      .from('fragrances')
-      .select('*')
-      .not('rating', 'is', null)
-      .order('rating', { ascending: false })
-      .limit(100)
-
-    const pool = (candidates ?? []).filter(c => !ownedIds.has((c as Fragrance).id)) as Fragrance[]
-
-    // Score using similarity engine
-    const results = findSimilarToCollection(owned, pool, 10)
-
-    setRecs(results.map(r => ({
-      fragrance: r.fragrance,
-      score: r.score,
-      reasons: r.reasons,
-    })))
+    // fetchPersonalisedRecsScored handles: flag check, cold-start fallback,
+    // centroid -> match_fragrances -> heuristic rescore -> 0.6/0.4 combine.
+    // Never throws -- degrades silently to heuristic on any internal failure.
+    const results = await fetchPersonalisedRecsScored(owned, 10)
+    setRecs(results)
     setLoading(false)
   }
 

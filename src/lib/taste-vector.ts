@@ -1,6 +1,7 @@
 /**
  * Taste-vector / centroid-based personalised recommender for Discover's
- * "Inscribed for You" department.
+ * "Inscribed for You" department AND Collection's "You Might Also Like"
+ * RecommendationCarousel.
  *
  * Extends the hybrid recommender pattern from useSimilarFragrances.ts to
  * collection-scoped recommendations. Rather than seeding the `match_fragrances`
@@ -14,20 +15,34 @@
  *   - Flag ON + >=1 owned embedding -> weighted centroid -> match_fragrances
  *     -> heuristic rescore -> 0.6 * vector + 0.4 * (heuristic/100) combine.
  *
- * Returns `Fragrance[]` rather than scored results because DiscoverScreen
- * does not render scores or reasons in the "For You" department. If a future
- * surface (e.g. CollectionScreen RecommendationCarousel, step 8) wants badge
- * data, lift this module to a SimilarResult[] variant.
+ * Two public entries serve two different surfaces:
+ *   - fetchPersonalisedRecs(owned, limit): Fragrance[]
+ *       For DiscoverScreen's "For You" shelf which does not render scores or
+ *       reasons; accepts a plain Fragrance[] so the caller does not need to
+ *       know about the scoring shape.
+ *   - fetchPersonalisedRecsScored(owned, limit): ScoredRec[]
+ *       For CollectionScreen's RecommendationCarousel which renders a score
+ *       percent badge and the first reason line; returns the richer
+ *       {fragrance, score: 0-100, reasons: string[]} shape.
  *
  * See notes/recommender-design.md Section 4.3 (centroid construction) and
- * Section 11 step 7.
+ * Section 11 steps 7 and 8.
  */
 
 import { supabase } from '@/lib/supabase'
-import { computeSimilarity, findSimilarToCollection } from '@/lib/similarity'
+import {
+  computeSimilarity,
+  findSimilarToCollection,
+} from '@/lib/similarity'
 import type { Fragrance } from '@/types/database'
 
 export type OwnedItem = Fragrance & { rating?: number | null }
+
+export type ScoredRec = {
+  fragrance: Fragrance
+  score: number          // 0-100, comparable across heuristic and hybrid paths
+  reasons: string[]
+}
 
 // ---------------------------------------------------------------------------
 // Feature flag -- same as useSimilarFragrances.ts so one env flip controls
@@ -43,18 +58,29 @@ const HEURISTIC_CANDIDATE_POOL = 80     // rating-ordered pool for fallback
 const UNRATED_WEIGHT = 0.6              // matches findSimilarToCollection idiom
 
 /**
- * Public entry. Returns up to `limit` personalised fragrance recommendations
- * for the caller's owned collection. Uses the hybrid path when the flag is
- * on AND we can build a centroid from at least one owned embedding;
- * otherwise falls back to the heuristic.
- *
- * Never throws -- degrades silently to heuristic on any internal failure so
- * DiscoverScreen's "For You" shelf never breaks the UI.
+ * Public entry for Fragrance[]-shape consumers (DiscoverScreen).
+ * Thin wrapper over fetchPersonalisedRecsScored that strips score/reasons.
  */
 export async function fetchPersonalisedRecs(
   owned: OwnedItem[],
   limit = 10,
 ): Promise<Fragrance[]> {
+  const scored = await fetchPersonalisedRecsScored(owned, limit)
+  return scored.map(s => s.fragrance)
+}
+
+/**
+ * Public entry for ScoredRec[]-shape consumers (RecommendationCarousel).
+ * Uses the hybrid path when the flag is on AND we can build a centroid from
+ * at least one owned embedding; otherwise falls back to the heuristic.
+ *
+ * Never throws -- degrades silently to heuristic on any internal failure so
+ * the calling surface never breaks the UI.
+ */
+export async function fetchPersonalisedRecsScored(
+  owned: OwnedItem[],
+  limit = 10,
+): Promise<ScoredRec[]> {
   if (owned.length === 0) return []
 
   if (VECTOR_RECOMMENDER_ENABLED) {
@@ -63,7 +89,10 @@ export async function fetchPersonalisedRecs(
       if (hybrid.length > 0) return hybrid
       // Fall through to heuristic on cold-start (no owned embeddings yet).
     } catch (e) {
-      console.warn('[fetchPersonalisedRecs] vector path failed, falling back:', e)
+      console.warn(
+        '[fetchPersonalisedRecsScored] vector path failed, falling back:',
+        e,
+      )
     }
   }
 
@@ -128,13 +157,13 @@ export function computeCentroid(
 
 // ---------------------------------------------------------------------------
 // Heuristic path -- unchanged from pre-17-April 2026 DiscoverScreen body.
-// Extracted here verbatim so DiscoverScreen can delegate entirely to this
-// module.
+// findSimilarToCollection already returns {fragrance, score, reasons} so we
+// pass it straight through.
 // ---------------------------------------------------------------------------
 async function fetchHeuristic(
   owned: OwnedItem[],
   limit: number,
-): Promise<Fragrance[]> {
+): Promise<ScoredRec[]> {
   const ownedIds = new Set(owned.map(f => f.id))
   const { data: candidates } = await supabase
     .from('fragrances')
@@ -147,19 +176,26 @@ async function fetchHeuristic(
     c => !ownedIds.has((c as Fragrance).id),
   ) as Fragrance[]
 
-  const personalised = findSimilarToCollection(owned, pool, limit)
-  return personalised.map(p => p.fragrance)
+  return findSimilarToCollection(owned, pool, limit)
 }
 
 // ---------------------------------------------------------------------------
 // Hybrid path -- weighted centroid of owned embeddings -> match_fragrances
 // RPC -> heuristic rescore -> 0.6/0.4 combine. Returns [] on cold-start
 // (no owned embeddings) so the caller falls through to heuristic.
+//
+// Score axis: combined is 0-1 internally, normalised to 0-100 on exit so the
+// RecommendationCarousel badge renders a comparable percentage to the
+// heuristic fallback (which already outputs 0-100 via findSimilarToCollection).
+//
+// Reasons: collected union-of-reasons across all owned seeds that scored
+// against this candidate, matching the findSimilarToCollection idiom. Keeps
+// hybrid and heuristic outputs shape-identical downstream.
 // ---------------------------------------------------------------------------
 async function fetchHybrid(
   owned: OwnedItem[],
   limit: number,
-): Promise<Fragrance[]> {
+): Promise<ScoredRec[]> {
   // 1. Pull embeddings for the owned set. Some rows may not have been
   //    embedded yet (e.g., newly user-submitted fragrances) -- skip those.
   //
@@ -220,31 +256,38 @@ async function fetchHybrid(
   const candidateById = new Map(candidates.map(c => [c.id, c]))
 
   // 5. Heuristic rescore: max rating-weighted computeSimilarity over the
-  //    owned set. Mirrors findSimilarToCollection's scoring idiom so the
-  //    combined score stays comparable to the heuristic fall-through.
+  //    owned set, union of reasons across all owned that hit the candidate.
+  //    Mirrors findSimilarToCollection's scoring idiom so the combined
+  //    output stays comparable with the heuristic fall-through.
   const vectorScoreById = new Map(filtered.map(m => [m.id, m.score]))
 
-  const scored: { fragrance: Fragrance; score: number }[] = []
+  const scored: ScoredRec[] = []
   for (const id of ids) {
     const cand = candidateById.get(id)
     if (!cand) continue
 
     let heuristicMax = 0
+    const reasonSet = new Set<string>()
     for (const o of owned) {
       const weight = o.rating ? o.rating / 5 : UNRATED_WEIGHT
-      const { score } = computeSimilarity(o, cand)
-      const weighted = score * weight
+      const { score: sim, reasons } = computeSimilarity(o, cand)
+      reasons.forEach(r => reasonSet.add(r))
+      const weighted = sim * weight
       if (weighted > heuristicMax) heuristicMax = weighted
     }
 
     const vectorScore = vectorScoreById.get(id) ?? 0
-    const heuristicScore = heuristicMax / 100   // normalise 0-100 -> 0-1
+    const heuristicScore = heuristicMax / 100           // 0-100 -> 0-1
     const combined =
       VECTOR_WEIGHT * vectorScore + HEURISTIC_WEIGHT * heuristicScore
 
-    scored.push({ fragrance: cand, score: combined })
+    scored.push({
+      fragrance: cand,
+      score: Math.round(combined * 100),                // 0-1 -> 0-100
+      reasons: [...reasonSet],
+    })
   }
 
   scored.sort((a, b) => b.score - a.score)
-  return scored.slice(0, limit).map(s => s.fragrance)
+  return scored.slice(0, limit)
 }
