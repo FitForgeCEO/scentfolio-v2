@@ -1,0 +1,30 @@
+-- ============================================================================
+-- Migration: drop fragrances_embedding_ivfflat_idx
+-- ============================================================================
+-- Status:   Ready to apply.
+-- Created:  2026-04-18
+-- Purpose:  At our 3066-row corpus, ivfflat with default lists=100/probes=1
+--           was crippling recall on match_fragrances -- only ~1% of the
+--           corpus was being scanned per query (~30 rows max regardless of
+--           the match_count argument). Brute-force sequential cosine scan
+--           is sub-millisecond at this size, so the index isn't earning
+--           its keep. Dropping it restores full recall on every recommender
+--           surface (Kindred Works, Discover personalised,
+--           CollectionScreen RecommendationCarousel).
+--
+-- Verified live (18 April): with `SET LOCAL ivfflat.probes = 100`,
+-- Aventus Cologne moved from "not in top-50" (probes=1, default) to
+-- rank 19 score 0.8253 on a match_fragrances query for Aventus seed.
+-- 8 evals (4 pairs * 2 directions) flipped from MISS to HIT on this
+-- single recall change, before any other fix lands.
+--
+-- Re-add path: when corpus crosses ~10k rows (post-FragDB licensing or
+-- equivalent catalog expansion), evaluate HNSW (better recall defaults
+-- than ivfflat) with a fresh planner-cost profile.
+--
+-- Reverses: 20260417180000_create_fragrance_embedding_ivfflat_index.sql
+-- See:      notes/recommender-design.md sections 3.4, 3.5, 11
+-- See:      notes/aventus-embedding-investigation.md
+-- ============================================================================
+
+DROP INDEX IF EXISTS public.fragrances_embedding_ivfflat_idx;
