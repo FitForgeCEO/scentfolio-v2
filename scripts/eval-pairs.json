@@ -1,0 +1,246 @@
+{
+  "pairs": [
+    {
+      "a": {
+        "brand": "Parfums de Marly",
+        "name": "Layton"
+      },
+      "b": {
+        "brand": "Parfums de Marly",
+        "name": "Layton Exclusif"
+      },
+      "note": "easy: same-house flanker, ambery-spicy"
+    },
+    {
+      "a": {
+        "brand": "Parfums de Marly",
+        "name": "Pegasus"
+      },
+      "b": {
+        "brand": "Parfums de Marly",
+        "name": "Pegasus Exclusif"
+      },
+      "note": "easy: same-house flanker, gourmand almond-vanilla"
+    },
+    {
+      "a": {
+        "brand": "Parfums de Marly",
+        "name": "Delina"
+      },
+      "b": {
+        "brand": "Parfums de Marly",
+        "name": "Delina Exclusif"
+      },
+      "note": "easy: same-house flanker, floral rose-peony"
+    },
+    {
+      "a": {
+        "brand": "Givenchy",
+        "name": "Gentleman"
+      },
+      "b": {
+        "brand": "Givenchy",
+        "name": "Gentleman Intense"
+      },
+      "note": "easy: same-house flanker, fresh-aromatic"
+    },
+    {
+      "a": {
+        "brand": "Rabanne",
+        "name": "1 Million"
+      },
+      "b": {
+        "brand": "Rabanne",
+        "name": "1 Million Parfum"
+      },
+      "note": "easy: same-house flanker, sweet-spicy-leather"
+    },
+    {
+      "a": {
+        "brand": "Rabanne",
+        "name": "Invictus"
+      },
+      "b": {
+        "brand": "Rabanne",
+        "name": "Invictus Legend"
+      },
+      "note": "easy: same-house flanker, aquatic woody-aromatic"
+    },
+    {
+      "a": {
+        "brand": "Chanel",
+        "name": "Bleu De Chanel"
+      },
+      "b": {
+        "brand": "Chanel",
+        "name": "Bleu de Chanel Parfum for men"
+      },
+      "note": "easy: same-house flanker, woody-aromatic"
+    },
+    {
+      "a": {
+        "brand": "Creed",
+        "name": "Aventus"
+      },
+      "b": {
+        "brand": "Creed",
+        "name": "Aventus Cologne"
+      },
+      "note": "easy: same-house flanker, fruity-chypre smoky-pineapple"
+    },
+    {
+      "a": {
+        "brand": "Creed",
+        "name": "Aventus"
+      },
+      "b": {
+        "brand": "Initio Parfums Prives",
+        "name": "Oud For Greatness"
+      },
+      "note": "medium: community-cited smoky-sweet masculine cousins"
+    },
+    {
+      "a": {
+        "brand": "Maison Francis Kurkdjian",
+        "name": "Baccarat Rouge 540 Extrait de Parfum unisex"
+      },
+      "b": {
+        "brand": "Lattafa",
+        "name": "Yara"
+      },
+      "note": "medium: canonical BR540 tribute dupe"
+    },
+    {
+      "a": {
+        "brand": "Creed",
+        "name": "Aventus"
+      },
+      "b": {
+        "brand": "Lattafa",
+        "name": "Asad"
+      },
+      "note": "medium: Lattafa's marketed Aventus-inspired dupe"
+    },
+    {
+      "a": {
+        "brand": "Tom Ford",
+        "name": "Tobacco Vanille"
+      },
+      "b": {
+        "brand": "Parfums de Marly",
+        "name": "Herod"
+      },
+      "note": "medium: tobacco-vanilla genre twins"
+    },
+    {
+      "a": {
+        "brand": "Le Labo",
+        "name": "Santal 33"
+      },
+      "b": {
+        "brand": "Mancera",
+        "name": "Cedrat Boise"
+      },
+      "note": "medium: creamy-sandalwood iso-e niche lane"
+    },
+    {
+      "a": {
+        "brand": "Creed",
+        "name": "Green Irish Tweed"
+      },
+      "b": {
+        "brand": "Creed",
+        "name": "Silver Mountain Water"
+      },
+      "note": "medium: iconic Creed grassy-airy siblings"
+    },
+    {
+      "a": {
+        "brand": "Yves Saint Laurent",
+        "name": "La Nuit De L'Homme Yves Saint Laurent"
+      },
+      "b": {
+        "brand": "Yves Saint Laurent",
+        "name": "La Nuit De L'Homme Yves Saint Laurent Le Parfum"
+      },
+      "note": "medium: same-story concentration-shift (EDT vs Le Parfum)"
+    },
+    {
+      "a": {
+        "brand": "Tom Ford",
+        "name": "Ombre Leather"
+      },
+      "b": {
+        "brand": "Parfums de Marly",
+        "name": "Kalan"
+      },
+      "note": "medium: leather-aromatic masculines"
+    },
+    {
+      "a": {
+        "brand": "Yves Saint Laurent",
+        "name": "La Nuit De L'Homme Yves Saint Laurent"
+      },
+      "b": {
+        "brand": "Tom Ford",
+        "name": "Fucking Fabulous"
+      },
+      "note": "hard: velvet-glove spice-leather mood cluster across houses"
+    },
+    {
+      "a": {
+        "brand": "Maison Francis Kurkdjian",
+        "name": "Oud Satin Mood Extrait de parfum unisex"
+      },
+      "b": {
+        "brand": "Initio Parfums Prives",
+        "name": "Side Effect"
+      },
+      "note": "hard: boozy rose with dark-vanilla-amber spine"
+    },
+    {
+      "a": {
+        "brand": "Parfums de Marly",
+        "name": "Godolphin"
+      },
+      "b": {
+        "brand": "Tom Ford",
+        "name": "Tobacco Vanille"
+      },
+      "note": "hard: honey-tobacco autumn-indoor cluster, different house DNA"
+    },
+    {
+      "a": {
+        "brand": "Tom Ford",
+        "name": "Black Orchid"
+      },
+      "b": {
+        "brand": "Parfums de Marly",
+        "name": "Herod"
+      },
+      "note": "hard: dark-dense-gourmand with spice-tobacco, gender-coded differently"
+    },
+    {
+      "a": {
+        "brand": "Xerjoff",
+        "name": "Erba Pura"
+      },
+      "b": {
+        "brand": "Creed",
+        "name": "Millesime Imperial"
+      },
+      "note": "hard: salty-marine juicy-citrus niche cluster"
+    },
+    {
+      "a": {
+        "brand": "Roja Parfums",
+        "name": "Elysium Parfum"
+      },
+      "b": {
+        "brand": "Xerjoff",
+        "name": "Alexandria Ii"
+      },
+      "note": "hard: ultra-premium citrus-amber-woody apex lane"
+    }
+  ]
+}
