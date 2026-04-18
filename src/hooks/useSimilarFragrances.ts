@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { findSimilar, computeSimilarity } from '@/lib/similarity'
 import type { Fragrance } from '@/types/database'
@@ -24,15 +24,40 @@ export interface SimilarResult {
  *     final = 0.6 * vector_score + 0.4 * (heuristic_score / 100)
  *
  * See notes/recommender-design.md §4 for rationale behind the 60/40 split.
+ *
+ * Concurrency: guards against duplicate fetches per (id, limit) key and
+ * ignores stale responses via reqRef. Fixes the double-fetch observed
+ * post-step-6 (notes/recommender-design.md §11 open observation) where
+ * the effect re-fired on auth hydration / lazy-chunk mount sequencing,
+ * producing two RPC calls per FragranceDetailScreen visit where one
+ * would suffice.
  */
 export function useSimilarFragrances(fragrance: Fragrance | null, limit = 8) {
   const [data, setData] = useState<SimilarResult[]>([])
   const [loading, setLoading] = useState(true)
+  // Tracks the latest request so stale async responses are discarded if
+  // the seed changes (or the component unmounts) mid-flight.
+  const reqRef = useRef(0)
+  // Tracks the last (id, limit) pair we successfully kicked off a fetch
+  // for, so a duplicate effect invocation with identical inputs is a
+  // no-op rather than a second network call.
+  const lastKeyRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!fragrance) { setData([]); setLoading(false); return }
+    if (!fragrance) {
+      lastKeyRef.current = null
+      setData([])
+      setLoading(false)
+      return
+    }
+    const key = `${fragrance.id}::${limit}`
+    if (lastKeyRef.current === key) return  // dedupe -- already fetched
+    lastKeyRef.current = key
+
+    const reqId = ++reqRef.current
     setLoading(true)
     fetchAndScore(fragrance, limit).then(results => {
+      if (reqRef.current !== reqId) return  // stale -- a newer fetch has superseded
       setData(results)
       setLoading(false)
     })
