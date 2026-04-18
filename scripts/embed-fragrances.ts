@@ -15,6 +15,35 @@
  *   - Bumps embedding_version only when we actually write.
  *   - Safe to re-run after a crash -- picks up where it left off.
  *
+ * Source string format (v2, 18 April 2026)
+ * ----------------------------------------
+ * v1 was `{brand}. {name}. {concentration}. {gender}. Accords: ... Top: ...`.
+ * Problem: MiniLM is contrastively trained and the leading brand token got
+ * outsized weight in the mean-pooled vector. With ~40 Creed rows in the corpus
+ * the Aventus neighbourhood degenerated into 25 consecutive Creed rows before
+ * any non-Creed candidate showed up (verified 18 April via raw SQL). Same
+ * mechanism explained the medium-tier eval misses (BR540 - Yara,
+ * Santal 33 - Cedrat Boise, etc.) where the correct twin is cross-house.
+ *
+ * v2 fix:
+ *   (a) Lead with olfactive content; push brand + name to the TAIL as
+ *       metadata rather than the semantic anchor of the sentence.
+ *   (b) Repeat accord tokens weighted by `main_accords_percentage` so
+ *       dominant accords contribute proportionally to their share:
+ *           100%    -> 4 reps
+ *            75-99  -> 3 reps
+ *            50-74  -> 2 reps
+ *            25-49  -> 1 rep
+ *           <25     -> dropped (noise)
+ *   (c) Lowercase every token so rows ingested with different casing
+ *       (e.g. Creed Aventus has `Fruity`/`Sweet`/`Woody`, Creed Aventus
+ *       Cologne has `citrus`/`woody`/`musky`) hash into the same token
+ *       neighbourhood.
+ *   (d) Drop `concentration` and `gender` entirely. "eau de parfum" /
+ *       "men" appear thousands of times across the corpus and only add
+ *       noise to a 60-token input against a 512-token model.
+ *   (e) Add `note_family` (single-token family signal).
+ *
  * Pagination
  * ----------
  * PostgREST caps a single .select() at 1000 rows by default, so we paginate
@@ -45,14 +74,6 @@
  *   SUPABASE_SERVICE_ROLE_KEY   -- must be set locally; NEVER commit.
  *                                  Bypasses RLS so we can write embedding for
  *                                  every fragrance regardless of submitted_by.
- *
- * Source string
- * -------------
- * See notes/recommender-design.md §3. Built from brand, name, concentration,
- * gender, accords, notes_top/heart/base. The `description` field mentioned in
- * the design doc does NOT exist on the real schema (verified 17 April) and is
- * therefore omitted here -- when that column lands, append it and bump
- * embedding_version.
  * ----------------------------------------------------------------------------
  */
 
@@ -116,33 +137,76 @@ type FragranceRow = {
   id: string;
   brand: string;
   name: string;
-  concentration: string | null;
-  gender: string | null;
+  note_family: string | null;
   accords: string[] | null;
+  main_accords_percentage: Record<string, number> | null;
   notes_top: string[] | null;
   notes_heart: string[] | null;
   notes_base: string[] | null;
 };
 
 function buildSourceString(f: FragranceRow): string {
+  const lower = (s: string): string => s.toLowerCase().trim();
   const joinList = (xs: string[] | null): string =>
-    xs && xs.length > 0 ? xs.filter(Boolean).join(", ") : "—";
+    xs && xs.length > 0
+      ? xs
+          .filter((x): x is string => Boolean(x))
+          .map(lower)
+          .join(", ")
+      : "";
 
-  return [
-    `${f.brand}. ${f.name}. ${f.concentration ?? ""}. ${f.gender ?? ""}.`,
-    `Accords: ${joinList(f.accords)}.`,
-    `Top notes: ${joinList(f.notes_top)}.`,
-    `Heart notes: ${joinList(f.notes_heart)}.`,
-    `Base notes: ${joinList(f.notes_base)}.`,
-  ]
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim();
+  // Weight repetition by percentage so dominant accords dominate the
+  // embedding proportional to their fragrance share. See header for why.
+  const accordTokens: string[] = [];
+  const pct = f.main_accords_percentage ?? {};
+  const entries = Object.entries(pct).sort(
+    (a, b) => (b[1] ?? 0) - (a[1] ?? 0),
+  );
+  for (const [accord, percentRaw] of entries) {
+    const percent = typeof percentRaw === "number" ? percentRaw : 0;
+    let reps = 0;
+    if (percent >= 100) reps = 4;
+    else if (percent >= 75) reps = 3;
+    else if (percent >= 50) reps = 2;
+    else if (percent >= 25) reps = 1;
+    if (reps > 0 && accord) {
+      const tok = lower(accord);
+      for (let i = 0; i < reps; i++) accordTokens.push(tok);
+    }
+  }
+  // Fallback for rows missing main_accords_percentage: use the flat
+  // `accords` array with no weighting. Better than nothing.
+  if (accordTokens.length === 0 && f.accords && f.accords.length > 0) {
+    for (const a of f.accords) {
+      if (a) accordTokens.push(lower(a));
+    }
+  }
+
+  const family = f.note_family ? lower(f.note_family) : "";
+  const top = joinList(f.notes_top);
+  const heart = joinList(f.notes_heart);
+  const base = joinList(f.notes_base);
+  const dominant = accordTokens.join(" ");
+
+  // Olfactive signal first, brand/name metadata last. Everything lowercased.
+  const parts: string[] = [];
+  if (family) parts.push(`family: ${family}.`);
+  const noteSections: string[] = [];
+  if (top) noteSections.push(`top: ${top}`);
+  if (heart) noteSections.push(`heart: ${heart}`);
+  if (base) noteSections.push(`base: ${base}`);
+  if (noteSections.length > 0) parts.push(`notes: ${noteSections.join("; ")}.`);
+  if (dominant) parts.push(`dominant: ${dominant}.`);
+  parts.push(
+    `brand: ${lower(f.brand ?? "")}. name: ${lower(f.name ?? "")}.`,
+  );
+
+  return parts.join(" ").replace(/\s+/g, " ").trim();
 }
 
 // ---------- Embedding ---------------------------------------------------------
 async function loadModel(): Promise<FeatureExtractionPipeline> {
-  console.log("Loading Xenova/all-MiniLM-L6-v2…");
+  console.log("Loading Xenova/all-MiniLM-L6-v2...");
   const extractor = await pipeline(
     "feature-extraction",
     "Xenova/all-MiniLM-L6-v2",
@@ -208,7 +272,7 @@ async function main() {
     let q = supabase
       .from("fragrances")
       .select(
-        "id, brand, name, concentration, gender, accords, notes_top, notes_heart, notes_base",
+        "id, brand, name, note_family, accords, main_accords_percentage, notes_top, notes_heart, notes_base",
       )
       .order("created_at", { ascending: true })
       .range(fetchOffset, fetchOffset + batchSize - 1);
@@ -246,13 +310,13 @@ async function main() {
 
         if (DRY_RUN) {
           if (overallIdx <= 3) {
-            console.log(`\n[dry-run ${overallIdx}] ${f.brand} — ${f.name}`);
-            console.log(`  src: ${src.slice(0, 140)}${src.length > 140 ? "…" : ""}`);
+            console.log(`\n[dry-run ${overallIdx}] ${f.brand} - ${f.name}`);
+            console.log(`  src: ${src.slice(0, 180)}${src.length > 180 ? "..." : ""}`);
             console.log(
               `  vec[0..4]: [${vec
                 .slice(0, 5)
                 .map((v) => v.toFixed(4))
-                .join(", ")}] …`,
+                .join(", ")}] ...`,
             );
           }
           ok++;
@@ -270,7 +334,7 @@ async function main() {
           id: f.id,
           error: e instanceof Error ? e.message : String(e),
         });
-        console.error(`  ✗ ${f.brand} — ${f.name}: ${failures.at(-1)!.error}`);
+        console.error(`  x ${f.brand} - ${f.name}: ${failures.at(-1)!.error}`);
       }
 
       // Progress line every 25 rows (across the whole run)
@@ -298,9 +362,9 @@ async function main() {
     for (const f of failures.slice(0, 20))
       console.log(`  ${f.id}  ${f.error}`);
     if (failures.length > 20)
-      console.log(`  … and ${failures.length - 20} more`);
+      console.log(`  ... and ${failures.length - 20} more`);
   }
-  if (DRY_RUN) console.log("\n(DRY RUN — nothing was written.)");
+  if (DRY_RUN) console.log("\n(DRY RUN -- nothing was written.)");
 }
 
 main().catch((e) => {
