@@ -94,6 +94,18 @@ window.addEventListener('unhandledrejection', (e) => {
   })
 })
 
+// Recover from chunk-load failures after a deploy (stale bundle hash).
+// Vite emits `vite:preloadError` when a dynamic import 404s — common when
+// a user's tab has been open across a deploy and the old chunk hash is gone.
+// sessionStorage guards against a reload loop in the unlucky case where the
+// fresh bundle ALSO can't load its preload target.
+window.addEventListener('vite:preloadError', () => {
+  if (!sessionStorage.getItem('vite-preload-error-reloaded')) {
+    sessionStorage.setItem('vite-preload-error-reloaded', '1')
+    window.location.reload()
+  }
+})
+
 // Global image error handler — shows branded placeholder for broken fragrance images
 document.addEventListener('error', (e) => {
   const el = e.target
