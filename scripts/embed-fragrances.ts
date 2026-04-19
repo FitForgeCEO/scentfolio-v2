@@ -15,34 +15,41 @@
  *   - Bumps embedding_version only when we actually write.
  *   - Safe to re-run after a crash -- picks up where it left off.
  *
- * Source string format (v2, 18 April 2026)
+ * Source string format (v3, 18 April 2026)
  * ----------------------------------------
  * v1 was `{brand}. {name}. {concentration}. {gender}. Accords: ... Top: ...`.
- * Problem: MiniLM is contrastively trained and the leading brand token got
- * outsized weight in the mean-pooled vector. With ~40 Creed rows in the corpus
- * the Aventus neighbourhood degenerated into 25 consecutive Creed rows before
- * any non-Creed candidate showed up (verified 18 April via raw SQL). Same
- * mechanism explained the medium-tier eval misses (BR540 - Yara,
- * Santal 33 - Cedrat Boise, etc.) where the correct twin is cross-house.
+ * Brand-first placement gave the brand token outsized influence on the mean-
+ * pooled vector; that was the root cause of the Creed/Aventus brand-monoculture
+ * observed in eval (25+ consecutive Creed rows before a non-Creed neighbour).
  *
- * v2 fix:
- *   (a) Lead with olfactive content; push brand + name to the TAIL as
- *       metadata rather than the semantic anchor of the sentence.
- *   (b) Repeat accord tokens weighted by `main_accords_percentage` so
- *       dominant accords contribute proportionally to their share:
- *           100%    -> 4 reps
- *            75-99  -> 3 reps
- *            50-74  -> 2 reps
- *            25-49  -> 1 rep
- *           <25     -> dropped (noise)
- *   (c) Lowercase every token so rows ingested with different casing
- *       (e.g. Creed Aventus has `Fruity`/`Sweet`/`Woody`, Creed Aventus
- *       Cologne has `citrus`/`woody`/`musky`) hash into the same token
- *       neighbourhood.
- *   (d) Drop `concentration` and `gender` entirely. "eau de parfum" /
- *       "men" appear thousands of times across the corpus and only add
- *       noise to a 60-token input against a 512-token model.
- *   (e) Add `note_family` (single-token family signal).
+ * v2 (dead branch) tried to fix it by (a) pushing brand/name to the tail,
+ * (b) repeating accord tokens weighted by `main_accords_percentage`,
+ * (c) lowercasing, and (d) dropping concentration + gender. Problem: I assumed
+ * main_accords_percentage stored NUMERIC percentages. It actually stores a
+ * STRING enum ("Dominant" / "Prominent" / "Moderate" / "Subtle"), so the
+ * `typeof percentRaw === "number" ? percentRaw : 0` check assigned 0 to every
+ * accord, reps fell through to 0 for every row, and the weighted-accord path
+ * was dead code -- every fragrance silently used the unweighted `f.accords`
+ * fallback. Net result: regression vs v1 on the 22-pair eval (34.1% vs 36.4%;
+ * mean hit rank 4.27 vs 2.31; worst hit rank 16 vs 5) because brand-at-tail
+ * shipped without the compensating accord weighting, AND concentration+gender
+ * (legit differentiators like EDT vs EDP or unisex vs masculine) were dropped.
+ *
+ * v3 fix:
+ *   (a) Keep brand + name at the TAIL (that v2 change was correct in spirit).
+ *   (b) Actually make the accord weighting work by handling BOTH numeric AND
+ *       string-enum forms defensively in percentToReps():
+ *           numeric: 100->4, 75->3, 50->2, 25->1, <25->0
+ *           string : dominant->3, prominent->2, moderate->1, subtle->0
+ *       (Subtle in the corpus is ~349 rows against ~20-23k each for the other
+ *       three levels; trace-level, drop to reduce noise.)
+ *   (c) Lowercase every token (kept from v2) so "Fruity"/"citrus"/"Woody"
+ *       hash into the same token neighbourhood across rows.
+ *   (d) RESTORE concentration and gender as tail metadata. These are real
+ *       olfactive signals that differentiate flanker pairs (e.g. Parfums de
+ *       Marly Layton unisex EDP vs Layton Exclusif men EDP). Ordering:
+ *       dominant: ... concentration: ... gender: ... brand: ... name: ...
+ *   (e) Add `note_family` (single-token family signal) -- kept from v2.
  *
  * Pagination
  * ----------
@@ -62,11 +69,11 @@
  *   # dry run (no writes) -- for sanity-checking the source string + model
  *   npx tsx scripts/embed-fragrances.ts --dry-run --limit 5
  *
- *   # real backfill (now processes ALL rows in one invocation)
+ *   # real backfill (processes ALL rows in one invocation)
  *   npx tsx scripts/embed-fragrances.ts
  *
  *   # re-embed everything (after a source-string change, bumps version)
- *   npx tsx scripts/embed-fragrances.ts --force --version 2
+ *   npx tsx scripts/embed-fragrances.ts --force --version 3
  *
  * Env
  * ---
@@ -137,13 +144,47 @@ type FragranceRow = {
   id: string;
   brand: string;
   name: string;
+  concentration: string | null;
+  gender: string | null;
   note_family: string | null;
   accords: string[] | null;
-  main_accords_percentage: Record<string, number> | null;
+  main_accords_percentage: Record<string, unknown> | null;
   notes_top: string[] | null;
   notes_heart: string[] | null;
   notes_base: string[] | null;
 };
+
+/**
+ * Map a main_accords_percentage value to a repetition count for weighted
+ * accord repetition in the source string.
+ *
+ * main_accords_percentage in the live DB is a JSONB column whose values are
+ * STRING enum labels ("Dominant" / "Prominent" / "Moderate" / "Subtle"), not
+ * numeric percentages. v2 of this script assumed numeric and silently assigned
+ * 0 reps to every accord; v3 handles both forms defensively so the script is
+ * robust if the schema is ever normalised to numeric.
+ *
+ * Subtle is effectively trace-level (~349 rows vs ~20-23k each for the other
+ * three strengths) -- drop it to reduce noise rather than let it bleed into
+ * the centroid.
+ */
+function percentToReps(raw: unknown): number {
+  if (typeof raw === "number") {
+    if (raw >= 100) return 4;
+    if (raw >= 75) return 3;
+    if (raw >= 50) return 2;
+    if (raw >= 25) return 1;
+    return 0;
+  }
+  if (typeof raw === "string") {
+    const s = raw.toLowerCase().trim();
+    if (s === "dominant") return 3;
+    if (s === "prominent") return 2;
+    if (s === "moderate") return 1;
+    return 0;
+  }
+  return 0;
+}
 
 function buildSourceString(f: FragranceRow): string {
   const lower = (s: string): string => s.toLowerCase().trim();
@@ -155,20 +196,15 @@ function buildSourceString(f: FragranceRow): string {
           .join(", ")
       : "";
 
-  // Weight repetition by percentage so dominant accords dominate the
-  // embedding proportional to their fragrance share. See header for why.
+  // Weight repetition by strength so dominant accords dominate the embedding
+  // proportional to their share. See percentToReps() for the mapping.
   const accordTokens: string[] = [];
   const pct = f.main_accords_percentage ?? {};
-  const entries = Object.entries(pct).sort(
-    (a, b) => (b[1] ?? 0) - (a[1] ?? 0),
-  );
-  for (const [accord, percentRaw] of entries) {
-    const percent = typeof percentRaw === "number" ? percentRaw : 0;
-    let reps = 0;
-    if (percent >= 100) reps = 4;
-    else if (percent >= 75) reps = 3;
-    else if (percent >= 50) reps = 2;
-    else if (percent >= 25) reps = 1;
+  const entries = Object.entries(pct).sort((a, b) => {
+    return percentToReps(b[1]) - percentToReps(a[1]);
+  });
+  for (const [accord, raw] of entries) {
+    const reps = percentToReps(raw);
     if (reps > 0 && accord) {
       const tok = lower(accord);
       for (let i = 0; i < reps; i++) accordTokens.push(tok);
@@ -187,8 +223,11 @@ function buildSourceString(f: FragranceRow): string {
   const heart = joinList(f.notes_heart);
   const base = joinList(f.notes_base);
   const dominant = accordTokens.join(" ");
+  const concentration = f.concentration ? lower(f.concentration) : "";
+  const gender = f.gender ? lower(f.gender) : "";
 
-  // Olfactive signal first, brand/name metadata last. Everything lowercased.
+  // Olfactive signal first, concentration/gender/brand/name metadata last.
+  // Everything lowercased.
   const parts: string[] = [];
   if (family) parts.push(`family: ${family}.`);
   const noteSections: string[] = [];
@@ -197,6 +236,8 @@ function buildSourceString(f: FragranceRow): string {
   if (base) noteSections.push(`base: ${base}`);
   if (noteSections.length > 0) parts.push(`notes: ${noteSections.join("; ")}.`);
   if (dominant) parts.push(`dominant: ${dominant}.`);
+  if (concentration) parts.push(`concentration: ${concentration}.`);
+  if (gender) parts.push(`gender: ${gender}.`);
   parts.push(
     `brand: ${lower(f.brand ?? "")}. name: ${lower(f.name ?? "")}.`,
   );
@@ -272,7 +313,7 @@ async function main() {
     let q = supabase
       .from("fragrances")
       .select(
-        "id, brand, name, note_family, accords, main_accords_percentage, notes_top, notes_heart, notes_base",
+        "id, brand, name, concentration, gender, note_family, accords, main_accords_percentage, notes_top, notes_heart, notes_base",
       )
       .order("created_at", { ascending: true })
       .range(fetchOffset, fetchOffset + batchSize - 1);
