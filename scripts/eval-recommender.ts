@@ -74,7 +74,7 @@ import { resolve } from "node:path";
 const argv = process.argv.slice(2);
 const PAIRS_PATH = (() => {
   const i = argv.indexOf("--pairs");
-  return i !== -1 ? (argv[i + 1] ?? "scripts/eval-pairs.sample.json") : "scripts/eval-pairs.sample.json";
+  return i !== -1 ? (argv[i + 1] ?? "scripts/eval-pairs.json") : "scripts/eval-pairs.json";
 })();
 const TOP_K = (() => {
   const i = argv.indexOf("--top-k");
