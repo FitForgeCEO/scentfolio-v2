@@ -22,6 +22,21 @@
  * Dan curates. 20 is the target (Section 10 design doc). Sample file ships with 3
  * placeholders so the harness itself is testable before curation is complete.
  *
+ * Cohorts (added 19 April)
+ * ------------------------
+ * The 18 April hybrid-eval run surfaced a weight-tuning trap: aggregate coverage
+ * hid the fact that most "twin" pairs are really same-name-different-juice or
+ * cross-house-cousin -- pairs where the note pyramids legitimately diverge.
+ * See Recommender-Eval-Audit-19Apr2026.md. To keep the signal honest the harness
+ * now reports per-cohort breakdowns:
+ *
+ *   - genuine-twin              (heart_ov >= 0.5 AND base_ov >= 0.5)
+ *   - same-name-different-juice (same brand, note pyramid diverges)
+ *   - cross-house-cousin        (everything else)
+ *
+ * Pairs without a `cohort` field land in `uncategorised` so partial annotation
+ * still produces useful output.
+ *
  * Pairs schema
  * ------------
  *   {
@@ -29,7 +44,8 @@
  *       {
  *         "a": { "brand": "Dior", "name": "Sauvage" },
  *         "b": { "brand": "Dior", "name": "Sauvage Parfum" },
- *         "note": "Same-house flanker -- should land top-5"
+ *         "note": "Same-house flanker -- should land top-5",
+ *         "cohort": "same-name-different-juice"
  *       }
  *     ]
  *   }
@@ -44,8 +60,9 @@
  * Each pair contributes TWO evals (a->b and b->a). For each eval we report:
  *   - HIT (at rank N) or MISS (twin not in top-K)
  *   - Similarity score at hit rank (informational -- higher is tighter)
- * Overall summary: coverage %, mean rank when hit, worst hit rank, full
- * miss list with notes attached for curator debugging.
+ * Overall summary: coverage %, mean rank when hit, worst hit rank. Then a
+ * per-cohort table, then the full miss list with notes + cohort attached
+ * for curator debugging.
  *
  * Usage
  * -----
@@ -57,6 +74,10 @@
  *
  *   # Widen the net
  *   npx tsx scripts/eval-recommender.ts --top-k 50 --verbose
+ *
+ *   # Restrict to a single cohort (comma-separated names are OR'd)
+ *   npx tsx scripts/eval-recommender.ts --cohort genuine-twin
+ *   npx tsx scripts/eval-recommender.ts --cohort genuine-twin,same-name-different-juice
  *
  * Env (same as embed-fragrances.ts)
  * ---------------------------------
@@ -79,6 +100,13 @@ const PAIRS_PATH = (() => {
 const TOP_K = (() => {
   const i = argv.indexOf("--top-k");
   return i !== -1 ? parseInt(argv[i + 1] ?? "", 10) : 20;
+})();
+const COHORT_FILTER = (() => {
+  const i = argv.indexOf("--cohort");
+  if (i === -1) return null;
+  const raw = (argv[i + 1] ?? "").trim();
+  if (!raw) return null;
+  return new Set(raw.split(",").map((s) => s.trim()).filter(Boolean));
 })();
 const VERBOSE = argv.includes("--verbose");
 
@@ -121,7 +149,7 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 
 // ---------- Types -------------------------------------------------------------
 type Ref = { brand: string; name: string };
-type PairSpec = { a: Ref; b: Ref; note?: string };
+type PairSpec = { a: Ref; b: Ref; note?: string; cohort?: string };
 type PairsFile = { pairs: PairSpec[] };
 
 type Resolved = {
@@ -137,7 +165,10 @@ type EvalOutcome = {
   rank: number | null; // 1-indexed rank where twin appeared, or null
   score: number | null; // similarity score at hit rank
   note?: string;
+  cohort: string; // falls back to "uncategorised" when pair omits the field
 };
+
+const UNCATEGORISED = "uncategorised";
 
 // ---------- pgvector serialisation helper ------------------------------------
 // Mirrors src/lib/taste-vector.ts: supabase-js returns vector(384) as a JSON
@@ -202,6 +233,7 @@ async function evalOne(
   seed: Resolved,
   twin: Resolved,
   topK: number,
+  cohort: string,
 ): Promise<EvalOutcome> {
   const direction = `${seed.brand} - ${seed.name}  ->  ${twin.brand} - ${twin.name}`;
   const { data, error } = await supabase.rpc("match_fragrances", {
@@ -211,20 +243,77 @@ async function evalOne(
   });
   if (error) {
     console.error(`  RPC error for ${direction}: ${error.message}`);
-    return { direction, hit: false, rank: null, score: null };
+    return { direction, hit: false, rank: null, score: null, cohort };
   }
   const rows = (data ?? []) as { id: string; score: number }[];
   const idx = rows.findIndex((r) => r.id === twin.id);
-  if (idx === -1) return { direction, hit: false, rank: null, score: null };
-  return { direction, hit: true, rank: idx + 1, score: rows[idx].score };
+  if (idx === -1) return { direction, hit: false, rank: null, score: null, cohort };
+  return { direction, hit: true, rank: idx + 1, score: rows[idx].score, cohort };
+}
+
+// ---------- Cohort stats helper ----------------------------------------------
+type CohortStats = {
+  name: string;
+  total: number;
+  hits: number;
+  coverage: number; // percentage
+  meanRank: number; // NaN if no hits
+  worstRank: number; // NaN if no hits
+};
+
+function computeCohortStats(outcomes: EvalOutcome[]): CohortStats[] {
+  const byCohort = new Map<string, EvalOutcome[]>();
+  for (const o of outcomes) {
+    const arr = byCohort.get(o.cohort) ?? [];
+    arr.push(o);
+    byCohort.set(o.cohort, arr);
+  }
+  // Stable ordering: genuine-twin, same-name-different-juice, cross-house-cousin,
+  // then anything else alphabetically, then uncategorised last.
+  const preferred = [
+    "genuine-twin",
+    "same-name-different-juice",
+    "cross-house-cousin",
+  ];
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+  for (const name of preferred) {
+    if (byCohort.has(name)) {
+      ordered.push(name);
+      seen.add(name);
+    }
+  }
+  const rest = [...byCohort.keys()].filter((k) => !seen.has(k) && k !== UNCATEGORISED).sort();
+  ordered.push(...rest);
+  if (byCohort.has(UNCATEGORISED)) ordered.push(UNCATEGORISED);
+
+  return ordered.map((name) => {
+    const arr = byCohort.get(name) ?? [];
+    const hits = arr.filter((o) => o.hit);
+    const meanRank = hits.length
+      ? hits.reduce((a, o) => a + (o.rank ?? 0), 0) / hits.length
+      : NaN;
+    const worstRank = hits.length ? Math.max(...hits.map((o) => o.rank ?? 0)) : NaN;
+    return {
+      name,
+      total: arr.length,
+      hits: hits.length,
+      coverage: arr.length > 0 ? (hits.length / arr.length) * 100 : 0,
+      meanRank,
+      worstRank,
+    };
+  });
 }
 
 // ---------- Main --------------------------------------------------------------
 async function main() {
   console.log("=".repeat(72));
   console.log("eval-recommender");
-  console.log(`  pairs:  ${PAIRS_PATH}`);
-  console.log(`  top-k:  ${TOP_K}`);
+  console.log(`  pairs:   ${PAIRS_PATH}`);
+  console.log(`  top-k:   ${TOP_K}`);
+  if (COHORT_FILTER) {
+    console.log(`  cohort:  ${[...COHORT_FILTER].join(", ")}`);
+  }
   console.log("=".repeat(72));
 
   let parsed: PairsFile;
@@ -238,20 +327,37 @@ async function main() {
     process.exit(1);
   }
 
-  const pairs = parsed.pairs ?? [];
-  if (pairs.length === 0) {
+  const allPairs = parsed.pairs ?? [];
+  if (allPairs.length === 0) {
     console.error("No pairs in file. Exiting.");
     process.exit(1);
   }
-  console.log(`Loaded ${pairs.length} pair(s).`);
+
+  // Apply cohort filter, if any.
+  const pairs = COHORT_FILTER
+    ? allPairs.filter((p) => COHORT_FILTER.has(p.cohort ?? UNCATEGORISED))
+    : allPairs;
+  if (pairs.length === 0) {
+    console.error(
+      `No pairs match cohort filter ${[...(COHORT_FILTER ?? [])].join(", ")}. Exiting.`,
+    );
+    process.exit(1);
+  }
+
+  console.log(
+    `Loaded ${allPairs.length} pair(s)${
+      COHORT_FILTER ? `, ${pairs.length} after cohort filter` : ""
+    }.`,
+  );
 
   const outcomes: EvalOutcome[] = [];
   let skipped = 0;
 
   for (let i = 0; i < pairs.length; i++) {
     const p = pairs[i];
+    const cohort = p.cohort ?? UNCATEGORISED;
     console.log(
-      `\n[pair ${i + 1}/${pairs.length}] ${p.a.brand} - ${p.a.name}  <->  ${p.b.brand} - ${p.b.name}`,
+      `\n[pair ${i + 1}/${pairs.length}] [${cohort}] ${p.a.brand} - ${p.a.name}  <->  ${p.b.brand} - ${p.b.name}`,
     );
     if (p.note && VERBOSE) console.log(`  note: ${p.note}`);
 
@@ -263,8 +369,8 @@ async function main() {
     }
 
     const [oAB, oBA] = await Promise.all([
-      evalOne(ra, rb, TOP_K),
-      evalOne(rb, ra, TOP_K),
+      evalOne(ra, rb, TOP_K, cohort),
+      evalOne(rb, ra, TOP_K, cohort),
     ]);
     for (const o of [oAB, oBA]) {
       if (p.note) o.note = p.note;
@@ -302,10 +408,55 @@ async function main() {
     `  worst rank (hit): ${Number.isNaN(worstRank) ? "n/a" : String(worstRank)}`,
   );
 
+  // --- per-cohort breakdown --------------------------------------------------
+  const cohortStats = computeCohortStats(outcomes);
+  if (cohortStats.length > 0) {
+    console.log("\nPer-cohort breakdown:");
+    console.log(
+      "  " +
+        "cohort".padEnd(28) +
+        "n".padStart(5) +
+        "  " +
+        "hits".padStart(5) +
+        "   " +
+        "coverage".padStart(9) +
+        "   " +
+        "mean".padStart(6) +
+        "   " +
+        "worst".padStart(5),
+    );
+    console.log("  " + "-".repeat(72));
+    for (const s of cohortStats) {
+      const mean = Number.isNaN(s.meanRank) ? "n/a" : s.meanRank.toFixed(2);
+      const worst = Number.isNaN(s.worstRank) ? "n/a" : String(s.worstRank);
+      console.log(
+        "  " +
+          s.name.padEnd(28) +
+          String(s.total).padStart(5) +
+          "  " +
+          String(s.hits).padStart(5) +
+          "   " +
+          (s.coverage.toFixed(1) + "%").padStart(9) +
+          "   " +
+          mean.padStart(6) +
+          "   " +
+          worst.padStart(5),
+      );
+    }
+    console.log(
+      "\n  Note: n counts directions (2 per pair). Low-n cohorts are noisy --\n" +
+        "  treat genuine-twin coverage as advisory until the cohort grows past\n" +
+        "  ~10 directions. See Recommender-Eval-Audit-19Apr2026.md.",
+    );
+  }
+
   if (misses.length > 0) {
     console.log("\nMisses:");
     for (const m of misses) {
-      console.log(`  ${m.direction}${m.note ? "   // " + m.note : ""}`);
+      const cohortTag = `[${m.cohort}]`;
+      console.log(
+        `  ${cohortTag.padEnd(30)} ${m.direction}${m.note ? "   // " + m.note : ""}`,
+      );
     }
   }
 

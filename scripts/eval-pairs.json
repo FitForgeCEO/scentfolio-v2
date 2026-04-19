@@ -9,7 +9,8 @@
         "brand": "Parfums de Marly",
         "name": "Layton Exclusif"
       },
-      "note": "easy: same-house flanker, ambery-spicy"
+      "note": "easy: same-house flanker, ambery-spicy",
+      "cohort": "same-name-different-juice"
     },
     {
       "a": {
@@ -20,7 +21,8 @@
         "brand": "Parfums de Marly",
         "name": "Pegasus Exclusif"
       },
-      "note": "easy: same-house flanker, gourmand almond-vanilla"
+      "note": "easy: same-house flanker, gourmand almond-vanilla",
+      "cohort": "genuine-twin"
     },
     {
       "a": {
@@ -31,7 +33,8 @@
         "brand": "Parfums de Marly",
         "name": "Delina Exclusif"
       },
-      "note": "easy: same-house flanker, floral rose-peony"
+      "note": "easy: same-house flanker, floral rose-peony",
+      "cohort": "same-name-different-juice"
     },
     {
       "a": {
@@ -42,7 +45,8 @@
         "brand": "Givenchy",
         "name": "Gentleman Intense"
       },
-      "note": "easy: same-house flanker, fresh-aromatic"
+      "note": "easy: same-house flanker, fresh-aromatic",
+      "cohort": "same-name-different-juice"
     },
     {
       "a": {
@@ -53,7 +57,8 @@
         "brand": "Rabanne",
         "name": "1 Million Parfum"
       },
-      "note": "easy: same-house flanker, sweet-spicy-leather"
+      "note": "easy: same-house flanker, sweet-spicy-leather",
+      "cohort": "same-name-different-juice"
     },
     {
       "a": {
@@ -64,7 +69,8 @@
         "brand": "Rabanne",
         "name": "Invictus Legend"
       },
-      "note": "easy: same-house flanker, aquatic woody-aromatic"
+      "note": "easy: same-house flanker, aquatic woody-aromatic",
+      "cohort": "same-name-different-juice"
     },
     {
       "a": {
@@ -75,7 +81,8 @@
         "brand": "Chanel",
         "name": "Bleu de Chanel Parfum for men"
       },
-      "note": "easy: same-house flanker, woody-aromatic"
+      "note": "easy: same-house flanker, woody-aromatic",
+      "cohort": "same-name-different-juice"
     },
     {
       "a": {
@@ -86,7 +93,8 @@
         "brand": "Creed",
         "name": "Aventus Cologne"
       },
-      "note": "easy: same-house flanker, fruity-chypre smoky-pineapple"
+      "note": "easy: same-house flanker, fruity-chypre smoky-pineapple",
+      "cohort": "same-name-different-juice"
     },
     {
       "a": {
@@ -97,7 +105,8 @@
         "brand": "Initio Parfums Prives",
         "name": "Initio Oud For Greatness"
       },
-      "note": "medium: community-cited smoky-sweet masculine cousins"
+      "note": "medium: community-cited smoky-sweet masculine cousins",
+      "cohort": "cross-house-cousin"
     },
     {
       "a": {
@@ -108,7 +117,8 @@
         "brand": "Lattafa",
         "name": "Yara"
       },
-      "note": "medium: canonical BR540 tribute dupe"
+      "note": "medium: canonical BR540 tribute dupe",
+      "cohort": "cross-house-cousin"
     },
     {
       "a": {
@@ -119,7 +129,8 @@
         "brand": "Lattafa",
         "name": "Asad"
       },
-      "note": "medium: Lattafa's marketed Aventus-inspired dupe"
+      "note": "medium: Lattafa's marketed Aventus-inspired dupe",
+      "cohort": "cross-house-cousin"
     },
     {
       "a": {
@@ -130,7 +141,8 @@
         "brand": "Parfums de Marly",
         "name": "Herod"
       },
-      "note": "medium: tobacco-vanilla genre twins"
+      "note": "medium: tobacco-vanilla genre twins",
+      "cohort": "cross-house-cousin"
     },
     {
       "a": {
@@ -141,7 +153,8 @@
         "brand": "Mancera",
         "name": "Cedrat Boise"
       },
-      "note": "medium: creamy-sandalwood iso-e niche lane"
+      "note": "medium: creamy-sandalwood iso-e niche lane",
+      "cohort": "cross-house-cousin"
     },
     {
       "a": {
@@ -152,7 +165,8 @@
         "brand": "Creed",
         "name": "Silver Mountain Water"
       },
-      "note": "medium: iconic Creed grassy-airy siblings"
+      "note": "medium: iconic Creed grassy-airy siblings",
+      "cohort": "same-name-different-juice"
     },
     {
       "a": {
@@ -163,7 +177,8 @@
         "brand": "Yves Saint Laurent",
         "name": "La Nuit De L'Homme Yves Saint Laurent Le Parfum"
       },
-      "note": "medium: same-story concentration-shift (EDT vs Le Parfum)"
+      "note": "medium: same-story concentration-shift (EDT vs Le Parfum)",
+      "cohort": "same-name-different-juice"
     },
     {
       "a": {
@@ -174,7 +189,8 @@
         "brand": "Parfums de Marly",
         "name": "Kalan"
       },
-      "note": "medium: leather-aromatic masculines"
+      "note": "medium: leather-aromatic masculines",
+      "cohort": "cross-house-cousin"
     },
     {
       "a": {
@@ -185,7 +201,8 @@
         "brand": "Tom Ford",
         "name": "Fucking Fabulous"
       },
-      "note": "hard: velvet-glove spice-leather mood cluster across houses"
+      "note": "hard: velvet-glove spice-leather mood cluster across houses",
+      "cohort": "cross-house-cousin"
     },
     {
       "a": {
@@ -196,7 +213,8 @@
         "brand": "Initio Parfums Prives",
         "name": "Side Effect"
       },
-      "note": "hard: boozy rose with dark-vanilla-amber spine"
+      "note": "hard: boozy rose with dark-vanilla-amber spine",
+      "cohort": "cross-house-cousin"
     },
     {
       "a": {
@@ -207,7 +225,8 @@
         "brand": "Tom Ford",
         "name": "Tobacco Vanille"
       },
-      "note": "hard: honey-tobacco autumn-indoor cluster, different house DNA"
+      "note": "hard: honey-tobacco autumn-indoor cluster, different house DNA",
+      "cohort": "cross-house-cousin"
     },
     {
       "a": {
@@ -218,7 +237,8 @@
         "brand": "Parfums de Marly",
         "name": "Herod"
       },
-      "note": "hard: dark-dense-gourmand with spice-tobacco, gender-coded differently"
+      "note": "hard: dark-dense-gourmand with spice-tobacco, gender-coded differently",
+      "cohort": "cross-house-cousin"
     },
     {
       "a": {
@@ -229,7 +249,8 @@
         "brand": "Creed",
         "name": "Millesime Imperial"
       },
-      "note": "hard: salty-marine juicy-citrus niche cluster"
+      "note": "hard: salty-marine juicy-citrus niche cluster",
+      "cohort": "cross-house-cousin"
     },
     {
       "a": {
@@ -240,7 +261,8 @@
         "brand": "Xerjoff",
         "name": "Alexandria Ii"
       },
-      "note": "hard: ultra-premium citrus-amber-woody apex lane"
+      "note": "hard: ultra-premium citrus-amber-woody apex lane",
+      "cohort": "cross-house-cousin"
     }
   ]
 }
