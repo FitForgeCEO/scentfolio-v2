@@ -90,6 +90,9 @@
  *   # Restrict to a cohort
  *   npx tsx scripts/eval-recommender.ts --cohort genuine-twin
  *
+ *   # Swap to the accord-first heuristic variant (Task #64)
+ *   npx tsx scripts/eval-recommender.ts --sweep --heuristic accord-first
+ *
  * Env (same as embed-fragrances.ts)
  * ---------------------------------
  *   VITE_SUPABASE_URL
@@ -121,6 +124,15 @@ const POOL = (() => {
   return i !== -1 ? parseInt(argv[i + 1] ?? "", 10) : 40;
 })();
 const SWEEP = argv.includes("--sweep");
+type HeuristicVariant = "default" | "accord-first";
+const HEURISTIC_VARIANT: HeuristicVariant = (() => {
+  const i = argv.indexOf("--heuristic");
+  if (i === -1) return "default";
+  const raw = (argv[i + 1] ?? "").trim().toLowerCase();
+  if (raw === "default" || raw === "accord-first") return raw;
+  console.error(`Invalid --heuristic: ${raw} (must be 'default' or 'accord-first')`);
+  process.exit(1);
+})();
 const COHORT_FILTER = (() => {
   const i = argv.indexOf("--cohort");
   if (i === -1) return null;
@@ -336,6 +348,85 @@ function computeHeuristicSimilarity(a: FragranceRow, b: FragranceRow): number {
   return Math.min(score, 100);
 }
 
+// Accord-first variant (Task #64). Same input/output contract as the default.
+// Rebalanced to lift cross-house-cousin signal without flattening genuine-twin:
+//   accord 0-50  (up from 35)      -- primary signal for cross-house twins
+//   note overlap 0-30  (up from 25)
+//   family exact=10 / related=5    (halved from 20/10)
+//   brand 5                        (halved from 10)
+//   concentration 3 + gender 2     (halved from 5+5)
+// Total still sums to 100. Rationale: cross-house-cousins score 0 on brand
+// and often 0 or 10 on family, so the default heuristic caps them near ~80
+// while genuine-twins reach 100. Giving accord/notes more of the budget
+// narrows that gap. See notes/recommender-design.md S4.2 and the Task #65
+// sweep findings (memory project_scentfolio_recommender_weight_sweep).
+function computeHeuristicSimilarityAccordFirst(
+  a: FragranceRow,
+  b: FragranceRow,
+): number {
+  let score = 0;
+
+  // 1. Accord Jaccard (0-50)
+  const accordsA = new Set((a.accords ?? []).map((x) => x.toLowerCase()));
+  const accordsB = new Set((b.accords ?? []).map((x) => x.toLowerCase()));
+  if (accordsA.size > 0 && accordsB.size > 0) {
+    const intersection = [...accordsA].filter((x) => accordsB.has(x));
+    const union = new Set([...accordsA, ...accordsB]);
+    const jaccard = intersection.length / union.size;
+    score += Math.round(jaccard * 50);
+  }
+
+  // 2. Note family exact=10 or related=5
+  if (a.note_family && b.note_family) {
+    const af = a.note_family.toLowerCase();
+    const bf = b.note_family.toLowerCase();
+    if (af === bf) {
+      score += 10;
+    } else {
+      const related = RELATED_FAMILIES[af] ?? [];
+      if (related.includes(bf)) score += 5;
+    }
+  }
+
+  // 3. Brand match (5)
+  if (a.brand === b.brand) score += 5;
+
+  // 4. Note overlap Jaccard across top+heart+base (0-30)
+  const notesA = new Set(
+    [...(a.notes_top ?? []), ...(a.notes_heart ?? []), ...(a.notes_base ?? [])].map(
+      (n) => n.toLowerCase(),
+    ),
+  );
+  const notesB = new Set(
+    [...(b.notes_top ?? []), ...(b.notes_heart ?? []), ...(b.notes_base ?? [])].map(
+      (n) => n.toLowerCase(),
+    ),
+  );
+  if (notesA.size > 0 && notesB.size > 0) {
+    const shared = [...notesA].filter((n) => notesB.has(n));
+    const noteUnion = new Set([...notesA, ...notesB]);
+    const jaccard = shared.length / noteUnion.size;
+    score += Math.round(jaccard * 30);
+  }
+
+  // 5. Concentration (3) + gender (2)
+  if (a.concentration && b.concentration && a.concentration === b.concentration) {
+    score += 3;
+  }
+  if (a.gender && b.gender && a.gender === b.gender) {
+    score += 2;
+  }
+
+  return Math.min(score, 100);
+}
+
+// Dispatch: resolved once at startup from --heuristic. All downstream scoring
+// paths (evalOne -> single-weight + sweep) read through this binding.
+const heuristicImpl: (a: FragranceRow, b: FragranceRow) => number =
+  HEURISTIC_VARIANT === "accord-first"
+    ? computeHeuristicSimilarityAccordFirst
+    : computeHeuristicSimilarity;
+
 // ---------- Lookups -----------------------------------------------------------
 async function resolveRef(ref: Ref): Promise<Resolved | null> {
   const { data, error } = await supabase
@@ -456,7 +547,7 @@ function evalOne(
   } else {
     ranked = cache.rpcRows.map((r) => {
       const cand = cache.candidateById.get(r.id);
-      const heuristic = cand ? computeHeuristicSimilarity(seed, cand) : 0;
+      const heuristic = cand ? heuristicImpl(seed, cand) : 0;
       const combined = weight * r.score + (1 - weight) * (heuristic / 100);
       return { id: r.id, combined };
     });
@@ -781,6 +872,7 @@ async function main() {
   if (COHORT_FILTER) {
     console.log(`  cohort:  ${[...COHORT_FILTER].join(", ")}`);
   }
+  console.log(`  heuristic: ${HEURISTIC_VARIANT}`);
   console.log("=".repeat(72));
 
   let parsed: PairsFile;
