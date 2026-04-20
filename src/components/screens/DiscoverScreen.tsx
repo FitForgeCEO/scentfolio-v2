@@ -20,7 +20,7 @@ interface CollectionItem {
   personal_rating: number | null
 }
 
-type SectionId = 'top-rated' | 'for-you' | 'hidden-gems' | 'niche'
+type SectionId = 'top-rated' | 'for-you' | 'for-you-teaser' | 'hidden-gems' | 'niche'
 
 interface Section {
   id: SectionId
@@ -45,6 +45,11 @@ const SECTION_COPY: Record<SectionId, EditorialMeta> = {
     kicker: 'INSCRIBED FOR YOU',
     dek: 'A reading of your taste.',
     showRatings: true,
+  },
+  'for-you-teaser': {
+    kicker: 'INSCRIBED FOR YOU',
+    dek: 'A reading of your taste — unlocked at three fragrances.',
+    showRatings: false,
   },
   'hidden-gems': {
     kicker: 'OBSCURA',
@@ -331,6 +336,12 @@ export function DiscoverScreen() {
             items: personalised,
           })
         }
+      } else {
+        // Cold-start teaser: show the slot with a CTA explaining the 3-fragrance unlock.
+        sects.splice(1, 0, {
+          id: 'for-you-teaser',
+          items: [],
+        })
       }
     }
 
@@ -419,6 +430,7 @@ export function DiscoverScreen() {
           {sections.map((section, idx) => {
             const copy = SECTION_COPY[section.id]
             const isNiche = section.id === 'niche'
+            const isTeaser = section.id === 'for-you-teaser'
             const numeral = toRoman(idx + 1)
             const bgClass = idx % 2 === 0 ? 'bg-surface' : 'bg-surface-container-low'
 
@@ -430,26 +442,53 @@ export function DiscoverScreen() {
                   dek={isNiche ? (section.brand ?? '') : copy.dek}
                   dekIsBrand={isNiche}
                 />
-                <div className="mt-8 flex gap-5 overflow-x-auto no-scrollbar px-6 pb-2">
-                  {section.items.map((frag, fidx) => (
-                    <ScentCard
-                      key={frag.id}
-                      frag={frag}
-                      showRating={copy.showRatings}
-                      dimmed={copy.dim}
-                      onClick={() => {
-                        if (section.id === 'for-you') {
-                          trackEvent(AnalyticsEvents.RECOMMENDER_CLICK, {
-                            source: 'discover_personalised',
-                            position: fidx,
-                            fragrance_id: frag.id,
-                          })
-                        }
-                        navigate(`/fragrance/${frag.id}`)
-                      }}
-                    />
-                  ))}
-                </div>
+                {isTeaser ? (
+                  <div className="mt-6 px-6">
+                    <button
+                      onClick={() => navigate('/search')}
+                      className="w-full flex items-start gap-4 py-5 text-left transition-opacity hover:opacity-80 group"
+                    >
+                      <span className="font-headline italic text-primary/50 text-xs tracking-widest flex-shrink-0 pt-1">
+                        {toRoman(idx + 2)}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] uppercase tracking-[0.18em] font-label text-on-background/60 mb-1">
+                          BEGIN THE READING
+                        </p>
+                        <p className="font-headline italic text-on-background text-lg leading-tight mb-1">
+                          Add three fragrances to your wardrobe.
+                        </p>
+                        <p className="text-[11px] text-on-background/50">
+                          A taste reading needs a little to read. Search for what you own.
+                        </p>
+                      </div>
+                      <span className="font-headline italic text-primary/70 text-xl leading-none pt-1 group-active:text-primary">
+                        ›
+                      </span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mt-8 flex gap-5 overflow-x-auto no-scrollbar px-6 pb-2">
+                    {section.items.map((frag, fidx) => (
+                      <ScentCard
+                        key={frag.id}
+                        frag={frag}
+                        showRating={copy.showRatings}
+                        dimmed={copy.dim}
+                        onClick={() => {
+                          if (section.id === 'for-you') {
+                            trackEvent(AnalyticsEvents.RECOMMENDER_CLICK, {
+                              source: 'discover_personalised',
+                              position: fidx,
+                              fragrance_id: frag.id,
+                            })
+                          }
+                          navigate(`/fragrance/${frag.id}`)
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
               </section>
             )
           })}

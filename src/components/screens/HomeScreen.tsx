@@ -454,7 +454,7 @@ export function HomeScreen() {
           <p className="font-headline italic text-2xl md:text-3xl text-on-background leading-relaxed">
             {dailyBriefProse}{' '}
             <button
-              onClick={() => navigate(collectionStarted ? '/search' : '/onboarding')}
+              onClick={() => navigate('/search')}
               className="text-primary not-italic hover:underline underline-offset-4 decoration-primary/40 transition-colors"
             >
               begin.
