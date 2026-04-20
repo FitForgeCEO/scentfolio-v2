@@ -1,5 +1,7 @@
-import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { lazy, Suspense, useEffect, useRef } from 'react'
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
+import { Capacitor } from '@capacitor/core'
+import { App as CapacitorApp } from '@capacitor/app'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
@@ -114,7 +116,7 @@ function LazyScreen({ children, grid }: { children: React.ReactNode; grid?: bool
 function PreLaunchGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   const { pathname } = useLocation()
-  const exempt = pathname === '/reset-password'
+  const exempt = pathname === '/reset-password' || Capacitor.isNativePlatform()
 
   useEffect(() => {
     if (!loading && !user && !exempt) {
@@ -126,6 +128,37 @@ function PreLaunchGate({ children }: { children: React.ReactNode }) {
   if (loading || (!user && !exempt)) return <ScreenSkeleton />
 
   return <>{children}</>
+}
+
+// ── Native back button handler (Android hardware back, iOS swipe) ──
+function NativeBackHandler() {
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const pathRef = useRef(pathname)
+
+  useEffect(() => {
+    pathRef.current = pathname
+  }, [pathname])
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return
+
+    const handle = CapacitorApp.addListener('backButton', () => {
+      if (pathRef.current === '/') {
+        CapacitorApp.exitApp().catch(() => {
+          // Some platforms reject exit — fail silently
+        })
+      } else {
+        navigate(-1)
+      }
+    })
+
+    return () => {
+      void handle.then((h) => h.remove())
+    }
+  }, [navigate])
+
+  return null
 }
 
 // ── Home route gate — landing page for visitors, home for users ───
@@ -163,6 +196,7 @@ export default function App() {
         <BrowserRouter>
           <div className="max-w-[430px] mx-auto h-dvh overflow-y-auto overflow-x-hidden relative bg-background">
             <AnalyticsTracker />
+            <NativeBackHandler />
             <PreLaunchGate>
             <Routes>
               {/* ── Onboarding (no AppLayout — full-screen flow) ── */}

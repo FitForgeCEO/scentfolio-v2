@@ -21,6 +21,15 @@
     "eval:recommender:hybrid:sample": "tsx scripts/eval-recommender-hybrid.ts --pairs scripts/eval-pairs.sample.json"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/cli": "^8.3.1",
+    "@capacitor/core": "^8.3.1",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.3.1",
+    "@capacitor/keyboard": "^8.0.3",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@sentry/react": "^10.48.0",
     "@supabase/supabase-js": "^2.101.1",
     "html-to-image": "^1.11.11",
