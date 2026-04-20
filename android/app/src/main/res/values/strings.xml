@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ScentFolio</string>
+    <string name="title_activity_main">ScentFolio</string>
+    <string name="package_name">com.scentfolio.app</string>
+    <string name="custom_url_scheme">com.scentfolio.app</string>
+</resources>
