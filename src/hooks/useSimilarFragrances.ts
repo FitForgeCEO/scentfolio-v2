@@ -21,9 +21,12 @@ export interface SimilarResult {
  * rescore each candidate with the existing heuristic (so `reasons[]` still
  * populates) and combine as:
  *
- *     final = 0.6 * vector_score + 0.4 * (heuristic_score / 100)
+ *     final = 0.8 * vector_score + 0.2 * (heuristic_score / 100)
  *
- * See notes/recommender-design.md §4 for rationale behind the 60/40 split.
+ * See notes/recommender-design.md §4 for the original 60/40 rationale;
+ * the split was lifted to 80/20 on 20 April 2026 after the Task #65 sweep
+ * showed the heuristic was actively dilating ranks at W=0.6 without lifting
+ * coverage. Accord-first heuristic (Task #64) shipped in the same commit.
  *
  * Concurrency: guards against duplicate fetches per (id, limit) key and
  * ignores stale responses via reqRef. Fixes the double-fetch observed
@@ -75,8 +78,8 @@ export function useSimilarFragrances(fragrance: Fragrance | null, limit = 8) {
 const VECTOR_RECOMMENDER_ENABLED =
   import.meta.env.VITE_ENABLE_VECTOR_RECOMMENDER === 'true'
 
-const VECTOR_WEIGHT = 0.6
-const HEURISTIC_WEIGHT = 0.4
+const VECTOR_WEIGHT = 0.8
+const HEURISTIC_WEIGHT = 0.2
 const VECTOR_CANDIDATE_POOL = 40  // pull a wider pool from the RPC so the
                                   // heuristic has room to re-rank before we
                                   // slice to `limit`.

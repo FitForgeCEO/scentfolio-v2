@@ -1,6 +1,21 @@
 /**
  * Fragrance Similarity Engine
- * Computes similarity between fragrances using multiple signals
+ * Computes similarity between fragrances using multiple signals.
+ *
+ * Point distribution (accord-first, 20 April 2026 — shipped after Task #64
+ * sweep showed this variant tied pure-vector mean rank at W=0.8 while the
+ * prior 35/20/10/25/10 distribution diluted same-name-different-juice and
+ * cross-house-cousin ranks 1.5-3x at W=0.6-0.8):
+ *
+ *   accord Jaccard     0-50
+ *   note family         +10 exact / +5 related
+ *   brand                +5
+ *   note Jaccard       0-30 across top+heart+base
+ *   concentration        +3
+ *   gender               +2
+ *   ------------------  total 100
+ *
+ * `reasons[]` strings are unchanged — they are UX signal, not score weight.
  */
 
 import type { Fragrance } from '@/types/database'
@@ -19,22 +34,22 @@ export function computeSimilarity(a: Fragrance, b: Fragrance): { score: number; 
   const reasons: string[] = []
   const maxScore = 100
 
-  // 1. Accord overlap (0-35 points)
+  // 1. Accord overlap (0-50 points) — primary signal
   const accordsA = new Set((a.accords ?? []).map(x => x.toLowerCase()))
   const accordsB = new Set((b.accords ?? []).map(x => x.toLowerCase()))
   if (accordsA.size > 0 && accordsB.size > 0) {
     const intersection = [...accordsA].filter(x => accordsB.has(x))
     const union = new Set([...accordsA, ...accordsB])
     const jaccard = intersection.length / union.size
-    const accordScore = Math.round(jaccard * 35)
+    const accordScore = Math.round(jaccard * 50)
     score += accordScore
     if (intersection.length >= 3) reasons.push(`${intersection.length} shared accords`)
   }
 
-  // 2. Note family match (0-20 points)
+  // 2. Note family match (0-10 points)
   if (a.note_family && b.note_family) {
     if (a.note_family.toLowerCase() === b.note_family.toLowerCase()) {
-      score += 20
+      score += 10
       reasons.push(`Same family: ${a.note_family}`)
     } else {
       // Related families get partial credit
@@ -50,35 +65,35 @@ export function computeSimilarity(a: Fragrance, b: Fragrance): { score: number; 
       }
       const relA = related[a.note_family.toLowerCase()] ?? []
       if (relA.includes(b.note_family.toLowerCase())) {
-        score += 10
+        score += 5
         reasons.push('Related families')
       }
     }
   }
 
-  // 3. Brand match (0-10 points)
+  // 3. Brand match (0-5 points)
   if (a.brand === b.brand) {
-    score += 10
+    score += 5
     reasons.push(`Same house: ${a.brand}`)
   }
 
-  // 4. Note overlap — top, heart, base (0-25 points)
+  // 4. Note overlap — top, heart, base (0-30 points)
   const notesA = new Set([...(a.notes_top ?? []), ...(a.notes_heart ?? []), ...(a.notes_base ?? [])].map(n => n.toLowerCase()))
   const notesB = new Set([...(b.notes_top ?? []), ...(b.notes_heart ?? []), ...(b.notes_base ?? [])].map(n => n.toLowerCase()))
   if (notesA.size > 0 && notesB.size > 0) {
     const sharedNotes = [...notesA].filter(n => notesB.has(n))
     const noteUnion = new Set([...notesA, ...notesB])
     const noteJaccard = sharedNotes.length / noteUnion.size
-    score += Math.round(noteJaccard * 25)
+    score += Math.round(noteJaccard * 30)
     if (sharedNotes.length >= 3) reasons.push(`${sharedNotes.length} shared notes`)
   }
 
-  // 5. Concentration & character match (0-10 points)
+  // 5. Concentration (3) & gender (2) — tiebreakers only
   if (a.concentration && b.concentration && a.concentration === b.concentration) {
-    score += 5
+    score += 3
   }
   if (a.gender && b.gender && a.gender === b.gender) {
-    score += 5
+    score += 2
   }
 
   return { score: Math.min(score, maxScore), reasons }

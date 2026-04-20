@@ -13,7 +13,10 @@
  *   - Flag OFF or cold-start path -> original heuristic (byte-identical to
  *     pre-17-April 2026 findSimilarToCollection over the rating-top-80 pool).
  *   - Flag ON + >=1 owned embedding -> weighted centroid -> match_fragrances
- *     -> heuristic rescore -> 0.6 * vector + 0.4 * (heuristic/100) combine.
+ *     -> heuristic rescore -> 0.8 * vector + 0.2 * (heuristic/100) combine.
+ *     (Weights lifted from 0.6/0.4 on 20 April 2026 after Task #65 sweep +
+ *     Task #64 accord-first heuristic variant — see useSimilarFragrances.ts
+ *     docstring for the full rationale.)
  *
  * Two public entries serve two different surfaces:
  *   - fetchPersonalisedRecs(owned, limit): Fragrance[]
@@ -51,8 +54,8 @@ export type ScoredRec = {
 const VECTOR_RECOMMENDER_ENABLED =
   import.meta.env.VITE_ENABLE_VECTOR_RECOMMENDER === 'true'
 
-const VECTOR_WEIGHT = 0.6
-const HEURISTIC_WEIGHT = 0.4
+const VECTOR_WEIGHT = 0.8
+const HEURISTIC_WEIGHT = 0.2
 const VECTOR_CANDIDATE_POOL = 40        // RPC top-N semantic neighbours
 const HEURISTIC_CANDIDATE_POOL = 80     // rating-ordered pool for fallback
 const UNRATED_WEIGHT = 0.6              // matches findSimilarToCollection idiom
