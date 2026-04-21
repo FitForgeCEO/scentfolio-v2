@@ -1,0 +1,84 @@
+name: Privileged Scripts (Service Role)
+
+# Ad-hoc runner for scripts that need SUPABASE_SERVICE_ROLE_KEY.
+# Replaces the previous pattern of running these on Dan's laptop with the key
+# in .env.local — part of the C-2 fix from Security-Audit-21Apr2026.md.
+#
+# Trigger via: GitHub repo -> Actions tab -> "Privileged Scripts (Service Role)"
+# -> Run workflow -> pick script from dropdown -> check logs for output.
+#
+# All scripts require:
+#   VITE_SUPABASE_URL          (repo secret, already present for firebase-hosting.yml)
+#   SUPABASE_SERVICE_ROLE_KEY  (repo secret, added as part of C-2 rotation)
+
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: 'Which privileged script to run'
+        required: true
+        type: choice
+        options:
+          - eval-recommender
+          - eval-recommender-hybrid
+          - embed-fragrances-backfill
+          - embed-fragrances-force
+      pairs_file:
+        description: 'Eval pairs JSON path (only for eval-* scripts)'
+        default: 'scripts/eval-pairs.json'
+        required: false
+      embed_version:
+        description: 'Embedding version (only for embed-fragrances-force)'
+        default: '4'
+        required: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Cache transformers model
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/huggingface
+            .cache/transformers
+          key: transformers-miniLM-L6-v2
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ${{ inputs.script }}
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -euo pipefail
+          case "${{ inputs.script }}" in
+            eval-recommender)
+              npx tsx scripts/eval-recommender.ts --pairs "${{ inputs.pairs_file }}"
+              ;;
+            eval-recommender-hybrid)
+              npx tsx scripts/eval-recommender-hybrid.ts --pairs "${{ inputs.pairs_file }}"
+              ;;
+            embed-fragrances-backfill)
+              npx tsx scripts/embed-fragrances.ts
+              ;;
+            embed-fragrances-force)
+              npx tsx scripts/embed-fragrances.ts --force --version "${{ inputs.embed_version }}"
+              ;;
+            *)
+              echo "Unknown script: ${{ inputs.script }}" >&2
+              exit 1
+              ;;
+          esac

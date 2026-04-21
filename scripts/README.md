@@ -248,3 +248,59 @@ Rank-level reads:
 - **Hybrid hits at better mean rank than pure-vector** — heuristic is
   adding precision even when both hit. Good sign.
 - **Same or worse mean rank** — heuristic is noise above rank 5.
+
+## Running these scripts
+
+**TL;DR — run them from GitHub Actions, not your laptop.** See the "Privileged
+Scripts (Service Role)" workflow in the Actions tab.
+
+### Why the handoff
+
+All three scripts above (`embed-fragrances.ts`, `eval-recommender.ts`,
+`eval-recommender-hybrid.ts`) need `SUPABASE_SERVICE_ROLE_KEY`. That key
+bypasses every RLS policy on the project — anyone holding it can read the
+whole `user_signals` table, rewrite any row in `fragrances`, impersonate
+any user. Keeping it in a developer `.env.local` means the blast radius of
+a laptop compromise or an accidental commit is the entire database.
+
+C-2 of `Security-Audit-21Apr2026.md` moved the key into GitHub Actions
+repo secrets (encrypted at rest) and deleted it from local machines.
+Scripts that need the key now run in CI-on-demand, not on laptops.
+
+### How to run one
+
+1. GitHub repo -> **Actions** tab -> **Privileged Scripts (Service Role)**.
+2. Click **Run workflow** (top-right).
+3. Pick a script from the dropdown:
+   - `eval-recommender` — pure-vector eval (reads from live DB)
+   - `eval-recommender-hybrid` — hybrid eval (reads from live DB)
+   - `embed-fragrances-backfill` — embed rows where `embedding IS NULL`
+   - `embed-fragrances-force` — re-embed every row (bumps
+     `embedding_version`)
+4. Optional: override `pairs_file` (default `scripts/eval-pairs.json`) or
+   `embed_version` (default `4`).
+5. Click the green **Run workflow** button.
+6. Watch the job run; output streams in the logs. Eval harnesses finish
+   in 30-90 seconds; backfill is ~5-10 minutes.
+
+First run of any embed script will spend ~30 seconds downloading the
+MiniLM model. Subsequent runs hit the GitHub Actions cache
+(`transformers-miniLM-L6-v2`) and skip the download.
+
+### When local runs are still OK
+
+`fragdb-etl-prototype.ts` — pure file I/O, no Supabase, no network. Runs
+locally with no secrets needed.
+
+Everything else on the scripts/ directory that touches Supabase should
+go through the Actions workflow.
+
+### Troubleshooting
+
+- **"Missing SUPABASE_SERVICE_ROLE_KEY"** — the repo secret isn't set or
+  is named differently. Check Settings -> Secrets and variables -> Actions.
+- **"Missing VITE_SUPABASE_URL"** — same place, same fix. This one is
+  shared with `firebase-hosting.yml` so it should already exist.
+- **Workflow doesn't appear in the Actions tab** — the YAML file needs to
+  be on the `master` branch. `workflow_dispatch` workflows only show up
+  after they land on the default branch.
