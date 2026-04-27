@@ -2,7 +2,11 @@ import { supabase } from './supabase'
 
 /**
  * XP thresholds per level.
- * Level 1 → 2 requires 100 XP, scaling gently so it stays achievable solo.
+ * Level 1 -> 2 requires 100 XP, scaling gently so it stays achievable solo.
+ *
+ * IMPORTANT: this list is mirrored in the public.compute_level_from_xp()
+ * Postgres function (see supabase/migrations/20260427120003_xp_system_lockdown.sql).
+ * Any change here MUST be paired with a migration to update the SQL CASE.
  */
 const LEVEL_THRESHOLDS = [
   0,     // Level 1 (start)
@@ -24,12 +28,21 @@ const LEVEL_THRESHOLDS = [
 
 const MAX_LEVEL = LEVEL_THRESHOLDS.length
 
-/** XP awards by action */
+/**
+ * XP awards by action.
+ *
+ * IMPORTANT: this map is mirrored in the public.award_xp() Postgres function
+ * (see supabase/migrations/20260427120003_xp_system_lockdown.sql). The server
+ * is the source of truth for amounts -- this client copy is for typing and
+ * displaying "+N XP" toasts only. Any change here MUST be paired with a
+ * migration to update the SQL CASE statement, otherwise the server will
+ * reject unknown actions or use the old amount.
+ */
 export const XP_AWARDS = {
   LOG_WEAR: 10,
   WRITE_REVIEW: 25,
   ADD_TO_COLLECTION: 5,
-  PROMOTE_TO_OWNED: 10,   // Wishlist → owned: doubles the standard add reward
+  PROMOTE_TO_OWNED: 10,   // Wishlist -> owned: doubles the standard add reward
   FIRST_WEAR: 20,         // Bonus for very first wear log
   STREAK_3: 30,
   STREAK_7: 75,
@@ -59,7 +72,7 @@ export function getXPForCurrentLevel(level: number): number {
   return LEVEL_THRESHOLDS[level - 1]
 }
 
-/** Calculate progress percentage within current level (0–100) */
+/** Calculate progress percentage within current level (0-100) */
 export function getLevelProgress(xp: number, level: number): number {
   if (level >= MAX_LEVEL) return 100
   const currentFloor = getXPForCurrentLevel(level)
@@ -80,29 +93,29 @@ export function getLevelTitle(level: number): string {
   return 'Legend'
 }
 
-/** Award XP to a user — updates xp and recalculates level in Supabase */
-export async function awardXP(userId: string, action: XPAction): Promise<{ newXP: number; newLevel: number; leveledUp: boolean } | null> {
-  const amount = XP_AWARDS[action]
+/**
+ * Award XP to the authenticated user via the server-side award_xp RPC.
+ *
+ * Security: the RPC validates the action against an allowed enum and
+ * controls the amount server-side. Clients can no longer set arbitrary
+ * XP via direct profile UPDATEs (revoked at column level on profiles.xp,
+ * profiles.level in 27 Apr 2026 migration).
+ *
+ * The userId parameter is retained for backwards-compat at call sites
+ * but is effectively ignored: the RPC always uses auth.uid() server-side,
+ * so passing a different userId has no effect.
+ */
+export async function awardXP(_userId: string, action: XPAction): Promise<{ newXP: number; newLevel: number; leveledUp: boolean } | null> {
+  const { data, error } = await supabase.rpc('award_xp', { p_action: action })
+  if (error || !data) return null
 
-  // Fetch current profile
-  const { data: profile, error: fetchError } = await supabase
-    .from('profiles')
-    .select('xp, level')
-    .eq('id', userId)
-    .single()
+  // The RPC RETURNS TABLE so supabase-js exposes it as an array.
+  const row = Array.isArray(data) ? data[0] : data
+  if (!row) return null
 
-  if (fetchError || !profile) return null
-
-  const newXP = profile.xp + amount
-  const newLevel = getLevelFromXP(newXP)
-  const leveledUp = newLevel > profile.level
-
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update({ xp: newXP, level: newLevel, updated_at: new Date().toISOString() })
-    .eq('id', userId)
-
-  if (updateError) return null
-
-  return { newXP, newLevel, leveledUp }
+  return {
+    newXP: row.new_xp,
+    newLevel: row.new_level,
+    leveledUp: row.leveled_up,
+  }
 }
