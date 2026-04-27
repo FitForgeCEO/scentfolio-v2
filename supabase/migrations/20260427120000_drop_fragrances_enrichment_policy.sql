@@ -1,0 +1,12 @@
+-- Drops the unrestricted UPDATE policy on public.fragrances that allowed
+-- ANY authenticated user to UPDATE ANY fragrance row to ANY value.
+-- Flagged ERROR by Supabase advisor (rls_policy_always_true).
+--
+-- The legitimate use case ("Dan's enrichment scripts can update rows")
+-- is now served by service_role from GitHub Actions (C-2 fix, 2026-04-21,
+-- commit 6c901aa). Service role bypasses RLS so this policy is no longer needed.
+--
+-- The other UPDATE policy on this table -- "Users can update fragrances
+-- they submitted" (qual + with_check: auth.uid() = submitted_by) -- remains
+-- intact and correctly scoped.
+DROP POLICY IF EXISTS "Allow update fragrances for enrichment" ON public.fragrances;
