@@ -230,27 +230,16 @@ export function useChallenges() {
     if (!challenge || !challenge.completed || challenge.claimed) return false
 
     try {
-      // Mark as claimed
-      await supabase
-        .from('user_challenges')
-        .update({ claimed: true })
-        .eq('user_id', user.id)
-        .eq('challenge_id', challengeId)
-
-      // Award XP
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('xp, level')
-        .eq('id', user.id)
-        .single()
-
-      if (profile) {
-        const newXP = profile.xp + challenge.definition.xpReward
-        await supabase
-          .from('profiles')
-          .update({ xp: newXP, updated_at: new Date().toISOString() })
-          .eq('id', user.id)
-      }
+      // Server-side claim_challenge RPC handles atomically:
+      //   - UPDATE user_challenges SET claimed=true (rejects double-claim
+      //     via WHERE claimed=false guard -- raises challenge_not_claimable)
+      //   - Lookup of xpReward from server-side enum (mirrors CHALLENGES)
+      //   - profiles.xp + profiles.level update
+      //   - xp_ledger audit row (action = 'CHALLENGE:<id>')
+      // Direct profiles UPDATE was revoked at column-level on 27 April;
+      // this path is now the only way to claim a challenge reward.
+      const { error } = await supabase.rpc('claim_challenge', { p_challenge_id: challengeId })
+      if (error) return false
 
       // Update local state
       setChallenges(prev =>

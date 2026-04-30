@@ -19,6 +19,20 @@ export function ResetPasswordScreen() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    // H-6: Strip the recovery token from the URL on mount. By the time
+    // React boots, supabase-js has already consumed the access_token
+    // from the fragment (it's read at supabase client init, not here)
+    // and stored the session in localStorage. Leaving the token in
+    // window.location.hash exposes it via:
+    //   - browser history (visible in chrome://history)
+    //   - referrer headers on any subsequent navigation
+    //   - Sentry breadcrumb URL captures
+    // history.replaceState removes it without reloading or breaking
+    // supabase's existing session. Safe to call unconditionally.
+    if (typeof window !== 'undefined' && (window.location.hash || window.location.search)) {
+      window.history.replaceState(null, '', '/reset-password')
+    }
+
     let recovered = false
 
     // Supabase fires PASSWORD_RECOVERY when the user lands via a recovery link.
