@@ -1,0 +1,13 @@
+# ScentFolio security policy
+# https://www.rfc-editor.org/rfc/rfc9116
+#
+# To report a security issue with ScentFolio, please email the contact below.
+# We will acknowledge within 72 hours and work with you on a coordinated
+# disclosure timeline. We do not currently run a paid bug-bounty programme
+# but we will publicly credit researchers (with their permission) on
+# resolution.
+
+Contact: mailto:security@scentfolio.app
+Expires: 2027-05-04T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://scentfolio.app/.well-known/security.txt
