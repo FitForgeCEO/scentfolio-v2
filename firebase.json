@@ -44,6 +44,10 @@
           {
             "key": "Permissions-Policy",
             "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+          },
+          {
+            "key": "Content-Security-Policy-Report-Only",
+            "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://cdn.fragella.com https://*.supabase.co https://i.gravatar.com https://lh3.googleusercontent.com https://avatars.githubusercontent.com; connect-src 'self' https://*.supabase.co https://o4511223238033408.ingest.de.sentry.io https://api.open-meteo.com https://nominatim.openstreetmap.org; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests; report-uri https://o4511223238033408.ingest.de.sentry.io/api/4511223250747472/security/?sentry_key=095ae2225eb1e5a91e299ed8f627f5a9"
           }
         ]
       },
