@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  filename: a09-primary-noir.svg
+  role: A-09 Primary
+  locked parameters: tilt -8deg, stroke 42 on 1024 viewport (512x512 render), hook radius 0.5, terminal curl 0.5
+  fill/ground: gold #E5C276 on noir #191210
+  source: Claude Design Issue No 08 - The Packaging Export (21 April 2026)
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="512" height="512"><rect width="1024" height="1024" fill="#191210"/><g transform="rotate(-8 512 512)" fill="none" stroke="#E5C276" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"><path d="M 512 400 L 244 632 L 780 632 Z"/><path d="M 512 400 L 512 292 C 512 244 505.95 212 475.95 212 C 406 228 411 267 425 260"/></g></svg>
