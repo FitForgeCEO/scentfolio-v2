@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'scentfolio-v4'
+const CACHE_VERSION = 'scentfolio-v5'
 const STATIC_CACHE = `${CACHE_VERSION}-static`
 const DATA_CACHE = `${CACHE_VERSION}-data`
 const IMAGE_CACHE = `${CACHE_VERSION}-images`
