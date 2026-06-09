@@ -115,8 +115,8 @@ function LazyScreen({ children, grid }: { children: React.ReactNode; grid?: bool
 // ── Pre-launch gate — redirect anonymous visitors to waitlist ──────
 function PreLaunchGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
-  const { pathname } = useLocation()
-  const exempt = true  // TEMP: PreLaunchGate disabled for Reel recording session, REVERT after
+  // TEMP: PreLaunchGate disabled for Reel recording session, REVERT after
+  const exempt = true
 
   useEffect(() => {
     if (!loading && !user && !exempt) {
