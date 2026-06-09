@@ -116,7 +116,7 @@ function LazyScreen({ children, grid }: { children: React.ReactNode; grid?: bool
 function PreLaunchGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   const { pathname } = useLocation()
-  const exempt = pathname === '/reset-password' || Capacitor.isNativePlatform()
+  const exempt = pathname === '/reset-password' || pathname === '/onboarding' || Capacitor.isNativePlatform()
 
   useEffect(() => {
     if (!loading && !user && !exempt) {
