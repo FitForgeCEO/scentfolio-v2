@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
-      setAnalyticsUser(session?.user?.id ?? null)
+      setAnalyticsUser(session?.user?.id ?? null, session?.access_token ?? null)
       setLoading(false)
     })
 
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
-      setAnalyticsUser(session?.user?.id ?? null)
+      setAnalyticsUser(session?.user?.id ?? null, session?.access_token ?? null)
 
       // Track auth events
       if (event === 'SIGNED_IN') trackEvent(AnalyticsEvents.SIGN_IN)

@@ -56,12 +56,16 @@ export function useHomeStats(userId: string | undefined) {
         .select('id', { count: 'exact', head: true })
         .eq('user_id', userId)
         .gte('wear_date', monthStart),
+      // Streak source: most recent distinct-ish dates with NO time-window
+      // filter -- a 7-day window structurally capped the streak at 8.
+      // 365 rows covers a year-long daily streak; matches the approach in
+      // useChallenges.countWearStreak.
       supabase
         .from('wear_logs')
         .select('wear_date')
         .eq('user_id', userId)
-        .gte('wear_date', new Date(Date.now() - 7 * ONE_DAY_MS).toISOString().split('T')[0])
-        .order('wear_date', { ascending: false }),
+        .order('wear_date', { ascending: false })
+        .limit(365),
     ]).then(([ownRes, wishRes, revRes, boardRes, monthRes, streakRes]) => {
       // Check for any errors
       const firstError = [ownRes, wishRes, revRes, boardRes, monthRes, streakRes].find((r) => r.error)

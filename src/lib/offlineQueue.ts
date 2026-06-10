@@ -4,6 +4,8 @@
  * and synced when the connection is restored.
  */
 
+import { supabase } from './supabase'
+
 const DB_NAME = 'scentfolio-offline'
 const DB_VERSION = 1
 const STORE_NAME = 'offline-wear-logs'
@@ -81,21 +83,35 @@ export async function flushOfflineQueue(): Promise<{ synced: number; failed: num
       request.onerror = () => resolve([])
     })
 
+    // Rebuild auth from the live session -- headers snapshotted at queue
+    // time carry a JWT that expires within ~an hour, so replaying them
+    // verbatim 401s forever. Without a session, leave the queue intact.
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return { synced, failed: logs.length }
+
     for (const log of logs) {
       try {
         const response = await fetch(log.url, {
           method: 'POST',
-          headers: log.headers,
+          headers: { ...log.headers, Authorization: `Bearer ${session.access_token}` },
           body: JSON.stringify(log.body),
         })
 
-        if (response.ok) {
-          // Remove from queue
+        const remove = () => {
           const deleteTx = db.transaction(STORE_NAME, 'readwrite')
           if (log.id !== undefined) {
             deleteTx.objectStore(STORE_NAME).delete(log.id)
           }
+        }
+
+        if (response.ok) {
+          remove()
           synced++
+        } else if (response.status >= 400 && response.status < 500 && response.status !== 401 && response.status !== 429) {
+          // Permanently rejected (constraint violation, bad payload) --
+          // drop it; retrying forever can never succeed.
+          remove()
+          failed++
         } else {
           failed++
         }

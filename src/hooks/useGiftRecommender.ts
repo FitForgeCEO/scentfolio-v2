@@ -61,7 +61,9 @@ export function useGiftRecommender() {
     setLoading(true)
     setSearched(true)
 
-    let query = supabase.from('fragrances').select('*').not('name', 'is', null).limit(500)
+    // Order before the cap -- an unordered .limit(500) returns an arbitrary
+    // sixth of the catalogue that can change between query plans.
+    let query = supabase.from('fragrances').select('*').not('name', 'is', null).order('rating', { ascending: false, nullsFirst: false }).limit(500)
 
     if (prefs.gender !== 'any') {
       if (prefs.gender === 'male') query = query.in('gender', ['Male', 'Unisex'])

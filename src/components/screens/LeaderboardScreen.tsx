@@ -28,59 +28,33 @@ export function LeaderboardScreen() {
   async function fetchLeaderboard() {
     setLoading(true)
 
-    const now = new Date()
-    const cutoff = period === '7d'
-      ? new Date(now.getTime() - 7 * 86400000).toISOString()
-      : period === '30d'
-        ? new Date(now.getTime() - 30 * 86400000).toISOString()
-        : '2000-01-01'
+    // Server-side aggregate. The old direct table queries ran under
+    // owner-scoped RLS, so "trending" only ever counted the current
+    // user's own rows. get_trending_fragrances (SECURITY DEFINER,
+    // migration 20260610100000) aggregates across all users and returns
+    // fragrance-level counts only.
+    const days = period === '7d' ? 7 : period === '30d' ? 30 : null
+    const { data, error } = await supabase.rpc('get_trending_fragrances', {
+      p_category: category,
+      p_days: days,
+    })
 
-    let table: string
-    let dateCol: string
-
-    if (category === 'worn') {
-      table = 'wear_logs'
-      dateCol = 'wear_date'
-    } else if (category === 'added') {
-      table = 'user_collections'
-      dateCol = 'date_added'
-    } else {
-      table = 'reviews'
-      dateCol = 'created_at'
+    type Row = { fragrance_id: string; name: string; brand: string; image_url: string | null; cnt: number }
+    if (error || !data) {
+      setEntries([])
+      setLoading(false)
+      return
     }
 
-    const { data } = await supabase
-      .from(table)
-      .select('fragrance_id, fragrance:fragrances(id, name, brand, image_url)')
-      .gte(dateCol, cutoff)
-      .limit(500)
-
-    type Row = { fragrance_id: string; fragrance: { id: string; name: string; brand: string; image_url: string | null } | null }
-    const rows = (data ?? []) as unknown as Row[]
-
-    // Count by fragrance
-    const countMap = new Map<string, { name: string; brand: string; image_url: string | null; count: number }>()
-    for (const row of rows) {
-      if (!row.fragrance) continue
-      const existing = countMap.get(row.fragrance_id)
-      if (existing) {
-        existing.count++
-      } else {
-        countMap.set(row.fragrance_id, {
-          name: row.fragrance.name,
-          brand: row.fragrance.brand,
-          image_url: row.fragrance.image_url,
-          count: 1,
-        })
-      }
-    }
-
-    const sorted = [...countMap.entries()]
-      .map(([fragrance_id, data]) => ({ fragrance_id, ...data }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 20)
-
-    setEntries(sorted)
+    setEntries(
+      (data as Row[]).map((r) => ({
+        fragrance_id: r.fragrance_id,
+        name: r.name,
+        brand: r.brand,
+        image_url: r.image_url,
+        count: Number(r.cnt),
+      }))
+    )
     setLoading(false)
   }
 

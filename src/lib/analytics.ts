@@ -22,6 +22,9 @@ interface QueuedEvent extends AnalyticsEvent {
   created_at: string
 }
 
+/** Retry bookkeeping -- kept out of the row payload sent to PostgREST. */
+const retriedOnce = new WeakSet<QueuedEvent>()
+
 // ── Session & device helpers ─────────────────────────────────────────
 function getSessionId(): string {
   const key = 'scentfolio_session_id'
@@ -44,6 +47,7 @@ function getDeviceType(): string {
 let queue: QueuedEvent[] = []
 let flushTimer: ReturnType<typeof setInterval> | null = null
 let currentUserId: string | null = null
+let currentAccessToken: string | null = null
 
 const FLUSH_INTERVAL = 5_000 // 5 seconds
 const MAX_BATCH = 50
@@ -54,11 +58,44 @@ async function flush() {
   if (queue.length === 0) return
   const batch = queue.splice(0, MAX_BATCH)
 
+  // supabase-js resolves with { error } rather than throwing, so the retry
+  // path must inspect the result. Each event gets exactly one retry --
+  // permanently-rejected batches (RLS, rate-limit trigger) must not loop.
+  const { error } = await supabase.from('analytics_events').insert(batch)
+  if (error) {
+    const retryable = batch.filter((e) => !retriedOnce.has(e))
+    retryable.forEach((e) => retriedOnce.add(e))
+    queue.unshift(...retryable)
+  }
+}
+
+/**
+ * Final flush on page hide. The normal supabase-js fetch is routinely
+ * cancelled by the browser during unload, losing the last batch (the
+ * usual cause of missing sign_out / final page_view events). A direct
+ * PostgREST call with keepalive survives the page teardown.
+ */
+function flushKeepalive() {
+  if (queue.length === 0) return
+  const batch = queue.splice(0, MAX_BATCH)
+
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/analytics_events`
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+    Prefer: 'return=minimal',
+  }
+  if (currentAccessToken) {
+    headers.Authorization = `Bearer ${currentAccessToken}`
+  }
+  // Without a user JWT, RLS only accepts anonymous rows -- strip the
+  // attribution rather than losing the events entirely.
+  const rows = currentAccessToken ? batch : batch.map((e) => ({ ...e, user_id: null }))
+
   try {
-    await supabase.from('analytics_events').insert(batch)
+    fetch(url, { method: 'POST', headers, body: JSON.stringify(rows), keepalive: true })
   } catch {
-    // If insert fails, push back to front of queue for retry
-    queue.unshift(...batch)
+    /* page is going away; nothing more to do */
   }
 }
 
@@ -68,15 +105,18 @@ function startFlushing() {
 
   // Flush on page hide (tab close, navigate away, mobile background)
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') flush()
+    if (document.visibilityState === 'hidden') flushKeepalive()
   })
 }
 
 // ── Public API ───────────────────────────────────────────────────────
 
-/** Set the current user ID (call on auth state change) */
-export function setAnalyticsUser(userId: string | null) {
+/** Set the current user ID + access token (call on auth state change).
+ *  The token lets the page-hide keepalive flush authenticate -- the
+ *  analytics_events INSERT policy requires auth.uid() to match user_id. */
+export function setAnalyticsUser(userId: string | null, accessToken: string | null = null) {
   currentUserId = userId
+  currentAccessToken = accessToken
 }
 
 /** Track an event */
