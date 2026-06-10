@@ -42,21 +42,26 @@ export function useIsFollowing(targetUserId: string | undefined) {
 
   useEffect(() => { check() }, [check])
 
-  const toggleFollow = useCallback(async () => {
-    if (!user || !targetUserId) return
+  const toggleFollow = useCallback(async (): Promise<boolean> => {
+    if (!user || !targetUserId) return false
+    // Gate the optimistic flip on the actual write result -- supabase-js
+    // resolves with { error } rather than throwing.
     if (following) {
-      await supabase
+      const { error } = await supabase
         .from('user_follows')
         .delete()
         .eq('follower_id', user.id)
         .eq('following_id', targetUserId)
+      if (error) return false
       setFollowing(false)
     } else {
-      await supabase
+      const { error } = await supabase
         .from('user_follows')
         .insert({ follower_id: user.id, following_id: targetUserId })
+      if (error) return false
       setFollowing(true)
     }
+    return true
   }, [user, targetUserId, following])
 
   return { following, loading, toggleFollow }

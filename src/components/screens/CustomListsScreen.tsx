@@ -6,6 +6,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import type { Fragrance } from '@/types/database'
+import { sanitizeSearchTerm } from '@/hooks/useFragrances'
 
 interface CustomList {
   id: string
@@ -398,7 +399,7 @@ function AddToListSheet({ isOpen, onClose, listId, existingIds, onAdded }: {
       supabase
         .from('fragrances')
         .select('*')
-        .or(`name.ilike.%${query}%,brand.ilike.%${query}%`)
+        .or(`name.ilike.%${sanitizeSearchTerm(query)}%,brand.ilike.%${sanitizeSearchTerm(query)}%`)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(10)
         .then(({ data }) => {

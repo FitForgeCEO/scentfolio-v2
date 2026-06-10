@@ -64,24 +64,42 @@ export function useTopShelf() {
   const save = useCallback(async (newItems: TopShelfItem[]) => {
     if (!user) return
     setSaving(true)
+    const prevItems = items
     setItems(newItems)
 
-    // Save to localStorage
-    const ids = newItems.map(i => i.fragrance_id)
-    try { localStorage.setItem(LS_KEY(user.id), JSON.stringify(ids)) } catch { /* ignore */ }
+    const writeLocal = (list: TopShelfItem[]) => {
+      try { localStorage.setItem(LS_KEY(user.id), JSON.stringify(list.map(i => i.fragrance_id))) } catch { /* ignore */ }
+    }
+    writeLocal(newItems)
 
-    // Save to Supabase
-    try {
-      await supabase.from('top_shelf').delete().eq('user_id', user.id)
-      if (newItems.length > 0) {
-        await supabase.from('top_shelf').insert(
-          newItems.map((item, i) => ({ user_id: user.id, fragrance_id: item.fragrance_id, position: i }))
-        )
+    // Replace rows in Supabase. delete-then-insert is not transactional
+    // from the client, so a failed insert must restore the previous rows --
+    // otherwise the shelf is silently wiped on every other device.
+    const { error: delError } = await supabase.from('top_shelf').delete().eq('user_id', user.id)
+    if (delError) {
+      setItems(prevItems)
+      writeLocal(prevItems)
+      setSaving(false)
+      return
+    }
+    if (newItems.length > 0) {
+      const { error: insError } = await supabase.from('top_shelf').insert(
+        newItems.map((item, i) => ({ user_id: user.id, fragrance_id: item.fragrance_id, position: i }))
+      )
+      if (insError) {
+        // Best-effort restore of the previous server rows + local rollback
+        if (prevItems.length > 0) {
+          await supabase.from('top_shelf').insert(
+            prevItems.map((item, i) => ({ user_id: user.id, fragrance_id: item.fragrance_id, position: i }))
+          )
+        }
+        setItems(prevItems)
+        writeLocal(prevItems)
       }
-    } catch { /* graceful fallback to localStorage */ }
+    }
 
     setSaving(false)
-  }, [user])
+  }, [user, items])
 
   const addToShelf = useCallback((fragrance: Fragrance) => {
     if (items.length >= MAX_SLOTS) return

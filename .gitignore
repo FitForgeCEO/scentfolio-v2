@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 scripts/fragdb-etl-prototype.out.json
+
+# Env files -- never commit; .env.example is the template
+.env
+.env.*
+!.env.example

@@ -7,6 +7,7 @@ import type { ScentBoardItem } from '@/hooks/useScentBoards'
 import type { Fragrance } from '@/types/database'
 import { InlineError } from '../ui/InlineError'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { sanitizeSearchTerm } from '@/hooks/useFragrances'
 
 const COVER_COLOURS = [
   'linear-gradient(135deg, #1a1a2e, #16213e)',
@@ -276,7 +277,7 @@ function AddToBoardSheet({ boardId, onClose, onAdded }: { boardId: string; onClo
       supabase
         .from('fragrances')
         .select('*')
-        .or(`name.ilike.%${searchQuery}%,brand.ilike.%${searchQuery}%`)
+        .or(`name.ilike.%${sanitizeSearchTerm(searchQuery)}%,brand.ilike.%${sanitizeSearchTerm(searchQuery)}%`)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(8)
         .then(({ data }) => {

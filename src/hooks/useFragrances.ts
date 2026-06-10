@@ -1,8 +1,17 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getStale, setCache } from '@/lib/cache'
 import type { Fragrance, UserCollection, Review } from '@/types/database'
 import type { ReviewSortOption } from './useReviewEnhancements'
+
+/**
+ * Strip characters that are syntax inside PostgREST's .or() filter grammar.
+ * Commas separate conditions and parentheses group them, so a search like
+ * "Angel (Men)" or "1,000" would otherwise produce a malformed filter -> 400.
+ */
+export function sanitizeSearchTerm(term: string): string {
+  return term.replace(/[,()"]/g, ' ').trim()
+}
 
 /** Fetch top-rated fragrances for trending section (cached 5 min) */
 export function useTrendingFragrances(limit = 6) {
@@ -16,8 +25,10 @@ export function useTrendingFragrances(limit = 6) {
     return !cached || cached.isStale
   })
   const [error, setError] = useState<string | null>(null)
+  const reqRef = useRef(0)
 
   const fetch = useCallback(() => {
+    const reqId = ++reqRef.current
     setLoading(true)
     setError(null)
     supabase
@@ -27,6 +38,7 @@ export function useTrendingFragrances(limit = 6) {
       .order('rating', { ascending: false })
       .limit(limit)
       .then(({ data, error }) => {
+        if (reqId !== reqRef.current) return
         if (error) setError(error.message)
         else if (data) {
           const typed = data as Fragrance[]
@@ -47,9 +59,17 @@ export function useFragranceDetail(id: string | undefined) {
   const [data, setData] = useState<Fragrance | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const reqRef = useRef(0)
 
   const fetch = useCallback(() => {
-    if (!id) return
+    const reqId = ++reqRef.current
+    if (!id) {
+      setData(null)
+      setLoading(false)
+      return
+    }
+    // Reset so navigating A -> B shows a skeleton, not A's data under B's URL
+    setData(null)
     setLoading(true)
     setError(null)
     supabase
@@ -58,6 +78,7 @@ export function useFragranceDetail(id: string | undefined) {
       .eq('id', id)
       .single()
       .then(({ data, error }) => {
+        if (reqId !== reqRef.current) return
         if (error) setError(error.message)
         else if (data) setData(data as Fragrance)
         setLoading(false)
@@ -74,10 +95,16 @@ export function useFragranceSearch(query: string, limit = 20) {
   const [data, setData] = useState<Fragrance[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const reqRef = useRef(0)
 
   useEffect(() => {
-    if (query.length < 2) {
+    // Bump even on the early return so an in-flight response from a prior
+    // query can't repopulate results after the box was cleared.
+    const reqId = ++reqRef.current
+    const term = sanitizeSearchTerm(query)
+    if (term.length < 2) {
       setData([])
+      setLoading(false)
       return
     }
     setLoading(true)
@@ -85,10 +112,11 @@ export function useFragranceSearch(query: string, limit = 20) {
     supabase
       .from('fragrances')
       .select('*')
-      .or(`name.ilike.%${query}%,brand.ilike.%${query}%`)
+      .or(`name.ilike.%${term}%,brand.ilike.%${term}%`)
       .order('rating', { ascending: false, nullsFirst: false })
       .limit(limit)
       .then(({ data, error }) => {
+        if (reqId !== reqRef.current) return
         if (error) setError(error.message)
         else if (data) setData(data as Fragrance[])
         setLoading(false)
@@ -104,8 +132,10 @@ export function useFragrancesBrowse(page = 0, pageSize = 20) {
   const [loading, setLoading] = useState(true)
   const [count, setCount] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const reqRef = useRef(0)
 
   const fetch = useCallback(() => {
+    const reqId = ++reqRef.current
     setLoading(true)
     setError(null)
     supabase
@@ -114,9 +144,10 @@ export function useFragrancesBrowse(page = 0, pageSize = 20) {
       .order('rating', { ascending: false, nullsFirst: false })
       .range(page * pageSize, (page + 1) * pageSize - 1)
       .then(({ data, error, count: total }) => {
+        if (reqId !== reqRef.current) return
         if (error) setError(error.message)
         else if (data) setData(data as Fragrance[])
-        if (total) setCount(total)
+        if (typeof total === 'number') setCount(total)
         setLoading(false)
       })
   }, [page, pageSize])
@@ -131,9 +162,15 @@ export function useFragranceReviews(fragranceId: string | undefined, sort: Revie
   const [data, setData] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const reqRef = useRef(0)
 
   const fetchReviews = useCallback(() => {
-    if (!fragranceId) return
+    const reqId = ++reqRef.current
+    if (!fragranceId) {
+      setData([])
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError(null)
 
@@ -162,6 +199,7 @@ export function useFragranceReviews(fragranceId: string | undefined, sort: Revie
     query
       .limit(50)
       .then(({ data, error }) => {
+        if (reqId !== reqRef.current) return
         if (error) setError(error.message)
         else if (data) setData(data as unknown as Review[])
         setLoading(false)
@@ -178,8 +216,10 @@ export function useUserCollection(userId: string | undefined) {
   const [data, setData] = useState<(UserCollection & { fragrance: Fragrance })[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const reqRef = useRef(0)
 
   const fetch = useCallback(() => {
+    const reqId = ++reqRef.current
     if (!userId) {
       setLoading(false)
       return
@@ -192,6 +232,7 @@ export function useUserCollection(userId: string | undefined) {
       .eq('user_id', userId)
       .order('date_added', { ascending: false })
       .then(({ data, error }) => {
+        if (reqId !== reqRef.current) return
         if (error) setError(error.message)
         else if (data) setData(data as any)
         setLoading(false)
@@ -208,15 +249,22 @@ export function useFragranceTags(fragranceId: string | undefined) {
   const [data, setData] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const reqRef = useRef(0)
 
   useEffect(() => {
-    if (!fragranceId) return
+    const reqId = ++reqRef.current
+    if (!fragranceId) {
+      setData([])
+      setLoading(false)
+      return
+    }
     setError(null)
     supabase
       .from('fragrance_tags')
       .select('tag')
       .eq('fragrance_id', fragranceId)
       .then(({ data, error }) => {
+        if (reqId !== reqRef.current) return
         if (error) setError(error.message)
         else if (data) setData([...new Set(data.map((t) => t.tag))])
         setLoading(false)

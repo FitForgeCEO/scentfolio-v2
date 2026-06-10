@@ -67,8 +67,8 @@ export function ResetPasswordScreen() {
     e.preventDefault()
     setError(null)
 
-    if (password.length < 6) {
-      setError('At least six characters, please.')
+    if (password.length < 10) {
+      setError('At least ten characters, please.')
       return
     }
     if (password !== confirm) {
@@ -152,9 +152,9 @@ export function ResetPasswordScreen() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="at least six characters"
+                  placeholder="at least ten characters"
                   required
-                  minLength={6}
+                  minLength={10}
                   autoFocus
                   className="w-full bg-surface-container border-none rounded-sm py-4 px-5 text-on-surface placeholder:text-on-surface-variant/30 text-sm transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-primary/30"
                 />
@@ -168,7 +168,7 @@ export function ResetPasswordScreen() {
                   onChange={(e) => setConfirm(e.target.value)}
                   placeholder="one more time"
                   required
-                  minLength={6}
+                  minLength={10}
                   className="w-full bg-surface-container border-none rounded-sm py-4 px-5 text-on-surface placeholder:text-on-surface-variant/30 text-sm transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-primary/30"
                 />
               </div>

@@ -117,17 +117,20 @@ export function SettingsScreen() {
   const handleDeleteAllData = async () => {
     if (!user) return
     setDeletingData(true)
-    try {
-      await Promise.all([
-        supabase.from('wear_logs').delete().eq('user_id', user.id),
-        supabase.from('reviews').delete().eq('user_id', user.id),
-        supabase.from('decants').delete().eq('user_id', user.id),
-        supabase.from('user_collections').delete().eq('user_id', user.id),
-      ])
+    // supabase-js resolves with { error } rather than throwing, so each
+    // result must be checked -- a destructive flow must never report
+    // success when nothing was deleted.
+    const results = await Promise.all([
+      supabase.from('wear_logs').delete().eq('user_id', user.id),
+      supabase.from('reviews').delete().eq('user_id', user.id),
+      supabase.from('decants').delete().eq('user_id', user.id),
+      supabase.from('user_collections').delete().eq('user_id', user.id),
+    ])
+    if (results.some((r) => r.error)) {
+      toast.showToast('Delete failed — some data may remain', 'error')
+    } else {
       toast.showToast('All data deleted', 'success')
       setDeleteConfirmOpen(false)
-    } catch {
-      toast.showToast('Delete failed', 'error')
     }
     setDeletingData(false)
   }
@@ -549,7 +552,7 @@ function ChangePasswordInline({ isOpen, onClose, updatePassword }: {
 
   const handleSave = async () => {
     setError(null)
-    if (password.length < 6) { setError('At least six characters, please.'); return }
+    if (password.length < 10) { setError('At least ten characters, please.'); return }
     if (password !== confirm) { setError('The two keys don’t match.'); return }
     setSaving(true)
     const { error } = await updatePassword(password)
@@ -578,9 +581,9 @@ function ChangePasswordInline({ isOpen, onClose, updatePassword }: {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="at least six characters"
+              placeholder="at least ten characters"
               autoFocus
-              minLength={6}
+              minLength={10}
               className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-sm px-4 py-3.5 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none"
             />
           </div>
@@ -592,7 +595,7 @@ function ChangePasswordInline({ isOpen, onClose, updatePassword }: {
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               placeholder="one more time"
-              minLength={6}
+              minLength={10}
               className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-sm px-4 py-3.5 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none"
             />
           </div>
@@ -603,7 +606,7 @@ function ChangePasswordInline({ isOpen, onClose, updatePassword }: {
 
           <button
             onClick={handleSave}
-            disabled={saving || password.length < 6 || confirm.length < 6}
+            disabled={saving || password.length < 10 || confirm.length < 10}
             className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-sm ambient-glow transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {saving ? 'UPDATING...' : 'UPDATE PASSWORD'}

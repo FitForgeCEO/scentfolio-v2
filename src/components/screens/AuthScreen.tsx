@@ -228,9 +228,9 @@ export function AuthScreen() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="at least six characters"
+                placeholder="at least ten characters"
                 required
-                minLength={6}
+                minLength={10}
                 className="w-full bg-surface-container border-none rounded-sm py-4 px-5 text-on-surface placeholder:text-on-surface-variant/30 text-sm transition-all duration-300 focus:outline-none focus:ring-1 focus:ring-primary/30"
               />
             </div>

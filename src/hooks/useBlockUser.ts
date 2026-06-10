@@ -38,32 +38,34 @@ export function useIsBlocked(targetUserId: string | undefined) {
     check()
   }, [user, targetUserId])
 
-  const toggleBlock = useCallback(async () => {
-    if (!user || !targetUserId) return
-    try {
-      if (blocked) {
-        await supabase
-          .from('user_blocks')
-          .delete()
-          .eq('blocker_id', user.id)
-          .eq('blocked_id', targetUserId)
-        setBlocked(false)
-      } else {
-        await supabase
-          .from('user_blocks')
-          .insert({ blocker_id: user.id, blocked_id: targetUserId })
-        setBlocked(true)
+  const toggleBlock = useCallback(async (): Promise<boolean> => {
+    if (!user || !targetUserId) return false
+    // NB: supabase-js resolves with { error } rather than throwing, so the
+    // state flip must be gated on the result -- a safety feature reporting
+    // "Blocked" while the write failed is worse than failing loudly.
+    if (blocked) {
+      const { error } = await supabase
+        .from('user_blocks')
+        .delete()
+        .eq('blocker_id', user.id)
+        .eq('blocked_id', targetUserId)
+      if (error) return false
+      setBlocked(false)
+    } else {
+      const { error } = await supabase
+        .from('user_blocks')
+        .insert({ blocker_id: user.id, blocked_id: targetUserId })
+      if (error) return false
+      setBlocked(true)
 
-        // Also unfollow if following
-        await supabase
-          .from('user_follows')
-          .delete()
-          .eq('follower_id', user.id)
-          .eq('following_id', targetUserId)
-      }
-    } catch {
-      // Graceful fallback
+      // Also unfollow if following (best-effort; block already persisted)
+      await supabase
+        .from('user_follows')
+        .delete()
+        .eq('follower_id', user.id)
+        .eq('following_id', targetUserId)
     }
+    return true
   }, [user, targetUserId, blocked])
 
   return { blocked, loading, toggleBlock }
@@ -141,18 +143,16 @@ export function useBlockedUsers() {
 
   useEffect(() => { fetch() }, [fetch])
 
-  const unblock = useCallback(async (targetId: string) => {
-    if (!user) return
-    try {
-      await supabase
-        .from('user_blocks')
-        .delete()
-        .eq('blocker_id', user.id)
-        .eq('blocked_id', targetId)
-      setUsers(prev => prev.filter(u => u.id !== targetId))
-    } catch {
-      // Graceful fallback
-    }
+  const unblock = useCallback(async (targetId: string): Promise<boolean> => {
+    if (!user) return false
+    const { error } = await supabase
+      .from('user_blocks')
+      .delete()
+      .eq('blocker_id', user.id)
+      .eq('blocked_id', targetId)
+    if (error) return false
+    setUsers(prev => prev.filter(u => u.id !== targetId))
+    return true
   }, [user])
 
   return { users, loading, unblock, refetch: fetch }

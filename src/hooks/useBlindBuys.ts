@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Fragrance } from '@/types/database'
+import { sanitizeSearchTerm } from '@/hooks/useFragrances'
 
 export type BlindBuyOutcome = 'love' | 'like' | 'neutral' | 'dislike' | 'sold'
 
@@ -75,19 +76,27 @@ export function useBlindBuys() {
 
     const updated = [newBuy, ...buys]
     setBuys(updated)
-    try { localStorage.setItem(LS_KEY(user.id), JSON.stringify(updated)) } catch { /* ignore */ }
+    const writeLocal = (list: BlindBuy[]) => {
+      try { localStorage.setItem(LS_KEY(user.id), JSON.stringify(list)) } catch { /* ignore */ }
+    }
+    writeLocal(updated)
 
-    try {
-      await supabase.from('blind_buys').insert({
-        id: newBuy.id,
-        user_id: user.id,
-        fragrance_id: fragranceId,
-        purchase_date: newBuy.purchase_date,
-        price_paid: pricePaid,
-        outcome: null,
-        notes: null,
-      })
-    } catch { /* localStorage fallback */ }
+    // supabase-js resolves with { error } -- a failed insert would leave the
+    // buy only in this browser's localStorage, silently vanishing after the
+    // next successful fetch. Roll back instead.
+    const { error } = await supabase.from('blind_buys').insert({
+      id: newBuy.id,
+      user_id: user.id,
+      fragrance_id: fragranceId,
+      purchase_date: newBuy.purchase_date,
+      price_paid: pricePaid,
+      outcome: null,
+      notes: null,
+    })
+    if (error) {
+      setBuys(buys)
+      writeLocal(buys)
+    }
   }, [user, buys])
 
   const updateOutcome = useCallback(async (buyId: string, outcome: BlindBuyOutcome, notes: string | null) => {
@@ -97,9 +106,11 @@ export function useBlindBuys() {
     setBuys(updated)
     try { localStorage.setItem(LS_KEY(user.id), JSON.stringify(updated)) } catch { /* ignore */ }
 
-    try {
-      await supabase.from('blind_buys').update({ outcome, notes }).eq('id', buyId).eq('user_id', user.id)
-    } catch { /* localStorage fallback */ }
+    const { error } = await supabase.from('blind_buys').update({ outcome, notes }).eq('id', buyId).eq('user_id', user.id)
+    if (error) {
+      setBuys(buys)
+      try { localStorage.setItem(LS_KEY(user.id), JSON.stringify(buys)) } catch { /* ignore */ }
+    }
   }, [user, buys])
 
   const removeBuy = useCallback(async (buyId: string) => {
@@ -109,9 +120,11 @@ export function useBlindBuys() {
     setBuys(updated)
     try { localStorage.setItem(LS_KEY(user.id), JSON.stringify(updated)) } catch { /* ignore */ }
 
-    try {
-      await supabase.from('blind_buys').delete().eq('id', buyId).eq('user_id', user.id)
-    } catch { /* localStorage fallback */ }
+    const { error } = await supabase.from('blind_buys').delete().eq('id', buyId).eq('user_id', user.id)
+    if (error) {
+      setBuys(buys)
+      try { localStorage.setItem(LS_KEY(user.id), JSON.stringify(buys)) } catch { /* ignore */ }
+    }
   }, [user, buys])
 
   // Stats
@@ -149,7 +162,7 @@ export function useBlindBuySearch() {
         .from('fragrances')
         .select('id, name, brand, image_url, note_family')
         .eq('is_approved', true)
-        .or(`name.ilike.%${query.trim()}%,brand.ilike.%${query.trim()}%`)
+        .or(`name.ilike.%${sanitizeSearchTerm(query.trim())}%,brand.ilike.%${sanitizeSearchTerm(query.trim())}%`)
         .limit(8)
         .then(({ data }) => {
           setResults((data ?? []) as Fragrance[])

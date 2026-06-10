@@ -13,6 +13,7 @@ import { PromoteToOwnedSheet, type PromoteMeta } from '../ui/PromoteToOwnedSheet
 import { RecommendationCarousel } from '../ui/RecommendationCarousel'
 import { useAllUserTags, useFragrancesByTag } from '@/hooks/useUserTags'
 import type { Fragrance, UserCollection } from '@/types/database'
+import { sanitizeSearchTerm } from '@/hooks/useFragrances'
 
 // ── Noir helpers (shared voice with HomeScreen) ──
 const WORDS_20 = [
@@ -247,7 +248,7 @@ export function CollectionScreen() {
       supabase
         .from('fragrances')
         .select('*')
-        .or(`name.ilike.%${addQuery}%,brand.ilike.%${addQuery}%`)
+        .or(`name.ilike.%${sanitizeSearchTerm(addQuery)}%,brand.ilike.%${sanitizeSearchTerm(addQuery)}%`)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(10)
         .then(({ data }) => {
@@ -268,15 +269,25 @@ export function CollectionScreen() {
       .eq('fragrance_id', frag.id)
       .maybeSingle()
     if (existing) {
-      await supabase
+      const { error } = await supabase
         .from('user_collections')
         .update({ status: addStatus })
         .eq('user_id', user.id)
         .eq('fragrance_id', frag.id)
+      if (error) {
+        toast.showToast('The entry could not be filed.', 'error')
+        setAddingSaving(null)
+        return
+      }
     } else {
-      await supabase
+      const { error } = await supabase
         .from('user_collections')
         .insert({ user_id: user.id, fragrance_id: frag.id, status: addStatus })
+      if (error) {
+        toast.showToast('The entry could not be filed.', 'error')
+        setAddingSaving(null)
+        return
+      }
       await awardXP(user.id, 'ADD_TO_COLLECTION')
     }
     setAddingSaving(null)

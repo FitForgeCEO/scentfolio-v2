@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useOnboarding, NOTE_FAMILIES, VIBE_OPTIONS, EXPERIENCE_LEVELS } from '@/hooks/useOnboarding'
 import { supabase } from '@/lib/supabase'
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
+import { sanitizeSearchTerm } from '@/hooks/useFragrances'
 
 /* ─── shared editorial chrome ─── */
 const ROMAN = ['ONE', 'TWO', 'THREE', 'FOUR'] as const
@@ -372,7 +373,7 @@ function FirstFragranceStep({
         const { data } = await supabase
           .from('fragrances')
           .select('id, name, brand, image_url, note_family')
-          .or(`name.ilike.%${query}%,brand.ilike.%${query}%`)
+          .or(`name.ilike.%${sanitizeSearchTerm(query)}%,brand.ilike.%${sanitizeSearchTerm(query)}%`)
           .limit(12)
         setResults((data ?? []) as SearchResult[])
       } catch {

@@ -44,24 +44,24 @@ export function useReviewLike(reviewId: string) {
 
   const toggleLike = useCallback(async () => {
     if (!user) return
-    try {
-      if (liked) {
-        await supabase
-          .from('review_likes')
-          .delete()
-          .eq('review_id', reviewId)
-          .eq('user_id', user.id)
-        setLiked(false)
-        setCount((c) => Math.max(0, c - 1))
-      } else {
-        await supabase
-          .from('review_likes')
-          .insert({ review_id: reviewId, user_id: user.id })
-        setLiked(true)
-        setCount((c) => c + 1)
-      }
-    } catch {
-      // Graceful fallback
+    // supabase-js resolves with { error } rather than throwing -- only
+    // update the count when the write actually landed.
+    if (liked) {
+      const { error } = await supabase
+        .from('review_likes')
+        .delete()
+        .eq('review_id', reviewId)
+        .eq('user_id', user.id)
+      if (error) return
+      setLiked(false)
+      setCount((c) => Math.max(0, c - 1))
+    } else {
+      const { error } = await supabase
+        .from('review_likes')
+        .insert({ review_id: reviewId, user_id: user.id })
+      if (error) return
+      setLiked(true)
+      setCount((c) => c + 1)
     }
   }, [user, reviewId, liked])
 
@@ -109,25 +109,23 @@ export function useReviewLikeCounts(reviewIds: string[]) {
 
   const toggleLike = useCallback(async (reviewId: string) => {
     if (!user) return
-    try {
-      const isLiked = userLiked.has(reviewId)
-      if (isLiked) {
-        await supabase
-          .from('review_likes')
-          .delete()
-          .eq('review_id', reviewId)
-          .eq('user_id', user.id)
-        setUserLiked((prev) => { const s = new Set(prev); s.delete(reviewId); return s })
-        setCounts((prev) => ({ ...prev, [reviewId]: Math.max(0, (prev[reviewId] ?? 0) - 1) }))
-      } else {
-        await supabase
-          .from('review_likes')
-          .insert({ review_id: reviewId, user_id: user.id })
-        setUserLiked((prev) => new Set(prev).add(reviewId))
-        setCounts((prev) => ({ ...prev, [reviewId]: (prev[reviewId] ?? 0) + 1 }))
-      }
-    } catch {
-      // Graceful fallback
+    const isLiked = userLiked.has(reviewId)
+    if (isLiked) {
+      const { error } = await supabase
+        .from('review_likes')
+        .delete()
+        .eq('review_id', reviewId)
+        .eq('user_id', user.id)
+      if (error) return
+      setUserLiked((prev) => { const s = new Set(prev); s.delete(reviewId); return s })
+      setCounts((prev) => ({ ...prev, [reviewId]: Math.max(0, (prev[reviewId] ?? 0) - 1) }))
+    } else {
+      const { error } = await supabase
+        .from('review_likes')
+        .insert({ review_id: reviewId, user_id: user.id })
+      if (error) return
+      setUserLiked((prev) => new Set(prev).add(reviewId))
+      setCounts((prev) => ({ ...prev, [reviewId]: (prev[reviewId] ?? 0) + 1 }))
     }
   }, [user, userLiked])
 

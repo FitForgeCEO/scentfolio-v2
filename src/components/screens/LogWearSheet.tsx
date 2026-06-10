@@ -7,6 +7,7 @@ import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 import { useToast } from '@/contexts/ToastContext'
 import type { Fragrance } from '@/types/database'
+import { sanitizeSearchTerm } from '@/hooks/useFragrances'
 
 const OCCASIONS = ['Casual', 'Office', 'Date Night', 'Night Out', 'Special Event']
 
@@ -60,7 +61,7 @@ export function LogWearSheet({ isOpen, onClose, fragrance: passedFragrance }: Lo
       supabase
         .from('fragrances')
         .select('*')
-        .or(`name.ilike.%${searchQuery}%,brand.ilike.%${searchQuery}%`)
+        .or(`name.ilike.%${sanitizeSearchTerm(searchQuery)}%,brand.ilike.%${sanitizeSearchTerm(searchQuery)}%`)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(8)
         .then(({ data }) => {

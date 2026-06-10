@@ -37,8 +37,8 @@ export function useDeleteReview(onDeleted?: () => void) {
   const { user } = useAuth()
   const [deleting, setDeleting] = useState(false)
 
-  const deleteReview = useCallback(async (reviewId: string) => {
-    if (!user) return
+  const deleteReview = useCallback(async (reviewId: string): Promise<boolean> => {
+    if (!user) return false
     setDeleting(true)
     try {
       const { error } = await supabase
@@ -49,9 +49,11 @@ export function useDeleteReview(onDeleted?: () => void) {
 
       if (!error) {
         onDeleted?.()
+        return true
       }
+      return false
     } catch {
-      /* silent */
+      return false
     } finally {
       setDeleting(false)
     }

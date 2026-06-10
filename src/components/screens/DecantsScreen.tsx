@@ -8,6 +8,7 @@ import { useDecants, createDecant, updateDecantRemaining, deleteDecant } from '@
 import { supabase } from '@/lib/supabase'
 import type { Decant } from '@/hooks/useDecants'
 import type { Fragrance } from '@/types/database'
+import { sanitizeSearchTerm } from '@/hooks/useFragrances'
 
 const SIZE_TYPES = [
   { value: 'full', label: 'Full Bottle', defaultMl: 100 },
@@ -309,7 +310,7 @@ function AddDecantSheet({
       supabase
         .from('fragrances')
         .select('*')
-        .or(`name.ilike.%${query}%,brand.ilike.%${query}%`)
+        .or(`name.ilike.%${sanitizeSearchTerm(query)}%,brand.ilike.%${sanitizeSearchTerm(query)}%`)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(15)
         .then(({ data }) => {

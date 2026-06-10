@@ -6,6 +6,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
 import { getIconChar } from '@/lib/iconUtils'
+import { sanitizeSearchTerm } from '@/hooks/useFragrances'
 
 interface JournalEntry {
   id: string
@@ -67,7 +68,7 @@ export function JournalScreen() {
       const { data } = await supabase
         .from('fragrances')
         .select('id, name, brand, image_url')
-        .or(`name.ilike.%${fragSearch}%,brand.ilike.%${fragSearch}%`)
+        .or(`name.ilike.%${sanitizeSearchTerm(fragSearch)}%,brand.ilike.%${sanitizeSearchTerm(fragSearch)}%`)
         .limit(5)
       setFragResults((data ?? []) as Fragrance[])
     }, 300)

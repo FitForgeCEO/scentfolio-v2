@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
+import { sanitizeSearchTerm } from '@/hooks/useFragrances'
 
 const MAX_COMPARE = 3
 
@@ -289,7 +290,7 @@ function FragrancePickerSheet({
       supabase
         .from('fragrances')
         .select('*')
-        .or(`name.ilike.%${query}%,brand.ilike.%${query}%`)
+        .or(`name.ilike.%${sanitizeSearchTerm(query)}%,brand.ilike.%${sanitizeSearchTerm(query)}%`)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(15)
         .then(({ data }) => {

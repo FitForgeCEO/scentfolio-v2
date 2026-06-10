@@ -9,6 +9,7 @@ import { awardXP } from '@/lib/xp'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { PromoteToOwnedSheet } from '../ui/PromoteToOwnedSheet'
 import type { Fragrance, UserCollection } from '@/types/database'
+import { sanitizeSearchTerm } from '@/hooks/useFragrances'
 
 /* ── Voice helpers ────────────────────────────────────── */
 
@@ -441,7 +442,7 @@ function FilingDeskSheet({
       supabase
         .from('fragrances')
         .select('*')
-        .or(`name.ilike.%${query}%,brand.ilike.%${query}%`)
+        .or(`name.ilike.%${sanitizeSearchTerm(query)}%,brand.ilike.%${sanitizeSearchTerm(query)}%`)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(15)
         .then(({ data }) => {

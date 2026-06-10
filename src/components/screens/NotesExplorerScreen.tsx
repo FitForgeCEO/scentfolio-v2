@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { InlineError } from '../ui/InlineError'
 import { supabase } from '@/lib/supabase'
@@ -64,21 +64,29 @@ export function NotesExplorerScreen() {
     setLoading(true)
     setError(null)
 
-    supabase
-      .from('fragrances')
-      .select('note_family')
-      .not('note_family', 'is', null)
-      .then(({ data, error: err }) => {
+    // Page through the whole table -- PostgREST silently caps un-ranged
+    // selects at 1000 rows, which undercounted every family by ~3x.
+    const fetchFamilies = async () => {
+      const PAGE = 1000
+      const map = new Map<string, number>()
+      for (let page = 0; page < 20; page++) {
+        const { data, error: err } = await supabase
+          .from('fragrances')
+          .select('note_family')
+          .not('note_family', 'is', null)
+          .range(page * PAGE, (page + 1) * PAGE - 1)
         if (err) { setError(err.message); setLoading(false); return }
-        const map = new Map<string, number>()
         data?.forEach((f: any) => { map.set(f.note_family, (map.get(f.note_family) || 0) + 1) })
-        setFamilyResults(
-          [...map.entries()]
-            .map(([family, count]) => ({ family, count, fragrances: [] }))
-            .sort((a, b) => b.count - a.count)
-        )
-        setLoading(false)
-      })
+        if (!data || data.length < PAGE) break
+      }
+      setFamilyResults(
+        [...map.entries()]
+          .map(([family, count]) => ({ family, count, fragrances: [] }))
+          .sort((a, b) => b.count - a.count)
+      )
+      setLoading(false)
+    }
+    fetchFamilies()
 
     // Also fetch top accords
     supabase
@@ -131,17 +139,34 @@ export function NotesExplorerScreen() {
     setLoading(false)
   }
 
+  const searchReqRef = useRef(0)
+
   const handleNoteSearch = useCallback((q: string) => {
     setNoteSearch(q)
-    if (q.length < 2) { setNoteResults([]); return }
+    const reqId = ++searchReqRef.current
+    // Strip characters that are grammar inside PostgREST's or= filter and
+    // Postgres array literals (commas, parens, quotes, braces, backslash).
+    const term = q.replace(/[,()"{}\\]/g, ' ').trim()
+    if (term.length < 2) { setNoteResults([]); setSearching(false); return }
     setSearching(true)
+    // Array containment is exact + case-sensitive and the DB stores notes
+    // in Title Case ("Pink Pepper"), so try the likely casings. Values are
+    // quoted so multi-word notes survive the filter grammar.
+    const titleCased = term.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase())
+    const variants = [...new Set([titleCased, term, term.toLowerCase()])]
+    const clauses = variants.flatMap((v) =>
+      ['notes_top', 'notes_heart', 'notes_base', 'general_notes'].map(
+        (col) => `${col}.cs.{"${v}"}`
+      )
+    )
     supabase
       .from('fragrances')
       .select('*')
-      .or(`notes_top.cs.{${q}},notes_heart.cs.{${q}},notes_base.cs.{${q}},general_notes.cs.{${q}}`)
+      .or(clauses.join(','))
       .order('rating', { ascending: false, nullsFirst: false })
       .limit(20)
       .then(({ data }) => {
+        if (reqId !== searchReqRef.current) return
         setNoteResults((data ?? []) as Fragrance[])
         setSearching(false)
       })

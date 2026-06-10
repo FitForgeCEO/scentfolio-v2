@@ -151,7 +151,12 @@ export function FragranceDetailScreen() {
   }, [frag])
 
   useEffect(() => {
+    // Reset on navigation -- without this, fragrance B inherits A's status
+    // (wrong badge, and handleAddToCollection takes the UPDATE branch which
+    // matches zero rows and silently saves nothing).
+    setCollectionStatus(null)
     if (!user || !id) return
+    let cancelled = false
     supabase
       .from('user_collections')
       .select('status')
@@ -159,8 +164,10 @@ export function FragranceDetailScreen() {
       .eq('fragrance_id', id)
       .maybeSingle()
       .then(({ data }) => {
-        if (data) setCollectionStatus(data.status)
+        if (cancelled) return
+        setCollectionStatus(data?.status ?? null)
       })
+    return () => { cancelled = true }
   }, [user, id])
 
   const handleAddToCollection = useCallback(async (status: string) => {
@@ -443,7 +450,7 @@ export function FragranceDetailScreen() {
         notesHeart={frag.notes_heart ?? undefined}
         notesBase={frag.notes_base ?? undefined}
       />
-      {(frag.notes_top?.length || frag.notes_heart?.length || frag.notes_base?.length) && (
+      {!!(frag.notes_top?.length || frag.notes_heart?.length || frag.notes_base?.length) && (
         <div className="px-8"><div className="h-px" style={hairline} /></div>
       )}
 
@@ -473,7 +480,7 @@ export function FragranceDetailScreen() {
           DEPARTMENT 5 — THE THREE MOVEMENTS
           Top / Heart / Base as italic prose, no boxes, no cards.
           ═══════════════════════════════════════════════════════ */}
-      {(frag.notes_top?.length || frag.notes_heart?.length || frag.notes_base?.length) && (
+      {!!(frag.notes_top?.length || frag.notes_heart?.length || frag.notes_base?.length) && (
         <section className="px-8 py-8 relative">
           <p className={kicker}>The Three Movements</p>
           <h2 className="mt-3 font-headline italic text-2xl text-on-background leading-tight">
@@ -866,9 +873,10 @@ export function FragranceDetailScreen() {
                         revise
                       </button>
                       <button
-                        onClick={() => {
-                          deleteReview(review.id)
-                          showToast('appreciation withdrawn.', 'success')
+                        onClick={async () => {
+                          const ok = await deleteReview(review.id)
+                          if (ok) showToast('appreciation withdrawn.', 'success')
+                          else showToast('could not withdraw the appreciation.', 'error')
                         }}
                         className="text-on-background/40 hover:text-on-background/70 transition-colors"
                       >

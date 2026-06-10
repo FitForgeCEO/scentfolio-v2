@@ -3,6 +3,7 @@ import { ShareStackCard } from '../fragrance/ShareStackCard'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Fragrance } from '@/types/database'
+import { sanitizeSearchTerm } from '@/hooks/useFragrances'
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -94,7 +95,7 @@ function FragranceSearch({
       supabase
         .from('fragrances')
         .select('*')
-        .or(`name.ilike.%${query}%,brand.ilike.%${query}%`)
+        .or(`name.ilike.%${sanitizeSearchTerm(query)}%,brand.ilike.%${sanitizeSearchTerm(query)}%`)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(10)
         .then(({ data }) => {

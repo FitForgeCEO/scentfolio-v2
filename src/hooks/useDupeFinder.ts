@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Fragrance } from '@/types/database'
+import { sanitizeSearchTerm } from '@/hooks/useFragrances'
 
 export interface DupeConnection {
   id: string
@@ -32,7 +33,7 @@ export function useDupeSearch() {
         .from('fragrances')
         .select('id, name, brand, image_url, note_family, notes_top, notes_heart, notes_base, accords')
         .eq('is_approved', true)
-        .or(`name.ilike.%${query.trim()}%,brand.ilike.%${query.trim()}%`)
+        .or(`name.ilike.%${sanitizeSearchTerm(query.trim())}%,brand.ilike.%${sanitizeSearchTerm(query.trim())}%`)
         .limit(10)
         .then(({ data }) => {
           setResults((data ?? []) as Fragrance[])

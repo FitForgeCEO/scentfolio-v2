@@ -17,6 +17,20 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | undefined>(undefined)
 
+/**
+ * Drop the service worker's cached Supabase responses on sign-out --
+ * otherwise the next user of a shared device can read the previous
+ * user's last API responses from Cache Storage. Matches any
+ * '*-data' cache so a CACHE_VERSION bump in sw.js can't strand it.
+ */
+function purgeDataCaches() {
+  if (typeof caches === 'undefined') return
+  caches
+    .keys()
+    .then((keys) => Promise.all(keys.filter((k) => k.endsWith('-data')).map((k) => caches.delete(k))))
+    .catch(() => {/* best-effort */})
+}
+
 // L-1: normalise sign-in errors so the message doesn't reveal whether
 // an email exists in the system. Any credential-failure path collapses
 // to a single generic message; "email not confirmed" gets a UX message
@@ -71,8 +85,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Track auth events
       if (event === 'SIGNED_IN') trackEvent(AnalyticsEvents.SIGN_IN)
-      if (event === 'SIGNED_OUT') trackEvent(AnalyticsEvents.SIGN_OUT)
-      if (event === 'USER_UPDATED' && !session?.user) trackEvent(AnalyticsEvents.SIGN_OUT)
+      if (event === 'SIGNED_OUT') {
+        trackEvent(AnalyticsEvents.SIGN_OUT)
+        purgeDataCaches()
+      }
+      if (event === 'USER_UPDATED' && !session?.user) {
+        trackEvent(AnalyticsEvents.SIGN_OUT)
+        purgeDataCaches()
+      }
     })
 
     return () => subscription.unsubscribe()

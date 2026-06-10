@@ -99,8 +99,10 @@ export async function createBoard(userId: string, title: string, description?: s
 
 /** Delete a scent board */
 export async function deleteBoard(boardId: string): Promise<boolean> {
-  // Items cascade-delete via FK or we delete manually
-  await supabase.from('scent_board_items').delete().eq('board_id', boardId)
+  // Delete items first and abort on failure -- otherwise a failed board
+  // delete after a successful item delete leaves an emptied board behind.
+  const { error: itemsError } = await supabase.from('scent_board_items').delete().eq('board_id', boardId)
+  if (itemsError) return false
   const { error } = await supabase.from('scent_boards').delete().eq('id', boardId)
   return !error
 }

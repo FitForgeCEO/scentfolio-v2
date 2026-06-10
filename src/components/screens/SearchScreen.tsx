@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import type { Fragrance } from '@/types/database'
 import { getRecentlyViewed, clearRecentlyViewed } from '@/lib/recentlyViewed'
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
+import { sanitizeSearchTerm } from '@/hooks/useFragrances'
 
 /* ── constants ───────────────────────────────────────────────── */
 
@@ -133,7 +134,7 @@ export function SearchScreen() {
       .select('*')
 
     if (q.length >= 2) {
-      qb = qb.or(`name.ilike.%${q}%,brand.ilike.%${q}%`)
+      qb = qb.or(`name.ilike.%${sanitizeSearchTerm(q)}%,brand.ilike.%${sanitizeSearchTerm(q)}%`)
     }
     if (family) qb = qb.eq('note_family', family)
     if (conc) qb = qb.eq('concentration', conc)

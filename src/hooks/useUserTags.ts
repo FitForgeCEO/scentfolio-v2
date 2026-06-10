@@ -26,29 +26,38 @@ export function useUserFragranceTags(fragranceId: string | undefined) {
 
   useEffect(() => { fetchTags() }, [fetchTags])
 
-  const setUserTags = useCallback(async (newTags: string[]) => {
-    if (!user || !fragranceId) return
+  const setUserTags = useCallback(async (newTags: string[]): Promise<boolean> => {
+    if (!user || !fragranceId) return false
 
-    // Delete all existing tags for this fragrance
-    await supabase
+    // Delete all existing tags for this fragrance. Abort on failure --
+    // proceeding to insert would duplicate; pretending success would lie.
+    const { error: delError } = await supabase
       .from('fragrance_tags')
       .delete()
       .eq('user_id', user.id)
       .eq('fragrance_id', fragranceId)
+    if (delError) return false
 
-    // Insert new tags
+    // A failed insert here has already lost the old tags server-side
+    // (no client-side transaction), so resync from the DB rather than
+    // showing tags that no longer exist.
     if (newTags.length > 0) {
-      await supabase
+      const { error: insError } = await supabase
         .from('fragrance_tags')
         .insert(newTags.map((tag) => ({
           user_id: user.id,
           fragrance_id: fragranceId,
           tag,
         })))
+      if (insError) {
+        await fetchTags()
+        return false
+      }
     }
 
     setTags(newTags)
-  }, [user, fragranceId])
+    return true
+  }, [user, fragranceId, fetchTags])
 
   return { tags, loading, setTags: setUserTags, refetch: fetchTags }
 }

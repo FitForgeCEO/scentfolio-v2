@@ -115,8 +115,8 @@ function LazyScreen({ children, grid }: { children: React.ReactNode; grid?: bool
 // ── Pre-launch gate — redirect anonymous visitors to waitlist ──────
 function PreLaunchGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
-  // TEMP: PreLaunchGate disabled for Reel recording session, REVERT after
-  const exempt = true
+  // /reset-password must stay reachable for anonymous recovery-link visitors
+  const exempt = useLocation().pathname === '/reset-password'
 
   useEffect(() => {
     if (!loading && !user && !exempt) {

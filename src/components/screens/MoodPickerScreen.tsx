@@ -140,13 +140,13 @@ export function MoodPickerScreen() {
   const handleWear = async (frag: Fragrance) => {
     if (!user) return
     setWearingId(frag.id)
-    try {
-      const today = new Date().toISOString().slice(0, 10)
-      await supabase.from('wear_logs').insert({ user_id: user.id, fragrance_id: frag.id, wear_date: today })
+    const today = new Date().toISOString().slice(0, 10)
+    const { error } = await supabase.from('wear_logs').insert({ user_id: user.id, fragrance_id: frag.id, wear_date: today })
+    if (error) {
+      toast.showToast('Failed to log wear', 'error')
+    } else {
       await awardXP(user.id, 'LOG_WEAR')
       toast.showToast(`Wearing ${frag.name} today!`, 'success')
-    } catch {
-      toast.showToast('Failed to log wear', 'error')
     }
     setWearingId(null)
   }
