@@ -438,7 +438,6 @@ export function SettingsScreen() {
           isOpen={changePasswordOpen}
           onClose={() => setChangePasswordOpen(false)}
           updatePassword={updatePassword}
-          email={user.email ?? ''}
         />
       )}
 
@@ -539,11 +538,10 @@ function DeleteConfirmDialog({ isOpen, onClose, onConfirm, deleting }: {
   )
 }
 
-function ChangePasswordInline({ isOpen, onClose, updatePassword, email }: {
+function ChangePasswordInline({ isOpen, onClose, updatePassword }: {
   isOpen: boolean
   onClose: () => void
-  updatePassword: (pw: string) => Promise<{ error: string | null }>
-  email: string
+  updatePassword: (pw: string, currentPw?: string) => Promise<{ error: string | null }>
 }) {
   const [current, setCurrent] = useState('')
   const [password, setPassword] = useState('')
@@ -559,21 +557,15 @@ function ChangePasswordInline({ isOpen, onClose, updatePassword, email }: {
     if (password.length < 10) { setError('At least ten characters, please.'); return }
     if (password !== confirm) { setError('The two keys don’t match.'); return }
     setSaving(true)
-    // GoTrue's "require current password" setting rejects updateUser unless
-    // the session was recently authenticated. Re-signing-in both proves the
-    // current password and refreshes the session, satisfying the check.
-    const { error: verifyError } = await supabase.auth.signInWithPassword({
-      email,
-      password: current,
-    })
-    if (verifyError) {
-      setSaving(false)
-      setError('Current password is incorrect.')
+    // GoTrue verifies current_password server-side (the dashboard's
+    // "require current password" setting) -- it must ride in the same
+    // updateUser request.
+    const { error } = await updatePassword(password, current)
+    setSaving(false)
+    if (error) {
+      setError(/current password/i.test(error) ? 'Current password is incorrect.' : error)
       return
     }
-    const { error } = await updatePassword(password)
-    setSaving(false)
-    if (error) { setError(error); return }
     toast.showToast('Password updated', 'success')
     onClose()
   }

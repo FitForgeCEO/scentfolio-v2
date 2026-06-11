@@ -12,7 +12,7 @@ interface AuthState {
   signOut: () => Promise<void>
   resendConfirmation: (email: string) => Promise<{ error: string | null }>
   sendPasswordReset: (email: string) => Promise<{ error: string | null }>
-  updatePassword: (newPassword: string) => Promise<{ error: string | null }>
+  updatePassword: (newPassword: string, currentPassword?: string) => Promise<{ error: string | null }>
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined)
@@ -171,8 +171,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null }
   }
 
-  const updatePassword = async (newPassword: string) => {
-    const { error } = await supabase.auth.updateUser({ password: newPassword })
+  const updatePassword = async (newPassword: string, currentPassword?: string) => {
+    // The dashboard's "require current password" setting makes GoTrue reject
+    // password updates unless current_password rides in the same request.
+    // The recovery flow (ResetPasswordScreen) omits it -- recovery sessions
+    // are exempt from the requirement.
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+      ...(currentPassword ? { current_password: currentPassword } : {}),
+    })
     return { error: error?.message ?? null }
   }
 
