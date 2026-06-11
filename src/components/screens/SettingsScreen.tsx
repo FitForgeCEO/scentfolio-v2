@@ -438,6 +438,7 @@ export function SettingsScreen() {
           isOpen={changePasswordOpen}
           onClose={() => setChangePasswordOpen(false)}
           updatePassword={updatePassword}
+          email={user.email ?? ''}
         />
       )}
 
@@ -538,11 +539,13 @@ function DeleteConfirmDialog({ isOpen, onClose, onConfirm, deleting }: {
   )
 }
 
-function ChangePasswordInline({ isOpen, onClose, updatePassword }: {
+function ChangePasswordInline({ isOpen, onClose, updatePassword, email }: {
   isOpen: boolean
   onClose: () => void
   updatePassword: (pw: string) => Promise<{ error: string | null }>
+  email: string
 }) {
+  const [current, setCurrent] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [saving, setSaving] = useState(false)
@@ -552,9 +555,22 @@ function ChangePasswordInline({ isOpen, onClose, updatePassword }: {
 
   const handleSave = async () => {
     setError(null)
+    if (!current) { setError('Enter your current password first.'); return }
     if (password.length < 10) { setError('At least ten characters, please.'); return }
     if (password !== confirm) { setError('The two keys don’t match.'); return }
     setSaving(true)
+    // GoTrue's "require current password" setting rejects updateUser unless
+    // the session was recently authenticated. Re-signing-in both proves the
+    // current password and refreshes the session, satisfying the check.
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email,
+      password: current,
+    })
+    if (verifyError) {
+      setSaving(false)
+      setError('Current password is incorrect.')
+      return
+    }
     const { error } = await updatePassword(password)
     setSaving(false)
     if (error) { setError(error); return }
@@ -576,13 +592,26 @@ function ChangePasswordInline({ isOpen, onClose, updatePassword }: {
           </div>
 
           <div className="space-y-2">
+            <label className="block text-[10px] tracking-[0.15em] text-primary/60 uppercase">Current password</label>
+            <input
+              type="password"
+              value={current}
+              onChange={(e) => setCurrent(e.target.value)}
+              placeholder="the key you hold now"
+              autoFocus
+              autoComplete="current-password"
+              className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-sm px-4 py-3.5 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none"
+            />
+          </div>
+
+          <div className="space-y-2">
             <label className="block text-[10px] tracking-[0.15em] text-primary/60 uppercase">New password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="at least ten characters"
-              autoFocus
+              autoComplete="new-password"
               minLength={10}
               className="w-full bg-surface-container border-none text-on-surface placeholder:text-on-surface-variant/40 rounded-sm px-4 py-3.5 text-sm focus:ring-1 focus:ring-primary/30 focus:outline-none"
             />
@@ -606,7 +635,7 @@ function ChangePasswordInline({ isOpen, onClose, updatePassword }: {
 
           <button
             onClick={handleSave}
-            disabled={saving || password.length < 10 || confirm.length < 10}
+            disabled={saving || !current || password.length < 10 || confirm.length < 10}
             className="w-full py-4 gold-gradient text-on-primary font-bold uppercase tracking-[0.15em] rounded-sm ambient-glow transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {saving ? 'UPDATING...' : 'UPDATE PASSWORD'}
