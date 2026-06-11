@@ -115,8 +115,12 @@ function LazyScreen({ children, grid }: { children: React.ReactNode; grid?: bool
 // ── Pre-launch gate — redirect anonymous visitors to waitlist ──────
 function PreLaunchGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
-  // /reset-password must stay reachable for anonymous recovery-link visitors
-  const exempt = useLocation().pathname === '/reset-password'
+  // /reset-password must stay reachable for anonymous recovery-link visitors.
+  // /profile renders AuthScreen for signed-out users -- existing members need
+  // a way back in (the 30-min idle timeout signs them out, and the gate would
+  // otherwise bounce them to the waitlist with no sign-in path).
+  const { pathname } = useLocation()
+  const exempt = pathname === '/reset-password' || pathname === '/profile'
 
   useEffect(() => {
     if (!loading && !user && !exempt) {
