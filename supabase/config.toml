@@ -1,0 +1,6 @@
+# Supabase CLI config — minimal. Created with the 10 June 2026 schema
+# baseline so `supabase db reset` / `supabase start` have a project
+# identity; CLI defaults apply for everything unspecified. Run
+# `npx supabase init --force` if a future CLI version wants the full
+# template (it won't touch migrations/).
+project_id = "scentfolio-v2"
