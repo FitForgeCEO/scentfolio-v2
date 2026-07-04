@@ -87,6 +87,7 @@ export interface Profile {
   avatar_url: string | null
   level: number
   xp: number
+  signature_slug: string | null
   created_at: string
 }
 

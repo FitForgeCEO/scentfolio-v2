@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getLevelProgress, getXPForNextLevel, getLevelTitle } from '@/lib/xp'
 import { PullToRefresh } from '../ui/PullToRefresh'
+import { generateSignatureAudit } from '@/hooks/useSignatureAudit'
 import type { Profile } from '@/types/database'
 
 /* ── voice helpers ───────────────────────────────────────────── */
@@ -74,6 +75,24 @@ function SignatureContent({ userId }: { userId: string }) {
   const [wearCount, setWearCount] = useState(0)
   const [reviewCount, setReviewCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [auditBusy, setAuditBusy] = useState(false)
+
+  // "See your Signature" — reuse the existing audit URL, or generate the
+  // first one on demand, then land on the shareable page.
+  const openAudit = async () => {
+    if (auditBusy) return
+    if (profile?.signature_slug) {
+      navigate(`/signature/${profile.signature_slug}`)
+      return
+    }
+    setAuditBusy(true)
+    try {
+      const row = await generateSignatureAudit(userId)
+      navigate(`/signature/${row.slug}`)
+    } catch {
+      setAuditBusy(false)
+    }
+  }
 
   const fetchData = () => {
     Promise.all([
@@ -161,6 +180,32 @@ function SignatureContent({ userId }: { userId: string }) {
           ))}
         </div>
         <div className="mt-8" style={{ height: '1px', background: hairline }} />
+      </section>
+
+      {/* ── II½. THE SIGNATURE AUDIT (shareable) ───────────── */}
+      <section className="mb-10">
+        <button
+          onClick={() => void openAudit()}
+          disabled={auditBusy}
+          className="w-full text-left rounded-sm p-5 transition-opacity hover:opacity-90"
+          style={{
+            background: 'linear-gradient(135deg, rgba(229,194,118,0.14), rgba(229,194,118,0.05))',
+            border: '1px solid rgba(229,194,118,0.3)',
+          }}
+        >
+          <p
+            className="font-label text-[0.65rem] tracking-[0.3em] uppercase mb-2"
+            style={{ color: 'rgba(229,194,118,0.8)' }}
+          >
+            NEW · THE AUDIT
+          </p>
+          <p className="font-headline italic text-2xl text-on-background mb-1">
+            {auditBusy ? 'Reading your Signature…' : 'See your Signature.'}
+          </p>
+          <p className="font-headline italic text-sm" style={{ color: 'rgba(168,154,145,0.7)' }}>
+            A shareable reading of what your wardrobe says about you.
+          </p>
+        </button>
       </section>
 
       {/* ── III. THE TASTE PROFILE ─────────────────────────── */}

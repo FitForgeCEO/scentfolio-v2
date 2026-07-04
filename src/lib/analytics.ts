@@ -202,4 +202,10 @@ export const AnalyticsEvents = {
   // Recommender
   RECOMMENDER_CLICK: 'recommender_click',
   RECOMMENDER_THUMBS: 'recommender_thumbs',
+
+  // Signature Audit (growth funnel — see Signature-Audit-Build-Brief-04Jul2026)
+  SIGNATURE_AUDIT_GENERATED: 'signature_audit_generated',
+  SIGNATURE_AUDIT_VIEW: 'signature_audit_view',
+  SIGNATURE_AUDIT_SHARED: 'signature_audit_shared',
+  SIGNATURE_AUDIT_SIGNUP_CTA_CLICK: 'signature_audit_signup_cta_click',
 } as const

@@ -89,6 +89,8 @@ const LandingPage = lazy(() => import('./components/screens/LandingPage').then(m
 const ResetPasswordScreen = lazy(() => import('./components/screens/ResetPasswordScreen').then(m => ({ default: m.ResetPasswordScreen })))
 const PrivacyScreen = lazy(() => import('./components/screens/PrivacyScreen').then(m => ({ default: m.PrivacyScreen })))
 const TermsScreen = lazy(() => import('./components/screens/TermsScreen').then(m => ({ default: m.TermsScreen })))
+const SignatureAuditScreen = lazy(() => import('./components/screens/SignatureAuditScreen').then(m => ({ default: m.SignatureAuditScreen })))
+const AuthScreen = lazy(() => import('./components/screens/AuthScreen').then(m => ({ default: m.AuthScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -208,6 +210,11 @@ export default function App() {
 
               {/* ── Password recovery (no AppLayout — full-screen, no auth required) ── */}
               <Route path="/reset-password" element={<LazyScreen><ResetPasswordScreen /></LazyScreen>} />
+
+              {/* ── Signature Audit (public share URL — no AppLayout, cards are
+                     full-bleed for clean screenshots) + signup CTA target ── */}
+              <Route path="/signature/:userSlug" element={<LazyScreen><SignatureAuditScreen /></LazyScreen>} />
+              <Route path="/auth" element={<LazyScreen><AuthScreen /></LazyScreen>} />
 
               {/* ── Core tabs (lazy with instant prefetch) ── */}
               <Route path="/" element={<HomeGate />} />

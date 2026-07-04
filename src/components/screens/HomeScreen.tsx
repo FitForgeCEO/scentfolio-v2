@@ -7,6 +7,7 @@ import { useHomeStats } from '@/hooks/useHomeStats'
 import { useAuth } from '@/contexts/AuthContext'
 import { LogWearSheet } from './LogWearSheet'
 import { PullToRefresh } from '../ui/PullToRefresh'
+import { SignatureAuditPrompt } from '../ui/SignatureAuditPrompt'
 import { useSmartNotifications } from '@/hooks/useSmartNotifications'
 import { useToast } from '@/contexts/ToastContext'
 import { useOnboarding } from '@/hooks/useOnboarding'
@@ -284,6 +285,7 @@ export function HomeScreen() {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
+      <SignatureAuditPrompt />
       <main className="relative pt-24 pb-32 px-6 space-y-20 overflow-hidden">
         {/* ambient gold lifts */}
         <div style={{ ...ambientGlow, top: -120, left: -120 }} />
