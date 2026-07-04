@@ -87,6 +87,8 @@ const BlindBuyScreen = lazy(() => import('./components/screens/BlindBuyScreen').
 const OnboardingFlowScreen = lazy(() => import('./components/screens/OnboardingFlowScreen').then(m => ({ default: m.OnboardingFlowScreen })))
 const LandingPage = lazy(() => import('./components/screens/LandingPage').then(m => ({ default: m.LandingPage })))
 const ResetPasswordScreen = lazy(() => import('./components/screens/ResetPasswordScreen').then(m => ({ default: m.ResetPasswordScreen })))
+const PrivacyScreen = lazy(() => import('./components/screens/PrivacyScreen').then(m => ({ default: m.PrivacyScreen })))
+const TermsScreen = lazy(() => import('./components/screens/TermsScreen').then(m => ({ default: m.TermsScreen })))
 
 // ── Layout wrapper ─────────────────────────────────────────────────
 function AppLayout({ children, showBack, title }: { children: React.ReactNode; showBack?: boolean; title?: string }) {
@@ -110,28 +112,6 @@ function LazyScreen({ children, grid }: { children: React.ReactNode; grid?: bool
       </div>
     </Suspense>
   )
-}
-
-// ── Pre-launch gate — redirect anonymous visitors to waitlist ──────
-function PreLaunchGate({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
-  // /reset-password must stay reachable for anonymous recovery-link visitors.
-  // /profile renders AuthScreen for signed-out users -- existing members need
-  // a way back in (the 30-min idle timeout signs them out, and the gate would
-  // otherwise bounce them to the waitlist with no sign-in path).
-  const { pathname } = useLocation()
-  const exempt = pathname === '/reset-password' || pathname === '/profile'
-
-  useEffect(() => {
-    if (!loading && !user && !exempt) {
-      window.location.href = 'https://join.scentfolio.app/'
-    }
-  }, [loading, user, exempt])
-
-  // Show skeleton while auth resolves or while the redirect fires
-  if (loading || (!user && !exempt)) return <ScreenSkeleton />
-
-  return <>{children}</>
 }
 
 // ── Native back button handler (Android hardware back, iOS swipe) ──
@@ -201,7 +181,6 @@ export default function App() {
           <div className="max-w-[430px] mx-auto h-dvh overflow-y-auto overflow-x-hidden relative bg-background">
             <AnalyticsTracker />
             <NativeBackHandler />
-            <PreLaunchGate>
             <Routes>
               {/* ── Onboarding (no AppLayout — full-screen flow) ── */}
               <Route path="/onboarding" element={<LazyScreen><OnboardingFlowScreen /></LazyScreen>} />
@@ -312,8 +291,11 @@ export default function App() {
 
               {/* ── Settings ── */}
               <Route path="/settings" element={<AppLayout title="SETTINGS" showBack><LazyScreen><SettingsScreen /></LazyScreen></AppLayout>} />
+
+              {/* ── Legal (accessible signed-out) ── */}
+              <Route path="/privacy" element={<AppLayout title="PRIVACY" showBack><LazyScreen><PrivacyScreen /></LazyScreen></AppLayout>} />
+              <Route path="/terms" element={<AppLayout title="TERMS" showBack><LazyScreen><TermsScreen /></LazyScreen></AppLayout>} />
             </Routes>
-            </PreLaunchGate>
             <InstallBanner />
           </div>
         </BrowserRouter>

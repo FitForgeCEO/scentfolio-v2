@@ -284,9 +284,9 @@ export function AuthScreen() {
             </button>
           )}
           <div className="flex items-center space-x-6 text-[9px] tracking-[0.2em] text-on-surface-variant/20 uppercase">
-            <a href="#" className="hover:text-primary transition-colors">Terms</a>
+            <a href="/terms" className="hover:text-primary transition-colors">Terms</a>
             <span className="w-1 h-1 bg-on-surface-variant/20 rounded-full" />
-            <a href="#" className="hover:text-primary transition-colors">Privacy</a>
+            <a href="/privacy" className="hover:text-primary transition-colors">Privacy</a>
           </div>
         </footer>
       </section>

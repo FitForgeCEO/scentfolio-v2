@@ -415,6 +415,27 @@ export function SettingsScreen() {
         </button>
       </section>
 
+      {/* Legal */}
+      <section className="space-y-2">
+        <h3 className="text-[10px] uppercase tracking-[0.15em] font-label text-secondary px-1 mb-3">LEGAL</h3>
+        <button
+          onClick={() => navigate('/privacy')}
+          className="w-full bg-surface-container rounded-sm px-4 py-3.5 flex items-center gap-3 transition-opacity hover:opacity-80 text-left"
+        >
+          <span className="text-primary text-sm w-5 text-center">§</span>
+          <div className="flex-1"><p className="text-sm text-on-surface font-medium">Privacy Policy</p></div>
+          <span className="text-secondary/60 text-sm">›</span>
+        </button>
+        <button
+          onClick={() => navigate('/terms')}
+          className="w-full bg-surface-container rounded-sm px-4 py-3.5 flex items-center gap-3 transition-opacity hover:opacity-80 text-left"
+        >
+          <span className="text-primary text-sm w-5 text-center">§</span>
+          <div className="flex-1"><p className="text-sm text-on-surface font-medium">Terms of Service</p></div>
+          <span className="text-secondary/60 text-sm">›</span>
+        </button>
+      </section>
+
       {/* App Info */}
       <section className="text-center pt-4 pb-8">
         <p className="text-[10px] text-secondary/30 tracking-widest uppercase font-label">ScentFolio v2.0</p>

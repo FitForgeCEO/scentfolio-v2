@@ -561,8 +561,8 @@ export function LandingPage() {
             <div className="space-y-4">
               <p className="font-label text-[10px] tracking-[0.2em] text-primary uppercase">Legal</p>
               <ul className="text-xs text-secondary space-y-2">
-                <li><a href="#" className="hover:text-primary transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Terms</a></li>
+                <li><button onClick={() => navigate('/privacy')} className="hover:text-primary transition-colors">Privacy</button></li>
+                <li><button onClick={() => navigate('/terms')} className="hover:text-primary transition-colors">Terms</button></li>
               </ul>
             </div>
             <div className="space-y-4">
