@@ -114,6 +114,26 @@ function LazyScreen({ children, grid }: { children: React.ReactNode; grid?: bool
   )
 }
 
+// ── Desktop-only chrome around the phone frame (md+) ───────────────
+// The 430px column reads as a designed device; the empty left margin
+// carries the wordmark (top) and the mobile hint (bottom). Colours are
+// hard-coded noir/gold -- the desktop backdrop stays noir in both themes.
+function DesktopFrameChrome() {
+  return (
+    <div
+      aria-hidden
+      className="hidden md:flex fixed inset-y-0 left-0 w-[calc((100vw-430px)/2)] flex-col items-center justify-between py-6 px-6 pointer-events-none select-none"
+    >
+      <span className="font-headline font-bold text-lg tracking-tight text-[#e5c276]">
+        ScentFolio
+      </span>
+      <p className="font-label text-[10px] uppercase tracking-[0.2em] text-[#e8dfd3]/40 text-center leading-relaxed max-w-[220px]">
+        designed for mobile · open on your phone for the full experience
+      </p>
+    </div>
+  )
+}
+
 // ── Native back button handler (Android hardware back, iOS swipe) ──
 function NativeBackHandler() {
   const navigate = useNavigate()
@@ -178,7 +198,8 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
         <BrowserRouter>
-          <div className="max-w-[430px] mx-auto h-dvh overflow-y-auto overflow-x-hidden relative bg-background">
+          <DesktopFrameChrome />
+          <div className="max-w-[430px] mx-auto h-dvh overflow-y-auto overflow-x-hidden relative bg-background md:ring-1 md:ring-[#e5c276]/30 md:shadow-[inset_0_0_48px_rgba(0,0,0,0.45)]">
             <AnalyticsTracker />
             <NativeBackHandler />
             <Routes>

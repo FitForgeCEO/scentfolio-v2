@@ -359,3 +359,20 @@
 [data-theme="light"] .ambient-shadow {
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
 }
+
+/* ========================================
+   Desktop phone-frame chrome (md+)
+   The app stays a designed 430px column; the surrounding
+   viewport becomes a noir editorial backdrop. Unlayered on
+   purpose so it wins over the @layer base body rule in BOTH
+   themes -- the margins stay noir even in light mode.
+   ======================================== */
+@media (min-width: 768px) {
+  body {
+    background-color: #191210;
+    background-image:
+      radial-gradient(ellipse 90% 70% at 50% 38%, rgba(229, 194, 118, 0.06), transparent 70%),
+      linear-gradient(180deg, #1d1512 0%, #191210 55%, #140e0c 100%);
+    background-attachment: fixed;
+  }
+}

@@ -43,7 +43,7 @@ export function TopAppBar({
     >
       Skip to content
     </a>
-    <header role="banner" className="fixed top-0 w-full z-[var(--z-appbar)] glass-surface flex justify-between items-center px-6 h-16 pt-[env(safe-area-inset-top)]">
+    <header role="banner" className="fixed top-0 w-full md:left-0 md:right-0 md:mx-auto md:max-w-[430px] z-[var(--z-appbar)] glass-surface flex justify-between items-center px-6 h-16 pt-[env(safe-area-inset-top)]">
       {/* Left */}
       <div className="flex items-center gap-4">
         {showBack ? (

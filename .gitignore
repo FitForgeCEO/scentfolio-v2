@@ -28,3 +28,6 @@ scripts/fragdb-etl-prototype.out.json
 .env
 .env.*
 !.env.example
+
+# Claude Code local dev config (launch.json etc.)
+.claude/
