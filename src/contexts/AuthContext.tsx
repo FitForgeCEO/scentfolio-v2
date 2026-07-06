@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useRef, type ReactNode 
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { setAnalyticsUser, trackEvent, AnalyticsEvents } from '@/lib/analytics'
+import { getUtmContext, clearUtmContext } from '@/lib/utm'
 
 interface AuthState {
   user: User | null
@@ -140,13 +141,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user])
 
   const signUp = async (email: string, password: string, displayName: string) => {
+    // First-touch UTM attribution (see src/lib/utm.ts). Lands in
+    // auth.users.raw_user_meta_data.utm_context, queryable by SQL.
+    const utmContext = getUtmContext()
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { display_name: displayName },
+        data: {
+          display_name: displayName,
+          ...(utmContext ? { utm_context: utmContext } : {}),
+        },
       },
     })
+    if (!error) {
+      // Fire the enriched event BEFORE clearing so the UTMs ride along.
+      trackEvent(AnalyticsEvents.SIGN_UP, { ...(utmContext ?? {}), method: 'email' })
+      clearUtmContext()
+    }
     return { error: error?.message ?? null }
   }
 

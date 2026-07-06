@@ -6,6 +6,7 @@ import App from './App.tsx'
 import { setupOnlineSync } from './lib/offlineQueue'
 import { trackEvent } from './lib/analytics'
 import { scheduleDailyReminder, getNotificationSettings } from './lib/notifications'
+import { captureUtmContext } from './lib/utm'
 
 // ── Sentry: production error logging ────────────────────────────────────────
 // Only enabled in prod builds so dev errors don't pollute the quota.
@@ -23,6 +24,10 @@ Sentry.init({
     'Non-Error promise rejection captured',
   ],
 })
+
+// First-touch UTM attribution -- must run before <App /> mounts so the
+// context exists by the time any signup flow can start.
+captureUtmContext()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
