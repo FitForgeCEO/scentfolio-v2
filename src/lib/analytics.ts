@@ -198,6 +198,9 @@ export const AnalyticsEvents = {
   // Landing
   LANDING_CTA_CLICK: 'landing_cta_click',
   LANDING_SCROLL_DEPTH: 'landing_scroll_depth',
+  LANDING_PAGE_VIEWED: 'landing_page_viewed',
+  LANDING_HERO_CTA_CLICKED: 'landing_hero_cta_clicked',
+  LANDING_FOOTER_CTA_CLICKED: 'landing_footer_cta_clicked',
 
   // Recommender
   RECOMMENDER_CLICK: 'recommender_click',

@@ -1,586 +1,366 @@
-import { useState, useEffect, useRef } from 'react'
+/**
+ * LandingPage — the public conversion surface for anonymous visitors at "/".
+ *
+ * Rebuilt 6 July 2026 (Fable5 Brief 3). The pre-launch page sold the app in
+ * the abstract; this one demonstrates the Signature Audit — the Letterboxd
+ * pattern of showing the artefact you'd create BEFORE you sign up
+ * (Consumer-App-Growth-Deep-Research-04Jul2026 §2.2). Every element either
+ * demonstrates the mechanic or routes to /auth with a UTM tag.
+ *
+ * Renders inside the app's 430px phone-frame column (App.tsx wraps all
+ * routes) — desktop chrome comes free, do not add full-width layouts here.
+ * Demo data is hard-coded (brief option A): the landing page is critical
+ * path, so no DB dependency. It mirrors the DEMOsofia1 seeded audit so the
+ * landing, the shareable demo URL and the OG tags all tell the same story.
+ *
+ * Copy register: noir editorial. No exclamation marks. British English.
+ */
+
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AuthScreen } from './AuthScreen'
-import { supabase } from '@/lib/supabase'
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
+import { CARD_COPY } from '@/lib/signature-audit'
 
-/* ═══════════════════════════════════════════
-   THE DIGITAL SOMMELIER — LANDING PAGE
-   An editorial invitation in four movements.
-   ═══════════════════════════════════════════ */
+const NOIR = '#191210'
+const GOLD = '#e5c276'
+const CREAM = '#e8e0d8'
 
-/* ─── Animated counter ─── */
-function AnimatedCount({ target, suffix = '' }: { target: number; suffix?: string }) {
-  const [count, setCount] = useState(0)
-  const ref = useRef<HTMLSpanElement>(null)
-  const started = useRef(false)
+// ── Demo audit data (copy — Dan eyeballs this before merge) ─────────────────
+// Mirrors the DEMOsofia1 seed: same DNA split, twin, most-worn and season.
+const DEMO = {
+  ownerLine: 'An example — Sofia’s Signature, read from 47 logged wears.',
+  personality: 'warm, deliberate, evening-first',
+  families: [
+    { family: 'Amber', pct: 42 },
+    { family: 'Woody', pct: 31 },
+    { family: 'Aromatic', pct: 27 },
+  ],
+  twin: {
+    brand: 'Maison Francis Kurkdjian',
+    name: 'Grand Soir',
+    line: 'Same amber warmth as most of your shelf',
+  },
+  mostWorn: {
+    brand: 'Parfums de Marly',
+    name: 'Layton',
+    line: '14 wears in the last 90 days · your top rotation',
+  },
+  season: {
+    season: 'Winter',
+    top: [
+      { name: 'Layton', brand: 'Parfums de Marly' },
+      { name: 'Tobacco Vanille', brand: 'Tom Ford' },
+      { name: 'Herod', brand: 'Parfums de Marly' },
+    ],
+  },
+} as const
 
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !started.current) {
-        started.current = true
-        const duration = 1200
-        const startTime = performance.now()
-        const animate = (now: number) => {
-          const progress = Math.min((now - startTime) / duration, 1)
-          const eased = 1 - Math.pow(1 - progress, 3)
-          setCount(Math.round(eased * target))
-          if (progress < 1) requestAnimationFrame(animate)
-        }
-        requestAnimationFrame(animate)
-      }
-    }, { threshold: 0.3 })
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [target])
+const HERO_CTA_URL = '/auth?utm_source=landing_page&utm_medium=hero&utm_campaign=organic&mode=signup'
+const FOOTER_CTA_URL = '/auth?utm_source=landing_page&utm_medium=footer&utm_campaign=organic'
 
-  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>
-}
+// ── Shared fragments ─────────────────────────────────────────────────────────
 
-/* ─── Editorial chapter heading ─── */
 function Kicker({ children }: { children: React.ReactNode }) {
   return (
-    <span className="font-label text-[10px] tracking-[0.3em] text-primary uppercase block">
+    <span className="font-label text-[10px] tracking-[0.3em] uppercase block" style={{ color: GOLD }}>
       {children}
     </span>
   )
 }
 
-/* ─── Ghost hairline rule ─── */
-function Hairline() {
-  return (
-    <div className="h-px bg-gradient-to-r from-primary/40 via-primary/10 to-transparent" />
-  )
-}
-
-/* ─── Editorial feature entry (roman numeral) ─── */
-function FeatureEntry({ numeral, title, description, delay }: { numeral: string; title: string; description: string; delay: number }) {
-  const [visible, setVisible] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setVisible(true); observer.disconnect() }
-    }, { threshold: 0.2 })
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
-
+/** Compact replica of a real audit card — reads as a screenshot of the app. */
+function DemoCard({
+  index,
+  children,
+  className = '',
+}: {
+  index: number
+  children: React.ReactNode
+  className?: string
+}) {
   return (
     <div
-      ref={ref}
-      className={`group transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      <span className="font-headline italic text-sm text-primary block mb-3">{numeral}</span>
-      <h3 className="font-headline text-2xl md:text-3xl text-on-surface mb-3 group-hover:translate-x-2 transition-transform duration-500">
-        {title}
-      </h3>
-      <p className="text-secondary text-sm leading-relaxed max-w-md">{description}</p>
-    </div>
-  )
-}
-
-/* ─── Ledger row ─── */
-function LedgerRow({ label }: { label: string }) {
-  return (
-    <div className="flex justify-between items-end pb-4">
-      <span className="font-label text-[10px] tracking-[0.2em] text-secondary uppercase">{label}</span>
-      <span className="font-headline italic text-xs text-primary">ENROLLED</span>
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-primary/15" />
-    </div>
-  )
-}
-
-/* ─── Editorial testimonial ─── */
-function Blockquote({ quote, name, role, align = 'left' }: { quote: string; name: string; role: string; align?: 'left' | 'right' }) {
-  return (
-    <blockquote className={align === 'right' ? 'text-right' : ''}>
-      <p className="font-headline text-2xl md:text-4xl italic leading-tight text-on-surface mb-6">
-        &ldquo;{quote}&rdquo;
-      </p>
-      <cite className="font-label text-[10px] tracking-[0.2em] text-primary uppercase not-italic">
-        — {name}, {role}
-      </cite>
-    </blockquote>
-  )
-}
-
-/* ─── Clarification (FAQ) ─── */
-function Clarification({ question, answer }: { question: string; answer: string }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="group relative">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex justify-between items-center py-8 text-left min-h-[44px]"
-      >
-        <span className="font-headline text-lg md:text-xl text-on-surface pr-4">{question}</span>
-        <span>+</span>
-      </button>
-      <div className={`overflow-hidden transition-all duration-500 ${open ? 'max-h-60 pb-8' : 'max-h-0'}`}>
-        <p className="text-secondary text-sm leading-relaxed max-w-2xl">{answer}</p>
-      </div>
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-primary/25 via-primary/8 to-transparent" />
-    </div>
-  )
-}
-
-/* ─── Editorial phone mockup (product view) ─── */
-function EditorialPhone() {
-  const shelves = ['TF', 'MFK', 'D', 'SL']
-  return (
-    <div
-      className="relative mx-auto w-[280px] md:w-[340px] aspect-[340/700] rounded-[3rem] bg-surface-container p-4"
+      className={`relative rounded-sm px-6 pt-10 pb-9 overflow-hidden ${className}`}
       style={{
-        boxShadow: '0 32px 64px -12px rgba(25,18,16,0.7), inset 0 0 0 8px #3c3330',
+        backgroundColor: NOIR,
+        border: `1px solid ${GOLD}33`,
+        boxShadow: '0 24px 48px -16px rgba(0,0,0,0.7)',
       }}
     >
-      <div className="flex flex-col h-full overflow-hidden">
-        <div className="flex justify-between items-center mb-8 px-3 pt-4">
-          <span className="font-headline italic text-lg text-on-surface">Shelf</span>
-          <span className="text-primary text-lg">⌕</span>
+      <span
+        className="absolute top-3.5 right-4 font-label text-[8px] tracking-[0.25em] uppercase"
+        style={{ color: `${GOLD}66` }}
+      >
+        Card {index} of 6
+      </span>
+      {children}
+      <span
+        className="absolute bottom-3 inset-x-0 text-center font-headline font-bold text-[9px] tracking-[0.3em] uppercase"
+        style={{ color: `${GOLD}59` }}
+      >
+        ScentFolio
+      </span>
+    </div>
+  )
+}
+
+/** Card 1 — the hero visual. */
+function DnaDemoCard() {
+  return (
+    <DemoCard index={1}>
+      <span className="font-label text-[9px] tracking-[0.3em] uppercase block mb-3" style={{ color: GOLD }}>
+        {CARD_COPY.dna.title}
+      </span>
+      <p className="font-headline italic text-lg mb-5" style={{ color: CREAM }}>
+        {DEMO.personality}
+      </p>
+      <div className="space-y-3.5">
+        {DEMO.families.map((f) => (
+          <div key={f.family}>
+            <div className="flex justify-between items-baseline mb-1">
+              <span className="font-headline text-base" style={{ color: CREAM }}>{f.family}</span>
+              <span className="font-label text-[11px] font-bold" style={{ color: GOLD }}>{f.pct}%</span>
+            </div>
+            <div className="h-[5px] rounded-sm" style={{ backgroundColor: `${GOLD}26` }}>
+              <div className="h-full rounded-sm" style={{ width: `${f.pct}%`, backgroundColor: GOLD }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </DemoCard>
+  )
+}
+
+// ── The page ─────────────────────────────────────────────────────────────────
+
+export function LandingPage() {
+  const navigate = useNavigate()
+
+  // Once per mount (ref-guarded so StrictMode's dev double-mount stays clean)
+  const viewed = useRef(false)
+  useEffect(() => {
+    if (viewed.current) return
+    viewed.current = true
+    trackEvent(AnalyticsEvents.LANDING_PAGE_VIEWED, {
+      referrer: document.referrer || null,
+    })
+  }, [])
+
+  const goHero = () => {
+    trackEvent(AnalyticsEvents.LANDING_HERO_CTA_CLICKED, {})
+    navigate(HERO_CTA_URL)
+  }
+  const goFooter = () => {
+    trackEvent(AnalyticsEvents.LANDING_FOOTER_CTA_CLICKED, {})
+    navigate(FOOTER_CTA_URL)
+  }
+
+  return (
+    <div className="min-h-screen font-body" style={{ backgroundColor: NOIR }}>
+      {/* ── HERO — above the fold on 390×844 ── */}
+      <section className="relative flex flex-col px-6 pt-6 pb-14">
+        {/* Discreet sign-in for returning visitors */}
+        <div className="flex justify-between items-center mb-8">
+          <span className="font-headline font-bold text-sm tracking-tight" style={{ color: GOLD }}>
+            ScentFolio
+          </span>
+          <button
+            onClick={() => navigate('/auth')}
+            className="font-label text-[10px] tracking-[0.2em] uppercase min-h-[44px] px-2"
+            style={{ color: '#e8e0d899' }}
+          >
+            Sign in
+          </button>
         </div>
-        <div className="grid grid-cols-2 gap-4 px-1">
-          {shelves.map(label => (
+
+        <Kicker>Your fragrance collection</Kicker>
+        <h1 className="font-headline italic text-[2.6rem] leading-[1.05] mt-3" style={{ color: GOLD }}>
+          Read like a horoscope.
+        </h1>
+        <p className="font-headline text-lg leading-snug mt-4 max-w-[320px]" style={{ color: CREAM }}>
+          Log what you own. See what it says about you.
+        </p>
+
+        <button
+          onClick={goHero}
+          className="mt-6 w-full py-4 rounded-sm font-label text-[11px] font-bold uppercase tracking-[0.2em]"
+          style={{ background: GOLD, color: NOIR }}
+        >
+          Generate mine — free
+        </button>
+        <a
+          href="#example"
+          className="mt-3 mb-7 text-center font-label text-[10px] tracking-[0.25em] uppercase min-h-[32px]"
+          style={{ color: '#e8e0d899' }}
+        >
+          See a live example →
+        </a>
+
+        <DnaDemoCard />
+        <p className="mt-3 text-center font-headline italic text-[11px]" style={{ color: '#e8e0d866' }}>
+          {DEMO.ownerLine}
+        </p>
+      </section>
+
+      {/* ── PREVIEW — what yours will look like ── */}
+      <section id="example" className="px-6 py-16" style={{ borderTop: `1px solid ${GOLD}1a` }}>
+        <Kicker>The Signature Audit</Kicker>
+        <h2 className="font-headline text-[1.7rem] leading-tight mt-3 mb-4" style={{ color: CREAM }}>
+          Six cards. Six things you didn’t know about your own shelf.
+        </h2>
+        <p className="font-headline italic text-sm leading-relaxed mb-8 max-w-[340px]" style={{ color: '#e8e0d8b3' }}>
+          The Audit reads a collection the way a graphologist reads a signature — not what you own,
+          but what you reach for. Six cards, drawn from your real wear log. Screenshot the ones that
+          feel true.
+        </p>
+
+        {/* Horizontal-scroll gallery of Cards 2, 3 and 5 */}
+        <div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 snap-x snap-mandatory">
+          <div className="shrink-0 w-[240px] snap-start">
+            <p className="font-label text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: '#e8e0d880' }}>
+              The bottle your taste is asking for
+            </p>
+            <DemoCard index={2} className="min-h-[240px]">
+              <span className="font-label text-[9px] tracking-[0.3em] uppercase block mb-4" style={{ color: GOLD }}>
+                {CARD_COPY.twin.title}
+              </span>
+              <p className="font-label text-[9px] tracking-[0.25em] uppercase" style={{ color: '#e8e0d880' }}>
+                {DEMO.twin.brand}
+              </p>
+              <h3 className="font-headline text-2xl mt-1 mb-3" style={{ color: CREAM }}>
+                {DEMO.twin.name}
+              </h3>
+              <p className="font-label text-[10px] tracking-wide" style={{ color: GOLD }}>
+                {DEMO.twin.line}
+              </p>
+            </DemoCard>
+          </div>
+
+          <div className="shrink-0 w-[240px] snap-start">
+            <p className="font-label text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: '#e8e0d880' }}>
+              Your actual signature, by the numbers
+            </p>
+            <DemoCard index={3} className="min-h-[240px]">
+              <span className="font-label text-[9px] tracking-[0.3em] uppercase block mb-4" style={{ color: GOLD }}>
+                {CARD_COPY.mostWorn.title}
+              </span>
+              <p className="font-label text-[9px] tracking-[0.25em] uppercase" style={{ color: '#e8e0d880' }}>
+                {DEMO.mostWorn.brand}
+              </p>
+              <h3 className="font-headline text-2xl mt-1 mb-3" style={{ color: CREAM }}>
+                {DEMO.mostWorn.name}
+              </h3>
+              <p className="font-label text-[10px] tracking-wide" style={{ color: GOLD }}>
+                {DEMO.mostWorn.line}
+              </p>
+            </DemoCard>
+          </div>
+
+          <div className="shrink-0 w-[240px] snap-start">
+            <p className="font-label text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: '#e8e0d880' }}>
+              When you’re most yourself
+            </p>
+            <DemoCard index={5} className="min-h-[240px]">
+              <span className="font-label text-[9px] tracking-[0.3em] uppercase block mb-3" style={{ color: GOLD }}>
+                {CARD_COPY.season.title}
+              </span>
+              <h3 className="font-headline italic text-4xl mb-4" style={{ color: GOLD }}>
+                {DEMO.season.season}
+              </h3>
+              <div className="space-y-1.5">
+                {DEMO.season.top.map((b, idx) => (
+                  <p key={b.name} className="font-headline text-sm" style={{ color: CREAM }}>
+                    <span className="italic mr-2" style={{ color: '#e5c27699' }}>{['I', 'II', 'III'][idx]}</span>
+                    {b.name}
+                    <span className="font-label text-[8px] uppercase tracking-widest ml-1.5" style={{ color: '#e8e0d866' }}>
+                      {b.brand}
+                    </span>
+                  </p>
+                ))}
+              </div>
+            </DemoCard>
+          </div>
+        </div>
+      </section>
+
+      {/* ── WHY IT EXISTS ── */}
+      <section className="px-6 py-16" style={{ borderTop: `1px solid ${GOLD}1a` }}>
+        <Kicker>Why it exists</Kicker>
+        <p className="font-headline text-xl leading-relaxed mt-5" style={{ color: CREAM }}>
+          I built ScentFolio because I couldn’t answer a simple question about my own collection:
+          what do I actually reach for, versus what’s on the shelf? Now I can. If you own more
+          bottles than you wear, it might tell you something too.
+        </p>
+        <p className="font-label text-[10px] tracking-[0.2em] uppercase mt-4" style={{ color: '#e8e0d866' }}>
+          — Dan, founder
+        </p>
+
+        <div className="grid grid-cols-3 gap-3 mt-12">
+          {[
+            ['I', 'Log wears'],
+            ['II', 'Track collection'],
+            ['III', 'See your Signature'],
+          ].map(([numeral, label]) => (
             <div
-              key={label}
-              className="aspect-[3/4] bg-surface-container-low rounded-sm flex items-center justify-center p-6 relative overflow-hidden"
+              key={numeral}
+              className="rounded-sm px-3 py-5 text-center"
+              style={{ backgroundColor: '#e5c2760d', border: `1px solid ${GOLD}26` }}
             >
-              <span className="font-headline text-4xl italic text-on-surface/40">{label}</span>
-              <div className="absolute top-0 left-0 right-0 h-px bg-primary/10" />
+              <span className="font-headline italic text-xl block mb-2" style={{ color: GOLD }}>
+                {numeral}
+              </span>
+              <span className="font-label text-[9px] tracking-[0.15em] uppercase leading-tight block" style={{ color: CREAM }}>
+                {label}
+              </span>
             </div>
           ))}
         </div>
-      </div>
-      {/* Ambient glow behind device */}
-      <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[260px] h-[420px] rounded-full bg-primary/8 blur-[80px] pointer-events-none" />
-    </div>
-  )
-}
+      </section>
 
-/* ═══════════════════════════════════════════
-   LANDING PAGE — main
-   ═══════════════════════════════════════════ */
-export function LandingPage() {
-  const navigate = useNavigate()
-  const [showAuth, setShowAuth] = useState(false)
-  const [fragranceCount, setFragranceCount] = useState(2700)
-  const [userCount, setUserCount] = useState(0)
-  const [wearCount, setWearCount] = useState(0)
-
-  // Fetch real stats (kept from v1)
-  useEffect(() => {
-    supabase
-      .from('fragrances')
-      .select('id', { count: 'exact', head: true })
-      .then(({ count }) => { if (count) setFragranceCount(count) })
-
-    supabase
-      .from('profiles')
-      .select('id', { count: 'exact', head: true })
-      .then(({ count }) => { if (count) setUserCount(count) })
-
-    supabase
-      .from('wear_logs')
-      .select('id', { count: 'exact', head: true })
-      .then(({ count }) => { if (count) setWearCount(count) })
-  }, [])
-
-  if (showAuth) {
-    return (
-      <div className="min-h-screen bg-background">
-        <button
-          onClick={() => setShowAuth(false)}
-          className="fixed top-6 left-6 z-50 w-11 h-11 rounded-full bg-surface-container flex items-center justify-center"
-          style={{ boxShadow: '0 12px 32px rgba(25,18,16,0.6)' }}
-          aria-label="Back to landing page"
+      {/* ── FINAL CTA ── */}
+      <section className="px-6 py-16" style={{ borderTop: `1px solid ${GOLD}1a` }}>
+        <div
+          className="rounded-sm px-6 py-12 text-center"
+          style={{ backgroundColor: '#e5c2760d', border: `1px solid ${GOLD}33` }}
         >
-          <span className="text-primary text-lg">←</span>
-        </button>
-        <AuthScreen />
-      </div>
-    )
-  }
-
-  const openAuth = (cta: string) => {
-    trackEvent(AnalyticsEvents.LANDING_CTA_CLICK, { cta })
-    setShowAuth(true)
-  }
-
-  const ledgerEntries = [
-    'DECANT TRACKER', 'WISHLIST SYNC', 'BATCH CODE SCAN', 'WEAR FREQUENCY',
-    'HOUSE ARCHIVES', 'OFFLINE MODE', 'PRICE ANALYSIS', 'COMMUNITY SWAPS',
-    'NOTE BREAKDOWN', 'CURATION AI', 'SEASONAL GUIDES', 'SCENT JOURNAL',
-  ]
-
-  return (
-    <div className="min-h-screen bg-background overflow-x-hidden font-body">
-      {/* ─── GLASS HEADER ─── */}
-      <header className="fixed top-0 inset-x-0 z-50 glass-surface">
-        <div className="max-w-6xl mx-auto flex justify-between items-center px-6 md:px-10 py-6">
-          <div className="flex items-center gap-4">
-            <span className="text-primary text-xl">☰</span>
-            <span className="font-label text-[10px] tracking-[0.25em] text-primary uppercase hidden sm:inline">
-              An Invitation · For Collectors
-            </span>
-          </div>
-          <nav className="hidden md:flex gap-12 items-center">
-            <a href="#prologue" className="font-label text-[11px] tracking-[0.2em] text-primary uppercase hover:text-on-surface transition-colors">Catalogue</a>
-            <a href="#features" className="font-label text-[11px] tracking-[0.2em] text-secondary uppercase hover:text-on-surface transition-colors">Archive</a>
-            <a href="#society" className="font-label text-[11px] tracking-[0.2em] text-secondary uppercase hover:text-on-surface transition-colors">Society</a>
-          </nav>
+          <h2 className="font-headline italic text-3xl mb-8" style={{ color: CREAM }}>
+            Ready to see yours?
+          </h2>
           <button
-            onClick={() => openAuth('header_sign_in')}
-            className="font-label text-[11px] tracking-[0.2em] text-primary uppercase hover:text-on-surface transition-colors"
+            onClick={goFooter}
+            className="w-full py-4 rounded-sm font-label text-[11px] font-bold uppercase tracking-[0.2em]"
+            style={{ background: GOLD, color: NOIR }}
           >
-            Sign In
+            Generate my Signature Audit
           </button>
-        </div>
-      </header>
-
-      <main className="pt-24">
-        {/* ─── HERO ─── */}
-        <section className="relative min-h-[90vh] flex flex-col items-center justify-center text-center px-6 overflow-hidden bg-surface">
-          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[420px] h-[420px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
-          <div className="relative z-10 max-w-4xl animate-page-enter">
-            <Kicker>An Invitation · For Collectors</Kicker>
-            <span className="font-headline text-[12rem] md:text-[16rem] leading-none text-primary opacity-20 select-none block mt-10">
-              S
-            </span>
-            <h1 className="font-headline text-6xl md:text-8xl tracking-tight text-on-surface -mt-24 md:-mt-32 mb-6">
-              ScentFolio
-            </h1>
-            <p className="font-headline italic text-xl md:text-2xl text-secondary max-w-xl mx-auto opacity-80">
-              Chronicle your collection. Map your taste. Discover what's next.
-            </p>
-            <div className="mt-16 flex flex-col items-center gap-4">
-              <button
-                onClick={() => openAuth('hero_open_volume')}
-                className="gold-gradient text-surface font-label font-bold text-xs tracking-[0.2em] uppercase px-10 py-4 rounded-sm hover:scale-[1.03] transition-all"
-                style={{ boxShadow: '0 32px 64px -12px rgba(25,18,16,0.6)' }}
-              >
-                Open Your Volume
-              </button>
-              <button
-                onClick={() => document.getElementById('prologue')?.scrollIntoView({ behavior: 'smooth' })}
-                className="font-label text-[10px] tracking-[0.25em] text-secondary uppercase hover:text-primary transition-colors"
-              >
-                Read the Prologue ↓
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* ─── PROLOGUE (Editor's Note) ─── */}
-        <section id="prologue" className="py-24 md:py-32 px-6 bg-surface-container-low">
-          <div className="max-w-3xl mx-auto">
-            <Kicker>The Prologue</Kicker>
-            <div className="mt-12">
-              <p className="font-headline text-2xl md:text-4xl leading-relaxed text-on-surface">
-                To collect is to remember. With a growing archive of{' '}
-                <span className="text-primary italic">
-                  <AnimatedCount target={fragranceCount} suffix="+" /> fragrances
-                </span>
-                , ScentFolio provides the architecture for your sensory journey. We have meticulously indexed every note — from the smokiest Oud to the most fragile Bergamot — ensuring your personal library is as exquisite as the liquids it contains.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* ─── PRODUCT VIEW (editorial phone) ─── */}
-        <section className="py-24 md:py-32 px-6 bg-surface overflow-hidden">
-          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 md:gap-20 items-center">
-            <div className="order-2 md:order-1">
-              <EditorialPhone />
-            </div>
-            <div className="order-1 md:order-2 space-y-8">
-              <Kicker>The Shelf</Kicker>
-              <h2 className="font-headline text-4xl md:text-5xl leading-tight text-on-surface">
-                Your collection,<br />
-                <span className="italic text-primary">digitally distilled.</span>
-              </h2>
-              <p className="text-secondary text-base leading-relaxed max-w-md">
-                Organise by house, season or mood. Our interface is designed to disappear, leaving only your curation at the forefront.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* ─── FEATURES (four movements, asymmetric) ─── */}
-        <section id="features" className="py-24 md:py-32 px-6 bg-surface-container-low">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-20">
-              <Kicker>The Movements</Kicker>
-              <h2 className="font-headline text-4xl md:text-5xl text-on-surface mt-4">
-                Four chapters of <span className="italic text-primary">curation.</span>
-              </h2>
-            </div>
-            <div className="grid md:grid-cols-2 gap-16 md:gap-24">
-              <div className="space-y-16">
-                <FeatureEntry
-                  numeral="I."
-                  title="The Catalogue"
-                  description="Thousands of fragrances with verified notes, sillage and longevity — searchable, not buried."
-                  delay={0}
-                />
-                <FeatureEntry
-                  numeral="II."
-                  title="The Layering Bench"
-                  description="Discover pairings that work — combinations rated and refined by collectors."
-                  delay={100}
-                />
-              </div>
-              <div className="space-y-16 mt-12 md:mt-32">
-                <FeatureEntry
-                  numeral="III."
-                  title="Scent Mapping"
-                  description="See your taste at a glance — the notes you favour, the families you lean on, the gaps worth exploring."
-                  delay={200}
-                />
-                <FeatureEntry
-                  numeral="IV."
-                  title="The Private Archive"
-                  description="Journal your daily wears, track performance, and keep the memories scent leaves behind."
-                  delay={300}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ─── THE SOCIETY LEDGER (12 items) ─── */}
-        <section id="society" className="py-24 md:py-32 px-6 bg-surface">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="font-headline text-4xl md:text-5xl mb-16 text-center italic text-on-surface">
-              The Society Ledger
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-20 gap-y-10">
-              {ledgerEntries.map(label => (
-                <div key={label} className="relative">
-                  <LedgerRow label={label} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ─── COMPARISON ─── */}
-        <section className="py-24 md:py-32 px-6 bg-surface-container-low">
-          <div className="max-w-5xl mx-auto">
-            <div className="grid md:grid-cols-2">
-              <div className="p-10 md:p-12 bg-surface relative">
-                <h3 className="font-headline text-2xl mb-10 italic text-primary">ScentFolio</h3>
-                <ul className="space-y-6 text-sm tracking-wide text-on-surface">
-                  <li className="flex items-center gap-4"><span className="text-primary text-base">✓</span>Editorial layouts</li>
-                  <li className="flex items-center gap-4"><span className="text-primary text-base">✓</span>Scientific note weighting</li>
-                  <li className="flex items-center gap-4"><span className="text-primary text-base">✓</span>Ad-free environment</li>
-                  <li className="flex items-center gap-4"><span className="text-primary text-base">✓</span>High-fidelity assets</li>
-                  <li className="flex items-center gap-4"><span className="text-primary text-base">✓</span>Works offline</li>
-                  <li className="flex items-center gap-4"><span className="text-primary text-base">✓</span>Free, forever</li>
-                </ul>
-                <div className="absolute top-0 right-0 bottom-0 w-px bg-gradient-to-b from-primary/20 via-primary/5 to-transparent hidden md:block" />
-              </div>
-              <div className="p-10 md:p-12 bg-surface-container opacity-60">
-                <h3 className="font-headline text-2xl mb-10 italic text-on-surface">The Others</h3>
-                <ul className="space-y-6 text-sm tracking-wide text-secondary">
-                  <li className="flex items-center gap-4"><span className="text-error text-base">✕</span>Cluttered interfaces</li>
-                  <li className="flex items-center gap-4"><span className="text-error text-base">✕</span>User-only data</li>
-                  <li className="flex items-center gap-4"><span className="text-error text-base">✕</span>Heavy advertising</li>
-                  <li className="flex items-center gap-4"><span className="text-error text-base">✕</span>Static spreadsheets</li>
-                  <li className="flex items-center gap-4"><span className="text-error text-base">✕</span>No layering tools</li>
-                  <li className="flex items-center gap-4"><span className="text-error text-base">✕</span>Paywalls everywhere</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ─── THE METHODOLOGY ─── */}
-        <section className="py-24 md:py-32 px-6 bg-surface">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-20">
-              <Kicker>The Methodology</Kicker>
-              <h2 className="font-headline text-4xl md:text-5xl text-on-surface mt-4">
-                Three acts of <span className="italic text-primary">refinement.</span>
-              </h2>
-            </div>
-            <div className="grid md:grid-cols-3 gap-12 md:gap-16">
-              {[
-                { numeral: 'I.', title: 'Capture', copy: 'Import your existing collection through our streamlined interface or search our editorial database.' },
-                { numeral: 'II.', title: 'Analyse', copy: 'Our engine breaks down your collection into scent families, performance tiers and occasion fit.' },
-                { numeral: 'III.', title: 'Refine', copy: 'Receive personalised curation advice on what to seek next to round out your library.' },
-              ].map(step => (
-                <div key={step.numeral} className="text-center">
-                  <span className="font-headline text-4xl italic text-primary block mb-6">{step.numeral}</span>
-                  <h5 className="font-label text-[11px] tracking-[0.25em] text-on-surface mb-4 uppercase">{step.title}</h5>
-                  <p className="text-secondary text-sm leading-relaxed max-w-xs mx-auto">{step.copy}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ─── TESTIMONIALS ─── */}
-        <section className="py-24 md:py-32 px-6 bg-surface-container-low overflow-hidden">
-          <div className="max-w-4xl mx-auto relative">
-            <span
-              className="material-symbols-outlined absolute -top-12 -left-8 md:-top-16 md:-left-16 text-primary pointer-events-none select-none"
-              style={{ fontSize: '8rem', opacity: 0.05 }}
-            >
-              format_quote
-            </span>
-            <div className="relative z-10 space-y-20 md:space-y-24">
-              <Blockquote
-                quote="Finally, a digital space that respects the artistry of perfumery. ScentFolio is as essential as the atomiser itself."
-                name="Julian V."
-                role="Collector · 80+ bottles"
-              />
-              <Blockquote
-                quote="The mapping feature revealed biases in my collection I never knew I had. My curation is now purposeful."
-                name="Elara K."
-                role="Curator"
-                align="right"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* ─── STATS / DEVICE LINE ─── */}
-        <section className="py-16 px-6 bg-surface">
-          <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-3 gap-6 text-center">
-              <div>
-                <p className="font-headline text-3xl md:text-4xl text-on-surface">
-                  <AnimatedCount target={fragranceCount} suffix="+" />
-                </p>
-                <p className="font-label text-[10px] tracking-[0.25em] text-secondary uppercase mt-2">Fragrances</p>
-              </div>
-              <div>
-                <p className="font-headline text-3xl md:text-4xl text-on-surface">
-                  {userCount > 0 ? <AnimatedCount target={userCount} /> : '∞'}
-                </p>
-                <p className="font-label text-[10px] tracking-[0.25em] text-secondary uppercase mt-2">
-                  {userCount > 0 ? 'Collectors' : 'Pairings'}
-                </p>
-              </div>
-              <div>
-                <p className="font-headline text-3xl md:text-4xl text-on-surface">
-                  {wearCount > 0 ? <AnimatedCount target={wearCount} /> : <AnimatedCount target={100} suffix="%" />}
-                </p>
-                <p className="font-label text-[10px] tracking-[0.25em] text-secondary uppercase mt-2">
-                  {wearCount > 0 ? 'Wears Logged' : 'Ad-Free'}
-                </p>
-              </div>
-            </div>
-            <div className="mt-14">
-              <Hairline />
-            </div>
-            <div className="mt-8 text-center">
-              <span className="font-label text-[10px] tracking-[0.3em] text-secondary/50 uppercase">
-                iPhone · Android · Desktop
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {/* ─── FAQ — CLARIFICATIONS ─── */}
-        <section className="py-24 md:py-32 px-6 bg-surface-container-low">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="font-headline text-4xl md:text-5xl mb-12 italic text-on-surface">
-              Clarifications
-            </h2>
-            <div>
-              <Clarification
-                question="Is my data private?"
-                answer="Absolutely. Your collection is private by default. You choose what to share — whether that's a public profile, specific reviews, or collection stats. You remain in control of every note."
-              />
-              <Clarification
-                question="Can I export my library?"
-                answer="Yes. Export your entire archive to CSV or JSON at any time. Your collection belongs to you, not to us."
-              />
-              <Clarification
-                question="How often is the database updated?"
-                answer={`The archive currently holds ${fragranceCount.toLocaleString()}+ fragrances and grows weekly. You can also request new additions — our editors respond within seven days.`}
-              />
-              <Clarification
-                question="What is the Layering Bench?"
-                answer="The Layering Bench lets you experiment with fragrance combinations. Select two or more scents to receive harmony scores, save your favourite stacks, and share them with the Society."
-              />
-              <Clarification
-                question="Does it work offline?"
-                answer="ScentFolio is a Progressive Web App. Install it to your home screen, and your core archive travels with you — data syncs the moment you return online."
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* ─── FINAL CTA ─── */}
-        <section className="py-32 md:py-48 px-6 bg-surface text-center relative overflow-hidden">
-          <div className="absolute inset-0 opacity-10 pointer-events-none">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/30 blur-[140px]" />
-          </div>
-          <div className="relative z-10 max-w-3xl mx-auto">
-            <h2 className="font-headline text-5xl md:text-8xl text-on-surface mb-12 leading-tight">
-              Begin the <span className="italic text-primary">Archiving.</span>
-            </h2>
-            <button
-              onClick={() => openAuth('final_open_volume')}
-              className="gold-gradient text-surface font-label font-bold text-xs tracking-[0.2em] uppercase px-12 py-5 rounded-sm hover:scale-[1.03] transition-all"
-              style={{ boxShadow: '0 32px 64px -12px rgba(25,18,16,0.6)' }}
-            >
-              Open Your Volume
-            </button>
-            <p className="font-label text-[10px] tracking-[0.25em] text-secondary/60 uppercase mt-8">
-              No credit card · Free, forever
-            </p>
-          </div>
-        </section>
-      </main>
-
-      {/* ─── IMPRINT / FOOTER ─── */}
-      <footer className="bg-surface py-16 md:py-20 px-6 md:px-10 relative">
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
-          <div>
-            <h2 className="font-headline text-3xl text-on-surface mb-3">ScentFolio</h2>
-            <p className="font-label text-[10px] tracking-[0.25em] text-secondary uppercase">Est. MMXXIV</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-12">
-            <div className="space-y-4">
-              <p className="font-label text-[10px] tracking-[0.2em] text-primary uppercase">Catalogue</p>
-              <ul className="text-xs text-secondary space-y-2">
-                <li><button onClick={() => navigate('/explore')} className="hover:text-primary transition-colors">Explore</button></li>
-                <li><button onClick={() => openAuth('footer_sign_in')} className="hover:text-primary transition-colors">Sign In</button></li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <p className="font-label text-[10px] tracking-[0.2em] text-primary uppercase">Legal</p>
-              <ul className="text-xs text-secondary space-y-2">
-                <li><button onClick={() => navigate('/privacy')} className="hover:text-primary transition-colors">Privacy</button></li>
-                <li><button onClick={() => navigate('/terms')} className="hover:text-primary transition-colors">Terms</button></li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <p className="font-label text-[10px] tracking-[0.2em] text-primary uppercase">Society</p>
-              <ul className="text-xs text-secondary space-y-2">
-                <li><a href="#" className="hover:text-primary transition-colors">Instagram</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Journal</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto mt-16 pt-8 relative">
-          <div className="absolute top-0 inset-x-0 h-px bg-primary/10" />
-          <p className="font-label text-[10px] tracking-[0.25em] text-secondary/40 uppercase">
-            © {new Date().getFullYear()} ScentFolio Digital Archives · All Rights Reserved
+          <p className="font-label text-[9px] tracking-[0.2em] uppercase mt-5" style={{ color: '#e8e0d866' }}>
+            Free · No card required · Delete any time
           </p>
         </div>
-      </footer>
+
+        {/* Legal footer */}
+        <div className="mt-12 flex flex-col items-center gap-3">
+          <div className="flex gap-8">
+            <button
+              onClick={() => navigate('/privacy')}
+              className="font-label text-[9px] tracking-[0.2em] uppercase min-h-[32px]"
+              style={{ color: '#e8e0d880' }}
+            >
+              Privacy
+            </button>
+            <button
+              onClick={() => navigate('/terms')}
+              className="font-label text-[9px] tracking-[0.2em] uppercase min-h-[32px]"
+              style={{ color: '#e8e0d880' }}
+            >
+              Terms
+            </button>
+          </div>
+          <p className="font-label text-[9px] tracking-[0.25em] uppercase" style={{ color: '#e8e0d840' }}>
+            © {new Date().getFullYear()} ScentFolio
+          </p>
+        </div>
+      </section>
     </div>
   )
 }
