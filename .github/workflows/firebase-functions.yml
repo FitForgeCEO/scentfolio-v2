@@ -1,0 +1,38 @@
+# Manual-only deploy for the signatureMeta Cloud Function.
+# Deliberately workflow_dispatch-only: the main hosting pipeline
+# (firebase-hosting.yml) stays untouched and cannot be broken by this
+# workflow. NOTE: the FIREBASE_SERVICE_ACCOUNT_SCENTFOLIO_APP service
+# account was provisioned for Hosting deploys -- it may need
+# Cloud Functions Developer + Service Account User + Artifact Registry
+# Writer roles added before this workflow succeeds. Until then, deploy
+# functions from an authenticated CLI: firebase deploy --only functions
+name: Deploy Functions (manual)
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+
+      - name: Write service account credentials
+        env:
+          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SCENTFOLIO_APP }}
+        run: printf '%s' "$SA_JSON" > "$RUNNER_TEMP/sa.json"
+
+      - name: Deploy signatureMeta
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
+        run: npx firebase-tools deploy --only functions --project scentfolio-app --non-interactive
+
+      - name: Scrub credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sa.json"
