@@ -405,9 +405,48 @@ export function SignatureAuditScreen() {
   const total = cards.length
   const captions = shareCaptions(shareUrl, d.cards.dna)
 
+  // Owner-only placeholders for cards that need more history (Ghost: a
+  // bottle owned 60+ days with < 3 wears; Season: 20+ logged wears).
+  // Public/shared views stay clean -- strangers only see real cards.
+  const locked: { key: string; title: string; line: string }[] = []
+  if (isOwner && !d.cards.ghost) {
+    locked.push({
+      key: 'locked-ghost',
+      title: CARD_COPY.ghost.title,
+      line: 'Sixty days of shelf life before anything can gather dust.',
+    })
+  }
+  if (isOwner && !d.cards.season) {
+    locked.push({
+      key: 'locked-season',
+      title: CARD_COPY.season.title,
+      line: 'Twenty logged wears and your season shows itself.',
+    })
+  }
+
   return (
     <main style={{ backgroundColor: NOIR }}>
       {cards.map((c, idx) => c.render(idx + 1, total))}
+
+      {/* ── Locked cards (owner only): not enough data yet ── */}
+      {locked.map((l) => (
+        <AuditCard key={l.key} index={null} total={total}>
+          <Kicker>{l.title}</Kicker>
+          <p className="font-headline italic text-xl mb-3" style={{ color: `${CREAM}99` }}>
+            Not enough data yet.
+          </p>
+          <p className="font-headline italic text-sm max-w-[300px]" style={{ color: `${CREAM}66` }}>
+            {l.line}
+          </p>
+          <button
+            onClick={() => navigate('/')}
+            className="mt-8 self-start font-label text-[10px] font-bold uppercase tracking-[0.2em] underline underline-offset-4"
+            style={{ color: GOLD }}
+          >
+            Keep logging to unlock
+          </button>
+        </AuditCard>
+      ))}
 
       {/* ── CTA card (unnumbered, the growth mechanic) ── */}
       <AuditCard index={null} total={total}>

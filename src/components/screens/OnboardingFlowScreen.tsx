@@ -5,9 +5,10 @@ import { useOnboarding, NOTE_FAMILIES, VIBE_OPTIONS, EXPERIENCE_LEVELS } from '@
 import { supabase } from '@/lib/supabase'
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 import { sanitizeSearchTerm } from '@/hooks/useFragrances'
+import { generateSignatureAudit } from '@/hooks/useSignatureAudit'
 
 /* ─── shared editorial chrome ─── */
-const ROMAN = ['ONE', 'TWO', 'THREE', 'FOUR'] as const
+const ROMAN = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'] as const
 
 function ChapterMasthead({
   chapter,
@@ -19,7 +20,7 @@ function ChapterMasthead({
   return (
     <header className="flex justify-between items-center px-6 md:px-8 py-6">
       <span className="text-[10px] tracking-[0.25em] font-medium text-primary uppercase">
-        Chapter {ROMAN[chapter - 1]} of Four
+        Chapter {ROMAN[chapter - 1]} of Five
       </span>
       {onSkip && (
         <button
@@ -348,21 +349,25 @@ interface SearchResult {
   note_family: string | null
 }
 
-function FirstFragranceStep({
+function FirstCollectionStep({
   onNext,
   onBack,
   onSkip,
+  added,
+  onAdd,
 }: {
   onNext: () => void
   onBack: () => void
   onSkip: () => void
+  added: SearchResult[]
+  onAdd: (f: SearchResult) => void
 }) {
   const { user } = useAuth()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [searching, setSearching] = useState(false)
-  const [added, setAdded] = useState<string[]>([])
   const [adding, setAdding] = useState<string | null>(null)
+  const addedIds = added.map(f => f.id)
 
   // Debounced search — preserved from original
   useEffect(() => {
@@ -385,20 +390,19 @@ function FirstFragranceStep({
   }, [query])
 
   const addToCollection = useCallback(async (fragrance: SearchResult) => {
-    if (!user || added.includes(fragrance.id)) return
+    if (!user || addedIds.includes(fragrance.id)) return
     setAdding(fragrance.id)
-    try {
-      await supabase.from('user_collections').upsert({
-        user_id: user.id,
-        fragrance_id: fragrance.id,
-        status: 'own',
-      }, { onConflict: 'user_id,fragrance_id' })
-      setAdded(prev => [...prev, fragrance.id])
-    } catch {
-      // Silently fail — they can add later
-    }
+    // supabase-js resolves { error } rather than throwing -- only mark the
+    // bottle added when the write actually landed.
+    const { error } = await supabase.from('user_collections').upsert({
+      user_id: user.id,
+      fragrance_id: fragrance.id,
+      status: 'own',
+    }, { onConflict: 'user_id,fragrance_id' })
+    if (!error) onAdd(fragrance)
     setAdding(null)
-  }, [user, added])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, added, onAdd])
 
   return (
     <main className="relative min-h-screen flex flex-col overflow-x-hidden">
@@ -413,9 +417,12 @@ function FirstFragranceStep({
           {/* Editorial header */}
           <div className="mb-10">
             <span className="text-primary text-[10px] uppercase tracking-[0.2em] font-medium mb-4 block">Chapter Three</span>
-            <h1 className="font-headline text-4xl md:text-5xl text-on-background leading-[1.1] mb-8">
+            <h1 className="font-headline text-4xl md:text-5xl text-on-background leading-[1.1] mb-4">
               What&rsquo;s already on your shelf?
             </h1>
+            <p className="font-headline italic text-base text-secondary/80 mb-8">
+              Add three to five and we can read your Signature from day one.
+            </p>
 
             {/* Editorial search */}
             <div className="relative">
@@ -471,7 +478,7 @@ function FirstFragranceStep({
 
             <div className="space-y-6">
               {results.map(f => {
-                const isAdded = added.includes(f.id)
+                const isAdded = addedIds.includes(f.id)
                 const isAdding = adding === f.id
                 return (
                   <article key={f.id} className="flex gap-6 items-center group">
@@ -523,19 +530,188 @@ function FirstFragranceStep({
   )
 }
 
-/* ─── Chapter 4 — Ready (The closing page) ─── */
+/* ═══════════════════════════════════════════
+   CHAPTER FOUR — FIRST WEARS (seed the wear log)
+   ═══════════════════════════════════════════ */
+const WEAR_OPTIONS = [
+  { id: 'today', label: 'Today', daysAgo: 0 },
+  { id: 'week', label: 'This week', daysAgo: 3 },
+  { id: 'month', label: 'This month', daysAgo: 15 },
+  { id: 'longer', label: 'Longer ago', daysAgo: 60 },
+  { id: 'never', label: 'Never worn it', daysAgo: null },
+] as const
+
+type WearOptionId = (typeof WEAR_OPTIONS)[number]['id']
+
+function wearDateFor(daysAgo: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() - daysAgo)
+  return d.toISOString().split('T')[0]
+}
+
+function FirstWearsStep({
+  fragrances,
+  onNext,
+  onBack,
+  onSkip,
+}: {
+  fragrances: SearchResult[]
+  onNext: () => void
+  onBack: () => void
+  onSkip: () => void
+}) {
+  const { user } = useAuth()
+  const [index, setIndex] = useState(0)
+  const [saving, setSaving] = useState(false)
+  // Remember the inserted row per bottle so a re-answer (via Back) replaces
+  // the log instead of duplicating it.
+  const [logged, setLogged] = useState<Record<string, { rowId: string | null; option: WearOptionId }>>({})
+
+  // Defensive: nothing to ask (shouldn't be routed here with 0 bottles)
+  useEffect(() => {
+    if (fragrances.length === 0) onNext()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fragrances.length])
+
+  const current = fragrances[index]
+  if (!current) return null
+  const isLast = index === fragrances.length - 1
+  const previousAnswer = logged[current.id]?.option ?? null
+
+  const choose = async (option: (typeof WEAR_OPTIONS)[number]) => {
+    if (!user || saving) return
+    setSaving(true)
+    const prev = logged[current.id]
+    if (prev?.rowId) {
+      await supabase.from('wear_logs').delete().eq('id', prev.rowId)
+    }
+    let rowId: string | null = null
+    if (option.daysAgo !== null) {
+      const { data, error } = await supabase
+        .from('wear_logs')
+        .insert({ user_id: user.id, fragrance_id: current.id, wear_date: wearDateFor(option.daysAgo) })
+        .select('id')
+        .single()
+      if (error) {
+        setSaving(false)
+        return // stay on this bottle; tapping again retries
+      }
+      rowId = data.id as string
+    }
+    setLogged(prevMap => ({ ...prevMap, [current.id]: { rowId, option: option.id } }))
+    setSaving(false)
+    if (isLast) onNext()
+    else setIndex(i => i + 1)
+  }
+
+  const handleBack = () => {
+    if (index === 0) onBack()
+    else setIndex(i => i - 1)
+  }
+
+  return (
+    <main className="relative min-h-screen flex flex-col overflow-x-hidden">
+      <div
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{ background: 'radial-gradient(circle at bottom right, rgba(229,194,118,0.1) 0%, rgba(25,18,16,0) 60%)' }}
+      />
+      <div className="relative z-10 flex flex-col flex-grow min-h-screen">
+        <ChapterMasthead chapter={4} onSkip={onSkip} />
+
+        <section className="flex-grow flex flex-col px-6 md:px-8 pt-8 pb-4 max-w-2xl mx-auto w-full">
+          {/* Per-bottle hairline progress */}
+          <div className="flex gap-2 mb-10">
+            {fragrances.map((f, i) => (
+              <div key={f.id} className={`h-px flex-1 transition-all ${i <= index ? 'bg-primary' : 'bg-outline-variant/30'}`} />
+            ))}
+          </div>
+
+          <div className="text-center mb-10">
+            <span className="font-label text-[10px] uppercase tracking-[0.3em] text-primary mb-4 block">
+              The Wear Log · {index + 1} of {fragrances.length}
+            </span>
+            <h1 className="font-headline text-4xl md:text-5xl text-on-background mb-4 leading-tight">
+              When did you last wear it?
+            </h1>
+            <p className="font-headline italic text-base text-secondary/80">
+              Your Signature is read from wears, not shelves. A rough guess is fine.
+            </p>
+          </div>
+
+          {/* The bottle in question */}
+          <div className="flex items-center gap-5 mb-10 bg-surface-container rounded-sm p-4">
+            <div className="w-16 h-20 flex-shrink-0 bg-surface-container-low rounded-sm overflow-hidden">
+              {current.image_url ? (
+                <img src={current.image_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-outline/40 text-xl">✦</div>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="font-headline italic text-secondary text-sm truncate">{current.brand}</p>
+              <h2 className="font-body text-lg text-on-surface font-medium leading-tight truncate">{current.name}</h2>
+            </div>
+          </div>
+
+          {/* Quick options */}
+          <div className="space-y-3">
+            {WEAR_OPTIONS.map(option => {
+              const wasChosen = previousAnswer === option.id
+              return (
+                <button
+                  key={option.id}
+                  onClick={() => void choose(option)}
+                  disabled={saving}
+                  className={`relative w-full text-left rounded-sm px-6 py-4 transition-all duration-300 disabled:opacity-50 ${
+                    wasChosen ? 'bg-surface-container-highest' : 'bg-surface-container hover:bg-surface-container-high'
+                  }`}
+                  style={wasChosen ? { boxShadow: 'inset 0 0 16px rgba(229,194,118,0.15)' } : undefined}
+                >
+                  {wasChosen && <div className="absolute top-0 left-0 w-[3px] h-full bg-primary" />}
+                  <span className={`font-label text-xs uppercase tracking-[0.15em] font-medium ${wasChosen ? 'text-primary' : 'text-on-surface'}`}>
+                    {option.label}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+
+        {/* Back only — choosing an option advances */}
+        <div className="flex justify-between items-center px-6 md:px-8 pb-10 pt-6 mt-auto">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-3 text-secondary hover:text-primary transition-colors group"
+          >
+            <span className="text-lg group-hover:-translate-x-0.5 transition-transform">←</span>
+            <span className="text-[10px] tracking-[0.2em] uppercase font-medium">Back</span>
+          </button>
+          {saving && (
+            <span className="text-[10px] tracking-[0.2em] uppercase text-primary animate-pulse">Logging…</span>
+          )}
+        </div>
+      </div>
+    </main>
+  )
+}
+
+/* ─── Chapter 5 — Ready (The closing page) ─── */
 function CompleteStep({
   preferences,
   onFinish,
   onViewShelf,
   onBack,
   loading,
+  hasBottles,
+  onReadSignature,
 }: {
   preferences: { favoriteNotes: string[]; vibes: string[]; experienceLevel: 'beginner' | 'intermediate' | 'connoisseur' | null }
   onFinish: () => void
   onViewShelf: () => void
   onBack: () => void
   loading: boolean
+  hasBottles: boolean
+  onReadSignature: () => void
 }) {
   const experienceLabel =
     EXPERIENCE_LEVELS.find(l => l.id === preferences.experienceLevel)?.label ?? 'Just beginning'
@@ -553,13 +729,13 @@ function CompleteStep({
         style={{ background: 'radial-gradient(circle at top right, rgba(229,194,118,0.14) 0%, rgba(25,18,16,0) 65%)' }}
       />
       <div className="relative z-10 flex flex-col flex-grow min-h-screen">
-        <ChapterMasthead chapter={4} />
+        <ChapterMasthead chapter={5} />
 
         <section className="flex-grow flex flex-col px-6 md:px-16 pt-8 pb-6 max-w-4xl">
           {/* Masthead */}
           <div className="mb-16">
             <span className="text-primary text-[10px] tracking-[0.3em] font-bold uppercase block mb-4">
-              Chapter Four · Ready
+              Chapter Five · Ready
             </span>
             <h1 className="font-headline text-5xl md:text-6xl lg:text-7xl leading-[1.05] mb-6 text-on-background">
               Your shelf
@@ -640,20 +816,31 @@ function CompleteStep({
 
           {/* Finish CTA — centred, Ambient Lift */}
           <div className="mt-20 mb-8 flex flex-col items-center gap-5">
+            {hasBottles ? (
+              <button
+                onClick={onReadSignature}
+                disabled={loading}
+                className="gold-gradient text-on-primary rounded-sm px-12 py-5 font-bold uppercase tracking-[0.2em] text-sm transition-opacity hover:opacity-90 disabled:opacity-60"
+                style={{ boxShadow: '0 12px 32px rgba(25,18,16,0.6)' }}
+              >
+                {loading ? 'Reading your Signature…' : 'Read my Signature'}
+              </button>
+            ) : (
+              <button
+                onClick={onFinish}
+                disabled={loading}
+                className="gold-gradient text-on-primary rounded-sm px-12 py-5 font-bold uppercase tracking-[0.2em] text-sm transition-opacity hover:opacity-90 disabled:opacity-60"
+                style={{ boxShadow: '0 12px 32px rgba(25,18,16,0.6)' }}
+              >
+                {loading ? 'Opening…' : 'Start exploring'}
+              </button>
+            )}
             <button
-              onClick={onFinish}
-              disabled={loading}
-              className="gold-gradient text-on-primary rounded-sm px-12 py-5 font-bold uppercase tracking-[0.2em] text-sm transition-opacity hover:opacity-90 disabled:opacity-60"
-              style={{ boxShadow: '0 12px 32px rgba(25,18,16,0.6)' }}
-            >
-              {loading ? 'Opening…' : 'Start exploring'}
-            </button>
-            <button
-              onClick={onViewShelf}
+              onClick={hasBottles ? onFinish : onViewShelf}
               disabled={loading}
               className="font-headline italic text-secondary hover:text-on-surface transition-colors text-sm disabled:opacity-60"
             >
-              Or head straight to your shelf
+              {hasBottles ? 'or start exploring instead' : 'Or head straight to your shelf'}
             </button>
             <button
               onClick={onBack}
@@ -676,6 +863,11 @@ export function OnboardingFlowScreen() {
   const { user, loading: authLoading } = useAuth()
   const onboarding = useOnboarding()
   const [finishing, setFinishing] = useState(false)
+  const [addedFragrances, setAddedFragrances] = useState<SearchResult[]>([])
+
+  const handleAdd = useCallback((f: SearchResult) => {
+    setAddedFragrances(prev => (prev.some(x => x.id === f.id) ? prev : [...prev, f]))
+  }, [])
 
   const displayName =
     (user?.user_metadata?.['display_name'] as string | undefined) ??
@@ -693,6 +885,25 @@ export function OnboardingFlowScreen() {
       setFinishing(false)
     }
   }, [onboarding, navigate])
+
+  // The strategic-pivot payoff: finish onboarding, generate the first
+  // Signature Audit from the just-seeded collection + wears, and land the
+  // new user on their own shareable audit.
+  const handleReadSignature = useCallback(async () => {
+    if (!user) return
+    setFinishing(true)
+    try {
+      await onboarding.completeOnboarding()
+      trackEvent(AnalyticsEvents.COMPLETE_ONBOARDING, { method: 'completed', destination: 'signature' })
+      const row = await generateSignatureAudit(user.id)
+      navigate(`/signature/${row.slug}`, { replace: true })
+    } catch {
+      // Generation failed (recommender down, etc.) -- degrade to the app.
+      navigate('/explore', { replace: true })
+    } finally {
+      setFinishing(false)
+    }
+  }, [user, onboarding, navigate])
 
   const handleSkip = useCallback(() => {
     onboarding.skipOnboarding()
@@ -739,11 +950,22 @@ export function OnboardingFlowScreen() {
           onSkip={handleSkip}
         />
       )
-    case 'first-fragrance':
+    case 'first-collection':
       return (
-        <FirstFragranceStep
-          onNext={onboarding.nextStep}
+        <FirstCollectionStep
+          added={addedFragrances}
+          onAdd={handleAdd}
+          onNext={() => onboarding.setStep(addedFragrances.length > 0 ? 'first-wears' : 'complete')}
           onBack={onboarding.prevStep}
+          onSkip={handleSkip}
+        />
+      )
+    case 'first-wears':
+      return (
+        <FirstWearsStep
+          fragrances={addedFragrances}
+          onNext={() => onboarding.setStep('complete')}
+          onBack={() => onboarding.setStep('first-collection')}
           onSkip={handleSkip}
         />
       )
@@ -751,9 +973,11 @@ export function OnboardingFlowScreen() {
       return (
         <CompleteStep
           preferences={onboarding.preferences}
+          hasBottles={addedFragrances.length > 0}
+          onReadSignature={() => void handleReadSignature()}
           onFinish={() => handleFinish('/explore')}
           onViewShelf={() => handleFinish('/')}
-          onBack={onboarding.prevStep}
+          onBack={() => onboarding.setStep(addedFragrances.length > 0 ? 'first-wears' : 'first-collection')}
           loading={finishing}
         />
       )

@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 
-export type OnboardingStep = 'welcome' | 'taste' | 'first-fragrance' | 'complete'
+export type OnboardingStep = 'welcome' | 'taste' | 'first-collection' | 'first-wears' | 'complete'
 
-const STEPS: OnboardingStep[] = ['welcome', 'taste', 'first-fragrance', 'complete']
+const STEPS: OnboardingStep[] = ['welcome', 'taste', 'first-collection', 'first-wears', 'complete']
 
 interface OnboardingPreferences {
   favoriteNotes: string[]

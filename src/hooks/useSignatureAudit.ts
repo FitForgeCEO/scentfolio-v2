@@ -163,8 +163,11 @@ async function computeAuditData(userId: string): Promise<SignatureAuditData> {
         ownedMs: now - new Date(c.date_added).getTime(),
       }))
       .sort((a, b) => a.wears - b.wears || b.ownedMs - a.ownedMs)
-    const preferred = candidates.find((x) => x.ownedMs > SIXTY_DAYS_MS && x.wears < 3)
-    const pick = preferred ?? candidates[0]
+    // Only surface a ghost when a bottle has genuinely gathered dust --
+    // owned 60+ days with under 3 wears. Brand-new shelves (onboarding
+    // cold-start) skip the card rather than shaming a bottle added today;
+    // the audit screen shows an owner-only unlock placeholder instead.
+    const pick = candidates.find((x) => x.ownedMs > SIXTY_DAYS_MS && x.wears < 3) ?? null
     if (pick) {
       ghost = {
         ...bottleOf(pick.c.fragrances),
