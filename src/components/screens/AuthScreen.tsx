@@ -11,7 +11,11 @@ type Mode = 'sign_in' | 'sign_up'
 
 export function AuthScreen() {
   const { signIn, signUp, resendConfirmation, sendPasswordReset } = useAuth()
-  const [mode, setMode] = useState<Mode>('sign_in')
+  // Landing-page CTAs arrive with ?mode=signup -- open the signup form
+  // directly rather than making converted visitors click through sign-in.
+  const [mode, setMode] = useState<Mode>(() =>
+    new URLSearchParams(window.location.search).get('mode') === 'signup' ? 'sign_up' : 'sign_in'
+  )
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
