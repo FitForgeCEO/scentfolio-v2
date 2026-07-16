@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
 import { fetchPersonalisedRecsScored, type OwnedItem } from '@/lib/taste-vector'
 import {
+  archetypeFrom,
   computeDnaFamilies,
   personalityFor,
   seasonOf,
@@ -207,7 +208,7 @@ async function computeAuditData(userId: string): Promise<SignatureAuditData> {
     brands: new Set(owned.map((c) => c.fragrances.brand)).size,
   }
 
-  return {
+  const data: SignatureAuditData = {
     version: 1,
     generatedAt: new Date().toISOString(),
     ownerName,
@@ -215,6 +216,11 @@ async function computeAuditData(userId: string): Promise<SignatureAuditData> {
     collectionCount: owned.length,
     cards: { dna, twin, mostWorn, ghost, season, verdict },
   }
+  // Stored at generation so the OG image can bake the name; old cached
+  // payloads derive it on read (archetypeFrom is pure over stored fields).
+  const archetype = archetypeFrom(data)
+  if (archetype) data.archetype = archetype
+  return data
 }
 
 // ── OG image (best-effort — never blocks generation) ────────────────────────
@@ -228,6 +234,7 @@ async function uploadOgImage(
       ownerName: data.ownerName,
       dna: data.cards.dna,
       bottleImageUrl: data.cards.mostWorn?.imageUrl ?? data.cards.twin?.imageUrl ?? null,
+      archetype: data.archetype ?? archetypeFrom(data),
     })
     if (!blob) return null
     const path = `${userId}.png`
@@ -300,6 +307,7 @@ export async function generateSignatureAudit(userId: string): Promise<AuditRow> 
 
   trackEvent(AnalyticsEvents.SIGNATURE_AUDIT_GENERATED, {
     slug: row.slug,
+    archetype: data.archetype?.name ?? null,
     wear_log_count: data.wearLogCount,
     collection_count: data.collectionCount,
     cards_present: Object.entries(data.cards)

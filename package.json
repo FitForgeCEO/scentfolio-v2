@@ -18,7 +18,8 @@
     "eval:recommender": "tsx scripts/eval-recommender.ts",
     "eval:recommender:sample": "tsx scripts/eval-recommender.ts --pairs scripts/eval-pairs.sample.json",
     "eval:recommender:hybrid": "tsx scripts/eval-recommender-hybrid.ts",
-    "eval:recommender:hybrid:sample": "tsx scripts/eval-recommender-hybrid.ts --pairs scripts/eval-pairs.sample.json"
+    "eval:recommender:hybrid:sample": "tsx scripts/eval-recommender-hybrid.ts --pairs scripts/eval-pairs.sample.json",
+    "test:archetype": "tsx scripts/test-signature-archetype.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",

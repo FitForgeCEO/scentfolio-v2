@@ -23,12 +23,18 @@ export interface AuditBottle {
   imageUrl: string | null
 }
 
+export interface Archetype {
+  name: string // e.g. "The Amber Maximalist"
+  tagline: string // the personalityFor sentence, rendered under the name
+}
+
 export interface SignatureAuditData {
   version: 1
   generatedAt: string
   ownerName: string | null
   wearLogCount: number
   collectionCount: number
+  archetype?: Archetype // optional, no version bump; derive-on-read for old payloads
   cards: {
     dna: { families: DnaFamily[]; personality: string } | null
     twin: (AuditBottle & { reason: string }) | null
@@ -163,6 +169,44 @@ export function personalityFor(displayFamilies: string[]): string {
   return DEFAULT_PERSONALITY
 }
 
+// ── Archetype — the nameable identity claim ──────────────────────────────────
+// "The <FamilyLabel> <BehaviourNoun>". Derivable entirely from an already-
+// stored payload, so every cached v1 audit gets one with no migration: the
+// render layer computes `data.archetype ?? archetypeFrom(data)`.
+// Deterministic — first matching rule wins; families arrive stably ordered
+// from computeDnaFamilies. Taxonomy mirrors tools/v3_build (video end cards);
+// keep the two in sync.
+
+const ARCHETYPE_FAMILY_LABEL: Record<string, string> = {
+  'White Floral': 'Floral',
+  'Warm Spicy': 'Spiced',
+  'Fresh Spicy': 'Spiced',
+  'Mossy': 'Chypre',
+}
+
+export function archetypeFrom(data: SignatureAuditData): Archetype | null {
+  const dna = data.cards.dna
+  // Cold start: no families yet -- no archetype. The screen shows a gentle
+  // placeholder rather than inventing an identity off an empty shelf.
+  if (!dna || dna.families.length === 0) return null
+  const families = dna.families
+  const label = ARCHETYPE_FAMILY_LABEL[families[0].family] ?? families[0].family
+  const v = data.cards.verdict
+
+  let noun = 'Collector'
+  if (families[0].pct >= 55) noun = 'Purist'
+  else if (v.bottles <= 8) noun = 'Minimalist'
+  else if (v.bottles >= 25) noun = 'Maximalist'
+  else if (v.brands >= 10) noun = 'Explorer'
+  else if (v.wears >= 50) noun = 'Devotee'
+  else if (families.length >= 3 && families[0].pct - families[2].pct <= 10) noun = 'Polyglot'
+
+  return {
+    name: `The ${label} ${noun}`,
+    tagline: dna.personality || personalityFor(families.map((f) => f.family)),
+  }
+}
+
 // ── Card 5: Season ───────────────────────────────────────────────────────────
 // Northern-hemisphere meteorological seasons (UK default per brief).
 
@@ -233,11 +277,38 @@ export type ShareTarget = 'ig_story' | 'tiktok' | 'imessage' | 'x' | 'copy_link'
 export function shareCaptions(
   url: string,
   dna: { families: DnaFamily[]; personality: string } | null,
+  archetype?: Archetype | null,
 ): { target: ShareTarget; label: string; caption: string }[] {
   const line = dna && dna.families.length >= 3
     ? `${dna.families[0].pct}% ${dna.families[0].family} · ${dna.families[1].pct}% ${dna.families[1].family} · ${dna.families[2].pct}% ${dna.families[2].family}`
     : 'My fragrance signature, read from what I actually wear'
   const personality = dna?.personality ?? ''
+  if (archetype) {
+    // Identity claim first; the % line stays as the second sentence.
+    const name = archetype.name
+    return [
+      {
+        target: 'ig_story',
+        label: 'Instagram Story',
+        caption: `My Fragrance DNA says I’m ${name}. ${line}. ${url}`,
+      },
+      {
+        target: 'tiktok',
+        label: 'TikTok',
+        caption: `Apparently I’m ${name}. What’s your fragrance signature? ${url}`,
+      },
+      {
+        target: 'imessage',
+        label: 'Message',
+        caption: `I’m ${name} — see yours: ${url}`,
+      },
+      {
+        target: 'x',
+        label: 'X',
+        caption: `${name}. ${line}. Via ScentFolio. ${url}`,
+      },
+    ]
+  }
   return [
     {
       target: 'ig_story',
@@ -285,6 +356,7 @@ export async function drawOgImage(params: {
   ownerName: string | null
   dna: { families: DnaFamily[]; personality: string } | null
   bottleImageUrl: string | null
+  archetype?: Archetype | null
 }): Promise<Blob | null> {
   const W = 1200
   const H = 630
@@ -317,17 +389,27 @@ export async function drawOgImage(params: {
   ctx.textBaseline = 'alphabetic'
   ctx.fillText('Y O U R   F R A G R A N C E   D N A', 80, 116)
 
-  // Owner line
-  ctx.fillStyle = CREAM
-  ctx.font = `italic 700 52px ${serif}`
+  // Hero line — the archetype name is the identity hook that earns the tap;
+  // payloads without one keep the owner line as the hero.
   const owner = params.ownerName ? `${params.ownerName}’s Signature` : 'A Signature, read from real wears'
-  ctx.fillText(owner, 80, 190, 680)
+  let y = 268
+  ctx.fillStyle = CREAM
+  if (params.archetype) {
+    ctx.font = `italic 700 58px ${serif}`
+    ctx.fillText(params.archetype.name, 80, 192, 680)
+    ctx.fillStyle = 'rgba(232, 223, 211, 0.7)'
+    ctx.font = `400 24px ${sans}`
+    ctx.fillText(owner, 80, 236, 680)
+    y = 300
+  } else {
+    ctx.font = `italic 700 52px ${serif}`
+    ctx.fillText(owner, 80, 190, 680)
+  }
 
   // DNA bars
   const families = params.dna?.families ?? []
   const barX = 80
   const barMaxW = 560
-  let y = 268
   ctx.font = `500 26px ${sans}`
   for (const f of families) {
     ctx.fillStyle = CREAM

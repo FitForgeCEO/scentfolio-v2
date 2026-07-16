@@ -19,7 +19,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { useSignatureAudit } from '@/hooks/useSignatureAudit'
 import { supabase } from '@/lib/supabase'
 import { trackEvent, AnalyticsEvents } from '@/lib/analytics'
-import { CARD_COPY, shareCaptions, type ShareTarget, type SignatureAuditData } from '@/lib/signature-audit'
+import { archetypeFrom, CARD_COPY, shareCaptions, type ShareTarget, type SignatureAuditData } from '@/lib/signature-audit'
 
 const NOIR = '#191210'
 const GOLD = '#e5c276'
@@ -124,9 +124,14 @@ function useAuditMeta(data: SignatureAuditData | null, ogImageUrl: string | null
   useEffect(() => {
     if (!data) return
     const prevTitle = document.title
-    document.title = data.ownerName
-      ? `${data.ownerName}’s Fragrance DNA — ScentFolio`
-      : 'A Fragrance DNA — ScentFolio'
+    const archetype = data.archetype ?? archetypeFrom(data)
+    document.title = archetype
+      ? data.ownerName
+        ? `${data.ownerName} is ${archetype.name} — ScentFolio`
+        : `${archetype.name} — ScentFolio`
+      : data.ownerName
+        ? `${data.ownerName}’s Fragrance DNA — ScentFolio`
+        : 'A Fragrance DNA — ScentFolio'
     const ensure = (property: string, content: string) => {
       let el = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`)
       if (!el) {
@@ -271,14 +276,48 @@ export function SignatureAuditScreen() {
   }
 
   const d = audit.data
+  const archetype = d.archetype ?? archetypeFrom(d)
   const cards: { key: string; render: (i: number, n: number) => React.ReactNode }[] = []
 
+  if (archetype) {
+    const a = archetype
+    const v = d.cards.verdict
+    const topFamily = d.cards.dna?.families[0]
+    const stats = [
+      topFamily ? `${topFamily.pct}% ${topFamily.family}` : null,
+      `${v.bottles} ${v.bottles === 1 ? 'bottle' : 'bottles'}`,
+      `${v.wears} ${v.wears === 1 ? 'wear' : 'wears'}`,
+    ]
+      .filter(Boolean)
+      .join('  ·  ')
+    // Card 0 — the screenshot moment. Mirrors the video end card
+    // (tools/v3_build/make_archetype_card.py): gold kicker, serif name,
+    // gold rule, italic tagline, muted tracked stats.
+    cards.push({
+      key: 'archetype',
+      render: (i, n) => (
+        <AuditCard key="archetype" index={i} total={n} cardRef={dnaCardRef}>
+          <Kicker>Your Signature</Kicker>
+          <h1 className="font-headline text-5xl leading-tight" style={{ color: CREAM }}>
+            {a.name}
+          </h1>
+          <div className="w-16 h-[3px] mt-6 mb-5" style={{ backgroundColor: GOLD }} />
+          <p className="font-headline italic text-lg max-w-[300px]" style={{ color: CREAM }}>
+            {a.tagline}
+          </p>
+          <p className="font-label text-[10px] tracking-[0.2em] uppercase mt-8" style={{ color: `${CREAM}80` }}>
+            {stats}
+          </p>
+        </AuditCard>
+      ),
+    })
+  }
   if (d.cards.dna) {
     const dna = d.cards.dna
     cards.push({
       key: 'dna',
       render: (i, n) => (
-        <AuditCard key="dna" index={i} total={n} cardRef={dnaCardRef}>
+        <AuditCard key="dna" index={i} total={n} cardRef={archetype ? undefined : dnaCardRef}>
           <Kicker>{CARD_COPY.dna.title}</Kicker>
           <p className="font-headline italic text-xl mb-8" style={{ color: CREAM }}>
             {dna.personality}
@@ -403,12 +442,19 @@ export function SignatureAuditScreen() {
   }
 
   const total = cards.length
-  const captions = shareCaptions(shareUrl, d.cards.dna)
+  const captions = shareCaptions(shareUrl, d.cards.dna, archetype)
 
   // Owner-only placeholders for cards that need more history (Ghost: a
   // bottle owned 60+ days with < 3 wears; Season: 20+ logged wears).
   // Public/shared views stay clean -- strangers only see real cards.
   const locked: { key: string; title: string; line: string }[] = []
+  if (isOwner && !archetype) {
+    locked.push({
+      key: 'locked-archetype',
+      title: 'Your Signature',
+      line: 'Your signature is still forming — log a few wears.',
+    })
+  }
   if (isOwner && !d.cards.ghost) {
     locked.push({
       key: 'locked-ghost',
@@ -454,7 +500,7 @@ export function SignatureAuditScreen() {
           <>
             <Kicker>Share your Signature</Kicker>
             <p className="font-headline italic text-lg mb-8" style={{ color: CREAM }}>
-              A signature is for signing with.
+              {archetype ? `You sign as ${archetype.name}.` : 'A signature is for signing with.'}
             </p>
             <div className="space-y-2.5">
               {captions.map((c) => (
